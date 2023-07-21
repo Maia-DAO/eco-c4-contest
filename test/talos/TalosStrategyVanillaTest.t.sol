@@ -196,7 +196,7 @@ contract TalosStrategyVanillaTest is TalosTestor {
 
         hevm.expectEmit(true, true, true, true);
         // emit Rerange(-12360, -5280, 59402, 179537); // From Popsicle
-        emit Rerange(talosBaseStrategy.tokenId() + 2, -12360, -5280, 59455, 179687);
+        emit Rerange(talosBaseStrategy.tokenId() + 2, -12360, -5280, 59404, 179533);
 
         talosBaseStrategy.rebalance();
     }

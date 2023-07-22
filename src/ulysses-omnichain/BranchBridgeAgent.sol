@@ -119,14 +119,14 @@ contract BranchBridgeAgent is IBranchBridgeAgent {
     uint32 public depositNonce;
 
     /// @notice Mapping from Pending deposits hash to Deposit Struct.
-    mapping(uint32 => Deposit) public getDeposit;
+    mapping(uint256 depositNonce => Deposit deposit) public getDeposit;
 
     /*///////////////////////////////////////////////////////////////
                             EXECUTOR STATE
     //////////////////////////////////////////////////////////////*/
 
     /// @notice If true, bridge agent has already served a request with this nonce from  a given chain. Chain -> Nonce -> Bool
-    mapping(uint32 => bool) public executionHistory;
+    mapping(uint256 settlementNonce => uint256 state) public executionState;
 
     /*///////////////////////////////////////////////////////////////
                         GAS MANAGEMENT STATE
@@ -1145,21 +1145,21 @@ contract BranchBridgeAgent is IBranchBridgeAgent {
             uint32 nonce = uint32(bytes4(data[PARAMS_START_SIGNED:25]));
 
             //Check if tx has already been executed
-            if (executionHistory[nonce]) {
+            if (executionState[nonce] != 0) {
                 _forceRevert();
                 //Return true to avoid triggering anyFallback in case of `_forceRevert()` failure
                 return (true, "already executed tx");
             }
 
-            try BranchBridgeAgentExecutor(bridgeAgentExecutorAddress).executeNoSettlement(localRouterAddress, data)
-            returns (bool, bytes memory res) {
-                (success, result) = (true, res);
-            } catch (bytes memory reason) {
-                result = reason;
-            }
-
-            //Update tx state as executed
-            executionHistory[nonce] = true;
+            //Try to execute remote request
+            //Flag 0 - BranchBridgeAgentExecutor(bridgeAgentExecutorAddress).executeNoSettlement(localRouterAddress, data)
+            (success, result) = _execute(
+                data[0] & 0x80 == 0x80,
+                nonce,
+                abi.encodeWithSelector(
+                    BranchBridgeAgentExecutor.executeNoSettlement.selector, localRouterAddress, data
+                )
+            );
 
             //DEPOSIT FLAG: 1 (Single Asset Settlement)
         } else if (flag == 0x01) {
@@ -1167,23 +1167,21 @@ contract BranchBridgeAgent is IBranchBridgeAgent {
             uint32 nonce = uint32(bytes4(data[PARAMS_START_SIGNED:25]));
 
             //Check if tx has already been executed
-            if (executionHistory[nonce]) {
+            if (executionState[nonce] != 0) {
                 _forceRevert();
                 //Return true to avoid triggering anyFallback in case of `_forceRevert()` failure
                 return (true, "already executed tx");
             }
 
             //Try to execute remote request
-            try BranchBridgeAgentExecutor(bridgeAgentExecutorAddress).executeWithSettlement(
-                recipient, localRouterAddress, data
-            ) returns (bool, bytes memory res) {
-                (success, result) = (true, res);
-            } catch (bytes memory reason) {
-                result = reason;
-            }
-
-            //Update tx state as executed
-            executionHistory[nonce] = true;
+            //Flag 1 - BranchBridgeAgentExecutor(bridgeAgentExecutorAddress).executeWithSettlement(recipient, localRouterAddress, data)
+            (success, result) = _execute(
+                data[0] & 0x80 == 0x80,
+                nonce,
+                abi.encodeWithSelector(
+                    BranchBridgeAgentExecutor.executeWithSettlement.selector, recipient, localRouterAddress, data
+                )
+            );
 
             //DEPOSIT FLAG: 2 (Multiple Settlement)
         } else if (flag == 0x02) {
@@ -1191,24 +1189,39 @@ contract BranchBridgeAgent is IBranchBridgeAgent {
             uint32 nonce = uint32(bytes4(data[22:26]));
 
             //Check if tx has already been executed
-            if (executionHistory[nonce]) {
+            if (executionState[nonce] != 0) {
                 _forceRevert();
                 //Return true to avoid triggering anyFallback in case of `_forceRevert()` failure
                 return (true, "already executed tx");
             }
 
             //Try to execute remote request
-            try BranchBridgeAgentExecutor(bridgeAgentExecutorAddress).executeWithSettlementMultiple(
-                recipient, localRouterAddress, data
-            ) returns (bool, bytes memory res) {
-                (success, result) = (true, res);
-            } catch (bytes memory reason) {
-                result = reason;
+            // Flag 2 - BranchBridgeAgentExecutor(bridgeAgentExecutorAddress).executeWithSettlementMultiple(recipient, localRouterAddress, data)
+            (success, result) = _execute(
+                data[0] & 0x80 == 0x80,
+                nonce,
+                abi.encodeWithSelector(
+                    BranchBridgeAgentExecutor.executeWithSettlementMultiple.selector,
+                    recipient,
+                    localRouterAddress,
+                    data
+                )
+            );
+
+            //DEPOSIT FLAG: 3 (Retrieve Settlement)
+        } else if (flag == 0x03) {
+            //Get nonce
+            uint32 nonce = uint32(bytes4(data[1:5]));
+
+            //Check if tx is in retrieve mode
+            if (executionState[nonce] == 2) {
+                //Trigger fallback / Retry failed fallback
+                (success, result) = (false, "");
+            } else {
+                _forceRevert();
+                //Return true to avoid triggering anyFallback in case of `_forceRevert()` failure
+                return (true, "not retrievable");
             }
-
-            //Update tx state as executed
-            executionHistory[nonce] = true;
-
             //Unrecognized Function Selector
         } else {
             emit LogCallin(flag, data, rootChainId);
@@ -1221,6 +1234,28 @@ contract BranchBridgeAgent is IBranchBridgeAgent {
 
         //Deduct gas costs from deposit and replenish this bridge agent's execution budget.
         _payExecutionGas(recipient, initialGas);
+    }
+
+    function _execute(bool _hasFallbackToggled, uint256 _depositNonce, bytes memory _data)
+        private
+        returns (bool success, bytes memory reason)
+    {
+        //Try to execute remote request
+        (success, reason) = bridgeAgentExecutorAddress.call(_data);
+
+        if (success) {
+            //Update tx state as executed
+            executionState[_depositNonce] = 1;
+        } else {
+            //Read fallback bit and perform fallback if necessary. If not, allow for retrying deposit.
+            if (_hasFallbackToggled) {
+                //Update tx state as retrieve only
+                executionState[_depositNonce] = 2;
+            } else {
+                //Interaction failure allow for retrying deposit
+                success = true;
+            }
+        }
     }
 
     /// @inheritdoc IApp
@@ -1302,6 +1337,7 @@ contract BranchBridgeAgent is IBranchBridgeAgent {
 
             //Unrecognized Function Selector
         } else {
+            _forceRevert();
             return (false, "unknown selector");
         }
     }
@@ -1376,7 +1412,7 @@ contract BranchBridgeAgent is IBranchBridgeAgent {
         _;
     }
 
-    /// @notice Modifier verifies the caller is the Anycall Executor. 
+    /// @notice Modifier verifies the caller is the Anycall Executor.
     modifier requiresExecutor() {
         _requiresExecutor();
         _;

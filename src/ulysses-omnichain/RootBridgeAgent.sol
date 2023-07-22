@@ -251,6 +251,31 @@ contract RootBridgeAgent is IRootBridgeAgent {
         _retrySettlement(_settlementNonce);
     }
 
+    function retrieveSettlement(uint32 _settlementNonce) external payable lock {
+        //Update User Gas available for retrieve.
+        if (initialGas == 0) {
+            userFeeInfo.depositedGas = uint128(msg.value);
+            userFeeInfo.gasToBridgeOut = 0;
+        } else {
+            //Function is not remote callable
+            return;
+        }
+
+        //Get deposit owner.
+        address settlementOwner = getSettlement[_settlementNonce].owner;
+
+        //Update Deposit
+        if (getSettlement[_settlementNonce].status != SettlementStatus.Failed || settlementOwner == address(0)) {
+            revert SettlementRetrieveUnavailable();
+        } else if (
+            msg.sender != settlementOwner
+                && msg.sender != address(IPort(localPortAddress).getUserAccount(settlementOwner))
+        ) {
+            revert NotSettlementOwner();
+        }
+        _retrieveSettlement(_settlementNonce);
+    }
+
     /// @inheritdoc IRootBridgeAgent
     function redeemSettlement(uint32 _depositNonce) external lock {
         //Get deposit owner.
@@ -272,10 +297,20 @@ contract RootBridgeAgent is IRootBridgeAgent {
     //////////////////////////////////////////////////////////////*/
 
     /// @inheritdoc IRootBridgeAgent
-    function callOut(address _recipient, bytes memory _data, uint24 _toChain) external payable lock requiresRouter {
+    function callOut(address _recipient, bytes memory _data, uint24 _toChain, bool _hasFallbackToggled)
+        external
+        payable
+        lock
+        requiresRouter
+    {
         //Encode Data for call.
-        bytes memory data =
-            abi.encodePacked(bytes1(0x00), _recipient, settlementNonce++, _data, _manageGasOut(_toChain));
+        bytes memory data = abi.encodePacked(
+            _hasFallbackToggled ? bytes1(0x00) & 0x0F : bytes1(0x00),
+            _recipient,
+            settlementNonce++,
+            _data,
+            _manageGasOut(_toChain)
+        );
 
         //Perform Call to clear hToken balance on destination branch chain.
         _performCall(data, _toChain);
@@ -289,7 +324,8 @@ contract RootBridgeAgent is IRootBridgeAgent {
         address _globalAddress,
         uint256 _amount,
         uint256 _deposit,
-        uint24 _toChain
+        uint24 _toChain,
+        bool _hasFallbackToggled
     ) external payable lock requiresRouter {
         //Get destination Local Address from Global Address.
         address localAddress = IPort(localPortAddress).getLocalTokenFromGlobal(_globalAddress, _toChain);
@@ -304,7 +340,7 @@ contract RootBridgeAgent is IRootBridgeAgent {
 
         //Prepare data for call
         bytes memory data = abi.encodePacked(
-            bytes1(0x01),
+            _hasFallbackToggled ? bytes1(0x01) & 0x0F : bytes1(0x01),
             _recipient,
             settlementNonce,
             localAddress,
@@ -335,7 +371,8 @@ contract RootBridgeAgent is IRootBridgeAgent {
         address[] memory _globalAddresses,
         uint256[] memory _amounts,
         uint256[] memory _deposits,
-        uint24 _toChain
+        uint24 _toChain,
+        bool _hasFallbackToggled
     ) external payable lock requiresRouter {
         address[] memory hTokens = new address[](_globalAddresses.length);
         address[] memory tokens = new address[](_globalAddresses.length);
@@ -355,9 +392,12 @@ contract RootBridgeAgent is IRootBridgeAgent {
             }
         }
 
+        //Avoid stack too deep
+        bytes memory __data = _data;
+
         //Prepare data for call with settlement of multiple assets
         bytes memory data = abi.encodePacked(
-            bytes1(0x02),
+            _hasFallbackToggled ? bytes1(0x02) & 0x0F : bytes1(0x02),
             _recipient,
             uint8(hTokens.length),
             settlementNonce,
@@ -365,7 +405,7 @@ contract RootBridgeAgent is IRootBridgeAgent {
             tokens,
             _amounts,
             _deposits,
-            _data,
+            __data,
             _manageGasOut(_toChain)
         );
 
@@ -581,6 +621,20 @@ contract RootBridgeAgent is IRootBridgeAgent {
 
         //Retry Success
         return true;
+    }
+
+    function _retrieveSettlement(uint32 _settlementNonce) internal {
+        //Get settlement storage reference
+        Settlement storage settlementReference = getSettlement[_settlementNonce];
+
+        //Save toChain in memory
+        uint24 toChain = settlementReference.toChain;
+
+        //Encode Data for cross-chain call.
+        bytes memory packedData = abi.encodePacked(bytes1(0x03), _settlementNonce, _manageGasOut(toChain), uint128(0));
+
+        //Retrieve Deposit
+        _performCall(settlementReference.callData, toChain);
     }
 
     /**

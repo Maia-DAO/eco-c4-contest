@@ -112,7 +112,7 @@ contract CoreRootRouter is IRootRouter, Ownable {
         bytes memory packedData = abi.encodePacked(bytes1(0x02), data);
 
         //Add new global token to branch chain
-        IBridgeAgent(bridgeAgentAddress).callOut{value: msg.value}(_gasReceiver, packedData, _toChain);
+        IBridgeAgent(bridgeAgentAddress).callOut{value: msg.value}(_gasReceiver, packedData, _toChain, false);
     }
 
     /**
@@ -163,7 +163,7 @@ contract CoreRootRouter is IRootRouter, Ownable {
         bytes memory packedData = abi.encodePacked(bytes1(0x01), data);
 
         //Add new global token to branch chain
-        IBridgeAgent(bridgeAgentAddress).callOut(_gasReceiver, packedData, _toChain);
+        IBridgeAgent(bridgeAgentAddress).callOut(_gasReceiver, packedData, _toChain, false);
     }
 
     /**
@@ -241,7 +241,7 @@ contract CoreRootRouter is IRootRouter, Ownable {
         bytes memory packedData = abi.encodePacked(bytes1(0x03), data);
 
         //Add new global token to branch chain
-        IBridgeAgent(bridgeAgentAddress).callOut{value: msg.value}(_gasReceiver, packedData, _toChain);
+        IBridgeAgent(bridgeAgentAddress).callOut{value: msg.value}(_gasReceiver, packedData, _toChain, false);
     }
 
     /**
@@ -262,7 +262,7 @@ contract CoreRootRouter is IRootRouter, Ownable {
         bytes memory packedData = abi.encodePacked(bytes1(0x04), data);
 
         //Add new global token to branch chain
-        IBridgeAgent(bridgeAgentAddress).callOut{value: msg.value}(_gasReceiver, packedData, _toChain);
+        IBridgeAgent(bridgeAgentAddress).callOut{value: msg.value}(_gasReceiver, packedData, _toChain, false);
     }
 
     /**
@@ -285,7 +285,7 @@ contract CoreRootRouter is IRootRouter, Ownable {
         bytes memory packedData = abi.encodePacked(bytes1(0x05), data);
 
         //Add new global token to branch chain
-        IBridgeAgent(bridgeAgentAddress).callOut{value: msg.value}(_gasReceiver, packedData, _toChain);
+        IBridgeAgent(bridgeAgentAddress).callOut{value: msg.value}(_gasReceiver, packedData, _toChain, false);
     }
 
     /**
@@ -312,7 +312,7 @@ contract CoreRootRouter is IRootRouter, Ownable {
         bytes memory packedData = abi.encodePacked(bytes1(0x06), data);
 
         //Add new global token to branch chain
-        IBridgeAgent(bridgeAgentAddress).callOut{value: msg.value}(_gasReceiver, packedData, _toChain);
+        IBridgeAgent(bridgeAgentAddress).callOut{value: msg.value}(_gasReceiver, packedData, _toChain, false);
     }
 
     /*///////////////////////////////////////////////////////////////

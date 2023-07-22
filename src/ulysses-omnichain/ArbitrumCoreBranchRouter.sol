@@ -56,7 +56,7 @@ contract ArbitrumCoreBranchRouter is CoreBranchRouter {
         bytes memory packedData = abi.encodePacked(bytes1(0x02), data);
 
         //Send Cross-Chain request (System Response/Request)
-        IBridgeAgent(localBridgeAgentAddress).performCallOut(msg.sender, packedData, 0, 0);
+        IBridgeAgent(localBridgeAgentAddress).performCallOut(msg.sender, packedData, 0, 0, false);
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -101,7 +101,7 @@ contract ArbitrumCoreBranchRouter is CoreBranchRouter {
         bytes memory packedData = abi.encodePacked(bytes1(0x04), data);
 
         //Send Cross-Chain request
-        IBridgeAgent(localBridgeAgentAddress).performSystemCallOut(address(this), packedData, 0, 0);
+        IBridgeAgent(localBridgeAgentAddress).performSystemCallOut(address(this), packedData, 0, 0, false);
     }
 
     /*///////////////////////////////////////////////////////////////

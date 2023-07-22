@@ -162,70 +162,86 @@ interface IBranchBridgeAgent is IApp {
      * @notice Function to perform a call to the Root Omnichain Router without token deposit.
      *   @param params enconded parameters to execute on the root chain router.
      *   @param remoteExecutionGas gas allocated for remote branch execution.
+     *   @param hasFallbackToggled flag to indicate if the fallback function was toggled.
      *   @dev DEPOSIT ID: 1 (Call without deposit)
      *
      */
-    function callOut(bytes calldata params, uint128 remoteExecutionGas) external payable;
+    function callOut(bytes calldata params, uint128 remoteExecutionGas, bool hasFallbackToggled) external payable;
 
     /**
      * @notice Function to perform a call to the Root Omnichain Router while depositing a single asset.
      *   @param params enconded parameters to execute on the root chain router.
      *   @param dParams additional token deposit parameters.
      *   @param remoteExecutionGas gas allocated for remote branch execution.
+     *   @param hasFallbackToggled flag to indicate if the fallback function was toggled.
      *   @dev DEPOSIT ID: 2 (Call with single deposit)
      *
      */
-    function callOutAndBridge(bytes calldata params, DepositInput memory dParams, uint128 remoteExecutionGas)
-        external
-        payable;
+    function callOutAndBridge(
+        bytes calldata params,
+        DepositInput memory dParams,
+        uint128 remoteExecutionGas,
+        bool hasFallbackToggled
+    ) external payable;
 
     /**
      * @notice Function to perform a call to the Root Omnichain Router while depositing two or more assets.
      *   @param params enconded parameters to execute on the root chain router.
      *   @param dParams additional token deposit parameters.
      *   @param remoteExecutionGas gas allocated for remote branch execution.
+     *   @param hasFallbackToggled flag to indicate if the fallback function was toggled.
      *   @dev DEPOSIT ID: 3 (Call with multiple deposit)
      *
      */
     function callOutAndBridgeMultiple(
         bytes calldata params,
         DepositMultipleInput memory dParams,
-        uint128 remoteExecutionGas
+        uint128 remoteExecutionGas,
+        bool hasFallbackToggled
     ) external payable;
 
     /**
      * @notice Function to perform a call to the Root Omnichain Router without token deposit with msg.sender information.
      *   @param params enconded parameters to execute on the root chain router.
      *   @param remoteExecutionGas gas allocated for remote branch execution.
+     *   @param hasFallbackToggled flag to indicate if the fallback function was toggled.
      *   @dev DEPOSIT ID: 4 (Call without deposit and verified sender)
      *
      */
-    function callOutSigned(bytes calldata params, uint128 remoteExecutionGas) external payable;
+    function callOutSigned(bytes calldata params, uint128 remoteExecutionGas, bool hasFallbackToggled)
+        external
+        payable;
 
     /**
      * @notice Function to perform a call to the Root Omnichain Router while depositing a single asset msg.sender.
      *   @param params enconded parameters to execute on the root chain router.
      *   @param dParams additional token deposit parameters.
      *   @param remoteExecutionGas gas allocated for remote branch execution.
+     *   @param hasFallbackToggled flag to indicate if the fallback function was toggled.
      *   @dev DEPOSIT ID: 5 (Call with single deposit and verified sender)
      *
      */
-    function callOutSignedAndBridge(bytes calldata params, DepositInput memory dParams, uint128 remoteExecutionGas)
-        external
-        payable;
+    function callOutSignedAndBridge(
+        bytes calldata params,
+        DepositInput memory dParams,
+        uint128 remoteExecutionGas,
+        bool hasFallbackToggled
+    ) external payable;
 
     /**
      * @notice Function to perform a call to the Root Omnichain Router while depositing two or more assets with msg.sender.
      *   @param params enconded parameters to execute on the root chain router.
      *   @param dParams additional token deposit parameters.
      *   @param remoteExecutionGas gas allocated for remote branch execution.
+     *   @param hasFallbackToggled flag to indicate if the fallback function was toggled.
      *   @dev DEPOSIT ID: 6 (Call with multiple deposit and verified sender)
      *
      */
     function callOutSignedAndBridgeMultiple(
         bytes calldata params,
         DepositMultipleInput memory dParams,
-        uint128 remoteExecutionGas
+        uint128 remoteExecutionGas,
+        bool hasFallbackToggled
     ) external payable;
 
     /**
@@ -235,13 +251,15 @@ interface IBranchBridgeAgent is IApp {
      *     @param _params parameters to execute on the root chain router.
      *     @param _remoteExecutionGas gas allocated for remote branch execution.
      *     @param _toChain Destination chain for interaction.
+     *     @param _hasFallbackToggled flag to indicate if the fallback function was toggled.
      */
     function retryDeposit(
         bool _isSigned,
         uint32 _depositNonce,
         bytes calldata _params,
         uint128 _remoteExecutionGas,
-        uint24 _toChain
+        uint24 _toChain,
+        bool _hasFallbackToggled
     ) external payable;
 
     /**
@@ -299,6 +317,7 @@ interface IBranchBridgeAgent is IApp {
      *   @param depositor address of user depositing assets.
      *   @param gasToBridgeOut gas allocated for the cross-chain call.
      *   @param remoteExecutionGas gas allocated for omnichain execution.
+     *   @param hasFallbackToggled flag to indicate if the fallback function was toggled.
      *   @dev DEPOSIT ID: 0 (System Call / Response)
      *   @dev 0x00 flag allows for identifying system emitted request/responses.
      *
@@ -307,7 +326,8 @@ interface IBranchBridgeAgent is IApp {
         address depositor,
         bytes memory params,
         uint128 gasToBridgeOut,
-        uint128 remoteExecutionGas
+        uint128 remoteExecutionGas,
+        bool hasFallbackToggled
     ) external payable;
 
     /**
@@ -317,12 +337,17 @@ interface IBranchBridgeAgent is IApp {
      *   @param depositor address of user depositing assets.
      *   @param gasToBridgeOut gas allocated for the cross-chain call.
      *   @param remoteExecutionGas gas allocated for omnichain execution.
+     *   @param hasFallbackToggled flag to indicate if the fallback function was toggled.
      *   @dev DEPOSIT ID: 1 (Call without Deposit)
      *
      */
-    function performCallOut(address depositor, bytes memory params, uint128 gasToBridgeOut, uint128 remoteExecutionGas)
-        external
-        payable;
+    function performCallOut(
+        address depositor,
+        bytes memory params,
+        uint128 gasToBridgeOut,
+        uint128 remoteExecutionGas,
+        bool hasFallbackToggled
+    ) external payable;
 
     /**
      * @notice Function to perform a call to the Root Omnichain Router while depositing a single asset.
@@ -331,6 +356,7 @@ interface IBranchBridgeAgent is IApp {
      *   @param dParams additional token deposit parameters.
      *   @param gasToBridgeOut gas allocated for the cross-chain call.
      *   @param remoteExecutionGas gas allocated for omnichain execution.
+     *   @param hasFallbackToggled flag to indicate if the fallback function was toggled.
      *   @dev DEPOSIT ID: 2 (Call with single asset Deposit)
      *
      */
@@ -339,7 +365,8 @@ interface IBranchBridgeAgent is IApp {
         bytes calldata params,
         DepositInput memory dParams,
         uint128 gasToBridgeOut,
-        uint128 remoteExecutionGas
+        uint128 remoteExecutionGas,
+        bool hasFallbackToggled
     ) external payable;
 
     /**
@@ -349,6 +376,7 @@ interface IBranchBridgeAgent is IApp {
      *   @param dParams additional token deposit parameters.
      *   @param gasToBridgeOut gas allocated for the cross-chain call.
      *   @param remoteExecutionGas gas allocated for omnichain execution.
+     *   @param hasFallbackToggled flag to indicate if the fallback function was toggled.
      *   @dev DEPOSIT ID: 3 (Call with multiple deposit)
      *
      */
@@ -357,7 +385,8 @@ interface IBranchBridgeAgent is IApp {
         bytes calldata params,
         DepositMultipleInput memory dParams,
         uint128 gasToBridgeOut,
-        uint128 remoteExecutionGas
+        uint128 remoteExecutionGas,
+        bool hasFallbackToggled
     ) external payable;
 
     /*///////////////////////////////////////////////////////////////

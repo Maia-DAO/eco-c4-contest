@@ -208,9 +208,12 @@ interface IRootBridgeAgent is IApp {
      *   @param _recipient address to receive any outstanding gas on the destination chain.
      *   @param _calldata Calldata for function call.
      *   @param _toChain Chain to bridge to.
+     *   @param _hasFallbackToggled Flag to toggle fallback function.
      *   @dev Internal function performs call to AnycallProxy Contract for cross-chain messaging.
      */
-    function callOut(address _recipient, bytes memory _calldata, uint24 _toChain) external payable;
+    function callOut(address _recipient, bytes memory _calldata, uint24 _toChain, bool _hasFallbackToggled)
+        external
+        payable;
 
     /**
      * @notice External function to move assets from root chain to branch omnichain envirsonment.
@@ -221,6 +224,7 @@ interface IRootBridgeAgent is IApp {
      *   @param _amount amount of ´token´.
      *   @param _deposit amount of native / underlying token.
      *   @param _toChain chain to bridge to.
+     *   @param _hasFallbackToggled Flag to toggle fallback function.
      *
      */
     function callOutAndBridge(
@@ -230,7 +234,8 @@ interface IRootBridgeAgent is IApp {
         address _globalAddress,
         uint256 _amount,
         uint256 _deposit,
-        uint24 _toChain
+        uint24 _toChain,
+        bool _hasFallbackToggled
     ) external payable;
 
     /**
@@ -242,7 +247,7 @@ interface IRootBridgeAgent is IApp {
      *   @param _amounts amounts of token.
      *   @param _deposits amounts of underlying / token.
      *   @param _toChain chain to bridge to.
-     *
+     *   @param _hasFallbackToggled Flag to toggle fallback function.
      *
      */
     function callOutAndBridgeMultiple(
@@ -252,7 +257,8 @@ interface IRootBridgeAgent is IApp {
         address[] memory _globalAddresses,
         uint256[] memory _amounts,
         uint256[] memory _deposits,
-        uint24 _toChain
+        uint24 _toChain,
+        bool _hasFallbackToggled
     ) external payable;
 
     /*///////////////////////////////////////////////////////////////
@@ -401,6 +407,7 @@ interface IRootBridgeAgent is IApp {
     error UnrecognizedAddressInDestination();
 
     error SettlementRedeemUnavailable();
+    error SettlementRetrieveUnavailable();
     error NotSettlementOwner();
 
     error InsufficientBalanceForSettlement();

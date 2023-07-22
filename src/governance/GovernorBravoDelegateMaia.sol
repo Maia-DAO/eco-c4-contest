@@ -84,10 +84,20 @@ contract GovernorBravoDelegate is GovernorBravoDelegateStorageV2, GovernorBravoE
         proposalThreshold = proposalThreshold_;
     }
 
+    /**
+     * @notice Function used to get the proposal threshold amount
+     * @param proposalTotalSupply Total supply of the proposal
+     * @return Proposal threshold amount
+     */
     function getProposalThresholdAmount(uint256 proposalTotalSupply) public view returns (uint256) {
         return proposalTotalSupply * proposalThreshold / DIVISIONER;
     }
 
+    /**
+     * @notice Function used to get the quorum votes amount
+     * @param proposalTotalSupply Total supply of the proposal
+     * @return Quorum votes amount
+     */
     function getQuorumVotesAmount(uint256 proposalTotalSupply) public pure returns (uint256) {
         return proposalTotalSupply * quorumVotes / DIVISIONER;
     }
@@ -312,8 +322,7 @@ contract GovernorBravoDelegate is GovernorBravoDelegateStorageV2, GovernorBravoE
         } else if (block.number <= proposal.endBlock) {
             return ProposalState.Active;
         } else if (
-            proposal.forVotes <= proposal.againstVotes
-                || proposal.forVotes < getQuorumVotesAmount(proposal.totalSupply)
+            proposal.forVotes <= proposal.againstVotes || proposal.forVotes < getQuorumVotesAmount(proposal.totalSupply)
         ) {
             return ProposalState.Defeated;
         } else if (proposal.eta == 0) {

@@ -60,6 +60,24 @@ contract vMaia is ERC4626PartnerManager {
     }
 
     /*///////////////////////////////////////////////////////////////
+                            UTILITY MANAGER LOGIC
+    //////////////////////////////////////////////////////////////*/
+
+    function claimOutstanding() public override {
+        uint256 balance = balanceOf[msg.sender] * bHermesRate;
+        /// @dev Never overflows since balandeOf >= userClaimed.
+        claimWeight(balance - userClaimedWeight[msg.sender]);
+        claimGovernance(balance - userClaimedGovernance[msg.sender]);
+        claimPartnerGovernance(balance - userClaimedPartnerGovernance[msg.sender]);
+    }
+
+    function forfeitOutstanding() public override {
+        forfeitWeight(userClaimedWeight[msg.sender]);
+        forfeitGovernance(userClaimedGovernance[msg.sender]);
+        forfeitPartnerGovernance(userClaimedPartnerGovernance[msg.sender]);
+    }
+
+    /*///////////////////////////////////////////////////////////////
                             MODIFIERS
     //////////////////////////////////////////////////////////////*/
 

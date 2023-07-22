@@ -63,30 +63,6 @@ contract vMaia is ERC4626PartnerManager {
                             MODIFIERS
     //////////////////////////////////////////////////////////////*/
 
-    /// @dev Checks available weight allows for the call.
-    modifier checkWeight(uint256 amount) virtual override {
-        if (balanceOf[msg.sender] < amount + userClaimedWeight[msg.sender]) {
-            revert InsufficientShares();
-        }
-        _;
-    }
-
-    /// @dev Checks available governance allows for the call.
-    modifier checkGovernance(uint256 amount) virtual override {
-        if (balanceOf[msg.sender] < amount + userClaimedGovernance[msg.sender]) {
-            revert InsufficientShares();
-        }
-        _;
-    }
-
-    /// @dev Checks available partner governance allows for the call.
-    modifier checkPartnerGovernance(uint256 amount) virtual override {
-        if (balanceOf[msg.sender] < amount + userClaimedPartnerGovernance[msg.sender]) {
-            revert InsufficientShares();
-        }
-        _;
-    }
-
     /// @dev Boost can't be claimed; does not fail. It is all used by the partner vault.
     function claimBoost(uint256 amount) public override {}
 

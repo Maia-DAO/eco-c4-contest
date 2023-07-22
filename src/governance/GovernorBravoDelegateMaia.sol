@@ -84,12 +84,12 @@ contract GovernorBravoDelegate is GovernorBravoDelegateStorageV2, GovernorBravoE
         proposalThreshold = proposalThreshold_;
     }
 
-    function getProposalThresholdAmount() public view returns (uint256) {
-        return govToken.totalSupply() * proposalThreshold / DIVISIONER;
+    function getProposalThresholdAmount(uint256 proposalTotalSupply) public view returns (uint256) {
+        return proposalTotalSupply * proposalThreshold / DIVISIONER;
     }
 
-    function getQuorumVotesAmount() public view returns (uint256) {
-        return govToken.totalSupply() * quorumVotes / DIVISIONER;
+    function getQuorumVotesAmount(uint256 proposalTotalSupply) public pure returns (uint256) {
+        return proposalTotalSupply * quorumVotes / DIVISIONER;
     }
 
     /**
@@ -112,8 +112,8 @@ contract GovernorBravoDelegate is GovernorBravoDelegateStorageV2, GovernorBravoE
         require(initialProposalId != 0, "GovernorBravo::propose: Governor Bravo not active");
         // Allow addresses above proposal threshold and whitelisted addresses to propose
         require(
-            govToken.getPriorVotes(msg.sender, sub256(block.number, 1)) > getProposalThresholdAmount()
-                || isWhitelisted(msg.sender),
+            govToken.getPriorVotes(msg.sender, sub256(block.number, 1))
+                > getProposalThresholdAmount(govToken.totalSupply()) || isWhitelisted(msg.sender),
             "GovernorBravo::propose: proposer votes below proposal threshold"
         );
         require(
@@ -153,6 +153,7 @@ contract GovernorBravoDelegate is GovernorBravoDelegateStorageV2, GovernorBravoE
         newProposal.calldatas = calldatas;
         newProposal.startBlock = startBlock;
         newProposal.endBlock = endBlock;
+        newProposal.totalSupply = govToken.totalSupply();
         newProposal.forVotes = 0;
         newProposal.againstVotes = 0;
         newProposal.abstainVotes = 0;
@@ -235,13 +236,18 @@ contract GovernorBravoDelegate is GovernorBravoDelegateStorageV2, GovernorBravoE
             // Whitelisted proposers can't be canceled for falling below proposal threshold
             if (isWhitelisted(proposal.proposer)) {
                 require(
-                    (govToken.getPriorVotes(proposal.proposer, sub256(block.number, 1)) < getProposalThresholdAmount())
-                        && msg.sender == whitelistGuardian,
+                    (
+                        govToken.getPriorVotes(proposal.proposer, sub256(block.number, 1))
+                            < getProposalThresholdAmount(proposal.totalSupply)
+                    ) && msg.sender == whitelistGuardian,
                     "GovernorBravo::cancel: whitelisted proposer"
                 );
             } else {
                 require(
-                    (govToken.getPriorVotes(proposal.proposer, sub256(block.number, 1)) < getProposalThresholdAmount()),
+                    (
+                        govToken.getPriorVotes(proposal.proposer, sub256(block.number, 1))
+                            < getProposalThresholdAmount(proposal.totalSupply)
+                    ),
                     "GovernorBravo::cancel: proposer above threshold"
                 );
             }
@@ -305,7 +311,10 @@ contract GovernorBravoDelegate is GovernorBravoDelegateStorageV2, GovernorBravoE
             return ProposalState.Pending;
         } else if (block.number <= proposal.endBlock) {
             return ProposalState.Active;
-        } else if (proposal.forVotes <= proposal.againstVotes || proposal.forVotes < getQuorumVotesAmount()) {
+        } else if (
+            proposal.forVotes <= proposal.againstVotes
+                || proposal.forVotes < getQuorumVotesAmount(proposal.totalSupply)
+        ) {
             return ProposalState.Defeated;
         } else if (proposal.eta == 0) {
             return ProposalState.Succeeded;

@@ -1189,8 +1189,13 @@ contract RootBridgeAgent is IRootBridgeAgent {
             //Get nonce
             uint32 nonce = uint32(bytes4(data[1:5]));
 
-            //Check if tx is in retrieve mode
+            //Check if deposit is in retrieve mode
             if (executionState[fromChainId][nonce] == 2) {
+                //Trigger fallback / Retry failed fallback
+                (success, result) = (false, "");
+            } else if (executionState[fromChainId][nonce] == 1) {
+                //Set deposit to retrieve mode
+                executionState[fromChainId][nonce] = 2;
                 //Trigger fallback / Retry failed fallback
                 (success, result) = (false, "");
             } else {

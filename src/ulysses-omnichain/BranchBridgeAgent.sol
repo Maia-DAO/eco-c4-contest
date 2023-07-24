@@ -1168,7 +1168,7 @@ contract BranchBridgeAgent is IBranchBridgeAgent {
         address recipient = address(uint160(bytes20(data[PARAMS_START:PARAMS_START_SIGNED])));
 
         //Get Action Flag
-        bytes1 flag = bytes1(data[0]);
+        bytes1 flag = data[0] & 0x7F;
 
         //DEPOSIT FLAG: 0 (No settlement)
         if (flag == 0x00) {
@@ -1242,8 +1242,13 @@ contract BranchBridgeAgent is IBranchBridgeAgent {
             //Get nonce
             uint32 nonce = uint32(bytes4(data[1:5]));
 
-            //Check if tx is in retrieve mode
+            //Check if settlement is in retrieve mode
             if (executionState[nonce] == 2) {
+                //Trigger fallback / Retry failed fallback
+                (success, result) = (false, "");
+            } else if (executionState[nonce] == 1) {
+                //Set settlement to retrieve mode
+                executionState[nonce] = 2;
                 //Trigger fallback / Retry failed fallback
                 (success, result) = (false, "");
             } else {

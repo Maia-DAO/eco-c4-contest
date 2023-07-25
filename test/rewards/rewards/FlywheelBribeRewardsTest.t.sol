@@ -33,13 +33,11 @@ contract FlywheelBribeRewardsTest is DSTestPlus {
 
         depot.addAsset(address(rewards), address(rewardToken));
 
-        hevm.prank(address(strategy));
-        rewards.setRewardsDepot(depot);
+        rewards.setRewardsDepot(address(strategy), depot);
     }
 
     function testSetRewardsDepot(address newDepot) public {
-        hevm.prank(address(strategy));
-        rewards.setRewardsDepot(RewardsDepot(newDepot));
+        rewards.setRewardsDepot(address(strategy), RewardsDepot(newDepot));
         assertEq(address(rewards.rewardsDepots(ERC20(strategy))), newDepot);
     }
 

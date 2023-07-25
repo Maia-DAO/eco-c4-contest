@@ -55,12 +55,6 @@ interface IBaseV2Gauge {
     /// @notice the flywheel core contract
     function flywheelGaugeRewards() external returns (FlywheelGaugeRewards);
 
-    /// @notice mapping of whitelisted bribe tokens.
-    function isActive(FlywheelCore flywheel) external returns (bool);
-
-    /// @notice if bribe flywheel was already added.
-    function added(FlywheelCore flywheel) external returns (bool);
-
     /// @notice the gauge's strategy contract
     function strategy() external returns (address);
 
@@ -69,9 +63,6 @@ interface IBaseV2Gauge {
 
     /// @notice the current epoch / cycle number
     function epoch() external returns (uint256);
-
-    /// @notice returns all bribe flywheels
-    function getBribeFlywheels() external view returns (FlywheelCore[] memory);
 
     /*///////////////////////////////////////////////////////////////
                         GAUGE ACTIONS    
@@ -89,22 +80,6 @@ interface IBaseV2Gauge {
     /// @dev only the strategy can call this function
     function detachUser(address user) external;
 
-    /// @notice accrues bribes for a given user
-    /// @dev ERC20Gauges calls this on every vote change
-    function accrueBribes(address user) external;
-
-    /*///////////////////////////////////////////////////////////////
-                        ADMIN ACTIONS    
-    //////////////////////////////////////////////////////////////*/
-
-    /// @notice adds a new bribe flywheel
-    /// @dev only owner can call this function
-    function addBribeFlywheel(FlywheelCore bribeFlywheel) external;
-
-    /// @notice removes a bribe flywheel
-    /// @dev only owner can call this function
-    function removeBribeFlywheel(FlywheelCore bribeFlywheel) external;
-
     /*///////////////////////////////////////////////////////////////
                             EVENTS
     //////////////////////////////////////////////////////////////*/
@@ -116,28 +91,10 @@ interface IBaseV2Gauge {
      */
     event Distribute(uint256 indexed amount, uint256 indexed epoch);
 
-    /**
-     * @notice Emitted when adding a new bribe flywheel
-     * @param bribeFlywheel address of the bribe flywheel
-     */
-    event AddedBribeFlywheel(FlywheelCore indexed bribeFlywheel);
-
-    /**
-     * @notice Emitted when removing a bribe flywheel
-     * @param bribeFlywheel address of the bribe flywheel
-     */
-    event RemoveBribeFlywheel(FlywheelCore indexed bribeFlywheel);
-
     /*///////////////////////////////////////////////////////////////
                             ERRORS
     //////////////////////////////////////////////////////////////*/
 
     /// @notice thrown when caller is not the strategy
     error StrategyError();
-
-    /// @notice thrown when trying to add an existing flywheel
-    error FlywheelAlreadyAdded();
-
-    /// @notice thrown when trying to add an existing flywheel
-    error FlywheelNotActive();
 }

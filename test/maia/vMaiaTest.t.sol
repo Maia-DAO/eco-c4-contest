@@ -35,7 +35,7 @@ contract vMaiaTest is DSTestPlus {
         hermes = new MockERC20("test hermes", "RTKN", 18);
         maia = new MockERC20("test maia", "tMAIA", 18);
 
-        bhermes = new bHermes(hermes, address(this), 1 weeks, 1 days / 2);
+        bhermes = new bHermes(hermes, address(this), address(this), 1 weeks, 1 days / 2);
 
         bHermesRate = 1;
 

@@ -32,6 +32,7 @@ contract bHermesTest is DSTestPlus {
         bHermes = new bHERMES(
             hermes,
             address(this),
+            address(this),
             1000, // cycle of 1000
             100 // freeze window of 100
         );

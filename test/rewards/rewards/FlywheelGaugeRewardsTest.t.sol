@@ -7,10 +7,13 @@ import {MockERC20Gauges} from "../../erc-20/mocks/MockERC20Gauges.t.sol";
 import {MockRewardsStream} from "../mocks/MockRewardsStream.sol";
 import {MockBaseV2Gauge, ERC20} from "../../gauges/mocks/MockBaseV2Gauge.sol";
 
+import {FlywheelBoosterGaugeWeight} from "@rewards/booster/FlywheelBoosterGaugeWeight.sol";
 import "@rewards/rewards/FlywheelGaugeRewards.sol";
 
 contract FlywheelGaugeRewardsTest is DSTestPlus {
     FlywheelGaugeRewards rewards;
+
+    FlywheelBoosterGaugeWeight flywheelBooster;
 
     MockERC20 public rewardToken;
 
@@ -31,11 +34,14 @@ contract FlywheelGaugeRewardsTest is DSTestPlus {
         rewardsStream = new MockRewardsStream(rewardToken, 100e18);
         rewardToken.mint(address(rewardsStream), 100e25);
 
-        gaugeToken = new MockERC20Gauges(address(this), 1000, 100);
+        flywheelBooster = new FlywheelBoosterGaugeWeight(1 weeks);
+
+        gaugeToken = new MockERC20Gauges(address(this), address(flywheelBooster), 1000, 100);
         gaugeToken.setMaxGauges(10);
         gaugeToken.mint(address(this), 100e18);
         gaugeToken.setMaxDelegates(1);
         gaugeToken.delegate(address(this));
+        flywheelBooster.transferOwnership(address(gaugeToken));
 
         rewards = new FlywheelGaugeRewards(
             address(rewardToken),
@@ -45,16 +51,17 @@ contract FlywheelGaugeRewardsTest is DSTestPlus {
         );
 
         hevm.mockCall(address(0), abi.encodeWithSignature("rewardToken()"), abi.encode(ERC20(address(0xDEAD))));
+        hevm.mockCall(address(this), abi.encodeWithSignature("bribesFactory()"), abi.encode(address(this)));
         hevm.mockCall(address(0), abi.encodeWithSignature("gaugeToken()"), abi.encode(ERC20Gauges(address(0xBEEF))));
         hevm.mockCall(
             address(this), abi.encodeWithSignature("bHermesBoostToken()"), abi.encode(ERC20Gauges(address(0xBABE)))
         );
         hevm.mockCall(address(rewardsStream), abi.encodeWithSignature("updatePeriod()"), abi.encode(0));
 
-        gauge1 = address(new MockBaseV2Gauge(rewards, address(0), address(0)));
-        gauge2 = address(new MockBaseV2Gauge(rewards, address(0), address(0)));
-        gauge3 = address(new MockBaseV2Gauge(rewards, address(0), address(0)));
-        gauge4 = address(new MockBaseV2Gauge(rewards, address(0), address(0)));
+        gauge1 = address(0xCAFE);
+        gauge2 = address(0xBEEF);
+        gauge3 = address(0xDEAD);
+        gauge4 = address(0xABBA);
     }
 
     function testGetRewardsUninitialized() public {
@@ -351,6 +358,5 @@ contract FlywheelGaugeRewardsTest is DSTestPlus {
         require(rewards.getAccruedRewards() == 40e18); // nothing because no previous round
         hevm.prank(gauge4);
         require(rewards.getAccruedRewards() == 80e18); // nothing because no previous round
-
     }
 }

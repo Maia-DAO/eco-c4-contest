@@ -347,7 +347,7 @@ contract MulticallRootBridgeAgentTest is Test {
         uint32 _nonce = chainNonce[avaxChainId]++;
 
         //Call Deposit function
-        encodeCallNoDeposit(
+        encodeSystemCall(
             payable(avaxCoreBridgeAgentAddress),
             payable(address(coreBridgeAgent)),
             _nonce,

@@ -35,6 +35,7 @@ import {Deposit, DepositStatus, DepositMultipleInput, DepositInput} from "@omni/
 
 import {WETH9 as WETH} from "./mocks/WETH9.sol";
 import {Multicall2} from "./mocks/Multicall2.sol";
+
 contract MulticallRootRouterTest is DSTestPlus {
     uint32 nonce;
 
@@ -391,7 +392,7 @@ contract MulticallRootRouterTest is DSTestPlus {
         uint256 balanceBefore = MockERC20(wrappedNativeToken).balanceOf(address(coreBridgeAgent));
 
         //Call Deposit function
-        encodeCallNoDeposit(
+        encodeSystemCall(
             payable(avaxCoreBridgeAgentAddress),
             payable(address(coreBridgeAgent)),
             uint32(1),
@@ -919,7 +920,7 @@ contract MulticallRootRouterTest is DSTestPlus {
 
             Multicall2.Call[] memory calls = new Multicall2.Call[](1);
 
-            //Prepare call to transfer 100 hAVAX form virtual account to Mock App 
+            //Prepare call to transfer 100 hAVAX form virtual account to Mock App
             calls[0] = Multicall2.Call({target: 0x0000000000000000000000000000000000000000, callData: ""});
 
             //Output Params

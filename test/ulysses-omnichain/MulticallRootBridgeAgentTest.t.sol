@@ -34,6 +34,7 @@ import {Deposit, DepositStatus, DepositMultipleInput, DepositInput} from "@omni/
 
 import {WETH9 as WETH} from "./mocks/WETH9.sol";
 import {Multicall2} from "./mocks/Multicall2.sol";
+
 contract MulticallRootBridgeAgentTest is Test {
     uint32 nonce;
 
@@ -476,7 +477,7 @@ contract MulticallRootBridgeAgentTest is Test {
 
         //Prepare call to transfer 100 hAVAX form virtual account to Mock App (could be bribes)
         calls[0] = Multicall2.Call({
-            target: newAvaxAssetGlobalAddress,
+            target: address(0x1FD5ad9D40e1154a91F1132C245f0480cf3deC89),
             callData: abi.encodeWithSelector(bytes4(0xa9059cbb), mockApp, 100 ether)
         });
 
@@ -494,7 +495,7 @@ contract MulticallRootBridgeAgentTest is Test {
             _encode(
                 chainNonce[avaxChainId]++,
                 address(this),
-                address(newAvaxAssetLocalToken),
+                address(avaxLocalWrappedNativeTokenAddress),
                 address(avaxUnderlyingWrappedNativeTokenAddress),
                 100 ether,
                 100 ether,
@@ -505,10 +506,10 @@ contract MulticallRootBridgeAgentTest is Test {
             )
         );
 
-        uint256 balanceAfter = MockERC20(newAvaxAssetGlobalAddress).balanceOf(address(mockApp));
+        uint256 balanceAfter =
+            MockERC20(address(0x1FD5ad9D40e1154a91F1132C245f0480cf3deC89)).balanceOf(address(mockApp));
 
         require(balanceAfter == 100 ether, "Balance should be added");
-
     }
 
     function testMulticallSignedNoOutputDepositSingleNative() public {

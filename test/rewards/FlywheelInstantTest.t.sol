@@ -53,6 +53,20 @@ contract FlywheelInstantTest is DSTestPlus {
         flywheel.addStrategyForRewards(strategy);
     }
 
+    function testSetFlywheelRewardsZeroAddressBalance(uint256 mintAmount) public {
+        rewardToken.mint(address(0), mintAmount);
+
+        flywheel.setFlywheelRewards(address(0));
+        assertEq(flywheel.flywheelRewards(), address(0));
+
+        flywheel.setFlywheelRewards(address(rewards));
+
+        // assert rewards contract balance was not transferred
+        assertEq(flywheel.flywheelRewards(), address(rewards));
+        assertEq(rewardToken.balanceOf(address(0)), mintAmount);
+        assertEq(rewardToken.balanceOf(address(rewards)), 0);
+    }
+
     function testSetFlywheelRewards(uint256 mintAmount) public {
         rewardToken.mint(address(rewards), mintAmount);
 

@@ -533,7 +533,7 @@ abstract contract ERC20Gauges is ERC20MultiVotes, ReentrancyGuard, IERC20Gauges 
 
         // Free gauges through the entire list or until underweight
         uint256 size = gaugeList.length;
-        for (uint256 i = 0; i < size && (userFreeWeight + totalFreed) < weight;) {
+        for (uint256 i = 0; i < size && (userFreeWeight + userFreed) < weight;) {
             address gauge = gaugeList[i];
             uint112 userGaugeWeight = getUserGaugeWeight[user][gauge];
             if (userGaugeWeight != 0) {

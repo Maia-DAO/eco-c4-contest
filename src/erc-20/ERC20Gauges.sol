@@ -543,10 +543,10 @@ abstract contract ERC20Gauges is ERC20MultiVotes, ReentrancyGuard, IERC20Gauges 
                 }
                 userFreed += userGaugeWeight;
                 _decrementGaugeWeight(user, gauge, userGaugeWeight, currentCycle);
+            }
 
-                unchecked {
-                    i++;
-                }
+            unchecked {
+                i++;
             }
         }
 

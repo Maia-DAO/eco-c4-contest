@@ -241,7 +241,7 @@ contract RootBridgeAgent is IRootBridgeAgent {
     //////////////////////////////////////////////////////////////*/
 
     /// @inheritdoc IRootBridgeAgent
-    function retrySettlement(uint32 _settlementNonce, uint128 _remoteExecutionGas) external payable {
+    function retrySettlement(uint32 _settlementNonce, uint128 _remoteExecutionGas) external payable lock {
         //Update User Gas available.
         if (initialGas == 0) {
             userFeeInfo.depositedGas = uint128(msg.value);
@@ -1226,6 +1226,9 @@ contract RootBridgeAgent is IRootBridgeAgent {
         private
         returns (bool success, bytes memory reason)
     {
+        //Set tx state as executed to prevent reentrancy
+        executionState[_fromChainId][_depositNonce] = 1;
+
         //Try to execute remote request
         (success, reason) = bridgeAgentExecutorAddress.call(_data);
 
@@ -1238,7 +1241,9 @@ contract RootBridgeAgent is IRootBridgeAgent {
                 //Update tx state as retrieve only
                 executionState[_fromChainId][_depositNonce] = 2;
             } else {
-                //Interaction failure allow for retrying deposit
+                //Ensure tx is set as unexecuted
+                executionState[_fromChainId][_depositNonce] = 0;
+                //Interaction failure but allow for retrying deposit
                 success = true;
             }
         }

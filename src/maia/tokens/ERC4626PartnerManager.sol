@@ -323,12 +323,11 @@ abstract contract ERC4626PartnerManager is PartnerUtilityManager, Ownable, ERC46
     }
 
     modifier checkTransfer(address from, uint256 amount) virtual {
-        uint256 userBalance = balanceOf[from] * bHermesRate;
+        uint256 userBalance = (balanceOf[from] - amount) * bHermesRate;
 
         if (
-            userBalance - userClaimedWeight[from] < amount || userBalance - userClaimedBoost[from] < amount
-                || userBalance - userClaimedGovernance[from] < amount
-                || userBalance - userClaimedPartnerGovernance[from] < amount
+            userBalance < userClaimedWeight[from] || userBalance < userClaimedBoost[from] 
+                || userBalance < userClaimedGovernance[from]  || userBalance <  userClaimedPartnerGovernance[from] 
         ) revert InsufficientUnderlying();
 
         _;

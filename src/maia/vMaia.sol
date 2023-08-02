@@ -91,6 +91,33 @@ contract vMaia is ERC4626PartnerManager {
     function claimBoost(uint256 amount) public override {}
 
     /*//////////////////////////////////////////////////////////////
+                    ER4626 WITHDRAWAL LIMIT LOGIC
+    //////////////////////////////////////////////////////////////*/
+
+    function _checkIfWithdrawalIsAllowed() internal view returns (bool) {
+        /// @dev Return true if unstake period has not ended yet.
+        if (unstakePeriodEnd >= block.timestamp) return true;
+
+        uint256 _currentMonth = DateTimeLib.getMonth(block.timestamp);
+        if (_currentMonth == currentMonth) return false;
+
+        (bool isTuesday,) = DateTimeLib.isTuesday(block.timestamp);
+        return isTuesday;
+    }
+
+    /// @notice Returns the maximum amount of assets that can be withdrawn by a user.
+    /// @dev Assumes that the user has already forfeited all utility tokens.
+    function maxWithdraw(address user) public view virtual override returns (uint256) {
+        return _checkIfWithdrawalIsAllowed() ? super.maxWithdraw(user) : 0;
+    }
+
+    /// @notice Returns the maximum amount of assets that can be redeemed by a user.
+    /// @dev Assumes that the user has already forfeited all utility tokens.
+    function maxRedeem(address user) public view virtual override returns (uint256) {
+        return _checkIfWithdrawalIsAllowed() ? super.maxRedeem(user) : 0;
+    }
+
+    /*//////////////////////////////////////////////////////////////
                           INTERNAL HOOKS LOGIC
     //////////////////////////////////////////////////////////////*/
 

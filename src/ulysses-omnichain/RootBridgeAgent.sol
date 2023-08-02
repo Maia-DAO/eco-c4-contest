@@ -242,7 +242,21 @@ contract RootBridgeAgent is IRootBridgeAgent {
 
     /// @inheritdoc IRootBridgeAgent
     function retrySettlement(uint32 _settlementNonce, uint128 _remoteExecutionGas) external payable lock {
-        //Update User Gas available.
+        //Avoid checks if coming form executor
+        if (msg.sender != bridgeAgentExecutorAddress) {
+            //Get deposit owner
+            address depositOwner = getSettlement[_settlementNonce].owner;
+
+            //Check deposit owner
+            if (
+                msg.sender != depositOwner
+                    && msg.sender != address(IPort(localPortAddress).getUserAccount(depositOwner))
+            ) {
+                revert NotSettlementOwner();
+            }
+        }
+
+        //Update User Gas available. 
         if (initialGas == 0) {
             userFeeInfo.depositedGas = uint128(msg.value);
             userFeeInfo.gasToBridgeOut = _remoteExecutionGas;
@@ -1180,7 +1194,9 @@ contract RootBridgeAgent is IRootBridgeAgent {
                 nonce,
                 fromChainId,
                 abi.encodeWithSelector(
-                    RootBridgeAgentExecutor.executeRetrySettlement.selector, uint32(bytes4(data[5:9]))
+                    RootBridgeAgentExecutor.executeRetrySettlement.selector,
+                    uint32(bytes4(data[5:9])),
+                    address(bytes20(data[9:29]))
                 )
             );
 

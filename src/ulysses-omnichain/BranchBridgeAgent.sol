@@ -430,12 +430,13 @@ contract BranchBridgeAgent is IBranchBridgeAgent {
     function retrySettlement(uint32 _settlementNonce, uint128 _gasToBoostSettlement)
         external
         payable
+        virtual
         lock
         requiresFallbackGas
     {
         //Encode Data for cross-chain call.
         bytes memory packedData = abi.encodePacked(
-            bytes1(0x07), depositNonce++, _settlementNonce, msg.value.toUint128(), _gasToBoostSettlement
+            bytes1(0x07), depositNonce++, _settlementNonce, msg.sender, msg.value.toUint128(), _gasToBoostSettlement
         );
         //Update State and Perform Call
         _sendRetrieveOrRetry(packedData);
@@ -445,10 +446,9 @@ contract BranchBridgeAgent is IBranchBridgeAgent {
     function retrieveDeposit(uint32 _depositNonce) external payable lock requiresFallbackGas {
         //Check if deposit belongs to message sender
         if (getDeposit[_depositNonce].owner != msg.sender) revert NotDepositOwner();
-        
+
         //Encode Data for cross-chain call.
-        bytes memory packedData =
-            abi.encodePacked(bytes1(0x08), _depositNonce, msg.value.toUint128(), uint128(0));
+        bytes memory packedData = abi.encodePacked(bytes1(0x08), _depositNonce, msg.value.toUint128(), uint128(0));
 
         //Update State and Perform Call
         _sendRetrieveOrRetry(packedData);

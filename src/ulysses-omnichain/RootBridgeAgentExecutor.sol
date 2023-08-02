@@ -305,13 +305,22 @@ contract RootBridgeAgentExecutor is Ownable {
      * @return result The result of the request
      * @dev DEPOSIT FLAG: 7 (Retry Settlement)
      */
-    function executeRetrySettlement(uint32 _settlementNonce)
+    function executeRetrySettlement(uint32 _settlementNonce, address _user)
         external
         onlyOwner
         returns (bool success, bytes memory result)
     {
+        //Get settlement owner
+        address settlementOwner = RootBridgeAgent(payable(msg.sender)).getSettlementEntry(_settlementNonce).owner;
+
+        //Check settlement owner
+        if (_user != settlementOwner) {
+            revert NotSettlementOwner();
+        }
+
         //Execute remote request
         RootBridgeAgent(payable(msg.sender)).retrySettlement(_settlementNonce, 0);
+
         //Trigger retry success (no guarantees about settlement success at this point)
         (success, result) = (true, "");
     }
@@ -425,4 +434,10 @@ contract RootBridgeAgentExecutor is Ownable {
 
         RootBridgeAgent(payable(msg.sender)).bridgeInMultiple(_recipient, dParams, _fromChain);
     }
+
+    /*///////////////////////////////////////////////////////////////
+                                ERRORS
+    //////////////////////////////////////////////////////////////*/
+
+    error NotSettlementOwner();
 }

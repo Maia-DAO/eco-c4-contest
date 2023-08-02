@@ -443,8 +443,12 @@ contract BranchBridgeAgent is IBranchBridgeAgent {
 
     /// @inheritdoc IBranchBridgeAgent
     function retrieveDeposit(uint32 _depositNonce) external payable lock requiresFallbackGas {
+        //Check if deposit belongs to message sender
+        if (getDeposit[_depositNonce].owner != msg.sender) revert NotDepositOwner();
+        
         //Encode Data for cross-chain call.
-        bytes memory packedData = abi.encodePacked(bytes1(0x08), _depositNonce, msg.value.toUint128(), uint128(0));
+        bytes memory packedData =
+            abi.encodePacked(bytes1(0x08), _depositNonce, msg.value.toUint128(), uint128(0));
 
         //Update State and Perform Call
         _sendRetrieveOrRetry(packedData);

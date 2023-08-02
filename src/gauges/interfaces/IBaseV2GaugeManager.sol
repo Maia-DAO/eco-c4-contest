@@ -71,7 +71,7 @@ interface IBaseV2GaugeManager {
      */
     function removeGauge(address gauge) external;
 
-    /*//////////////////////////////////////////////////////////////
+    /*//////////////////////////////////////////////////////////////RewardsNotQueued
                             OWNER LOGIC
     //////////////////////////////////////////////////////////////*/
 
@@ -131,4 +131,7 @@ interface IBaseV2GaugeManager {
 
     /// @dev Throws when the caller is not the admin.
     error NotAdmin();
+
+    /// @dev Throws when trying to add/remove a gauge before queueing rewards.
+    error RewardsNotQueued();
 }

@@ -6,6 +6,8 @@ import {Ownable} from "solady/auth/Ownable.sol";
 
 import {bHermes, bHermesBoost, bHermesGauges} from "@hermes/bHermes.sol";
 
+import {FlywheelGaugeRewards} from "@rewards/rewards/FlywheelGaugeRewards.sol";
+
 import {BaseV2GaugeFactory} from "./BaseV2GaugeFactory.sol";
 
 import {IBaseV2GaugeManager} from "../interfaces/IBaseV2GaugeManager.sol";
@@ -25,6 +27,8 @@ contract BaseV2GaugeManager is Ownable, IBaseV2GaugeManager {
     /// @inheritdoc IBaseV2GaugeManager
     bHermesBoost public immutable bHermesGaugeBoost;
 
+    FlywheelGaugeRewards public immutable rewards;
+
     /// @inheritdoc IBaseV2GaugeManager
     BaseV2GaugeFactory[] public gaugeFactories;
 
@@ -40,9 +44,10 @@ contract BaseV2GaugeManager is Ownable, IBaseV2GaugeManager {
      * @param _owner can add BaseV2GaugeFactories.
      * @param _admin can transfer ownership of bHermesWeight and bHermesBoost.
      */
-    constructor(bHermes _bHermes, address _owner, address _admin) {
+    constructor(bHermes _bHermes, FlywheelGaugeRewards _rewards, address _owner, address _admin) {
         admin = _admin;
         _initializeOwner(_owner);
+        rewards = _rewards;
         bHermesGaugeWeight = _bHermes.gaugeWeight();
         bHermesGaugeBoost = _bHermes.gaugeBoost();
     }
@@ -91,13 +96,13 @@ contract BaseV2GaugeManager is Ownable, IBaseV2GaugeManager {
     //////////////////////////////////////////////////////////////*/
 
     /// @inheritdoc IBaseV2GaugeManager
-    function addGauge(address gauge) external onlyActiveGaugeFactory {
+    function addGauge(address gauge) external onlyActiveGaugeFactory rewardsAreQueuedForThisCycle {
         bHermesGaugeWeight.addGauge(gauge);
         bHermesGaugeBoost.addGauge(gauge);
     }
 
     /// @inheritdoc IBaseV2GaugeManager
-    function removeGauge(address gauge) external onlyActiveGaugeFactory {
+    function removeGauge(address gauge) external onlyActiveGaugeFactory rewardsAreQueuedForThisCycle {
         bHermesGaugeWeight.removeGauge(gauge);
         bHermesGaugeBoost.removeGauge(gauge);
     }
@@ -159,6 +164,13 @@ contract BaseV2GaugeManager is Ownable, IBaseV2GaugeManager {
 
     modifier onlyAdmin() {
         if (msg.sender != admin) revert NotAdmin();
+        _;
+    }
+
+    modifier rewardsAreQueuedForThisCycle() {
+        uint256 gaugeCycleLength = rewards.gaugeCycleLength();
+        uint256 currentCycle = (block.timestamp / gaugeCycleLength) * gaugeCycleLength;
+        if (currentCycle > rewards.gaugeCycle()) revert RewardsNotQueued();
         _;
     }
 }

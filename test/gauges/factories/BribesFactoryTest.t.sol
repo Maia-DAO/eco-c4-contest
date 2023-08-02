@@ -40,6 +40,7 @@ contract BribesFactoryTest is DSTestPlus {
         mockBHermes();
         manager = new MockBaseV2GaugeManager(
             bHermes(_bHermes),
+            FlywheelGaugeRewards(address(this)),
             address(this),
             _admin
         );

@@ -252,6 +252,7 @@ abstract contract ERC4626PartnerManager is PartnerUtilityManager, Ownable, ERC46
      * @param amount amounts of vMaia to burn
      */
     function _burn(address from, uint256 amount) internal virtual override checkTransfer(from, amount) {
+        ERC20MultiVotes(partnerGovernance).burn(address(this), amount * bHermesRate);
         super._burn(from, amount);
     }
 

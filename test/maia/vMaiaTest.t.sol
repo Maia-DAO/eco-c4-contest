@@ -7,6 +7,7 @@ import {SafeTransferLib} from "solady/utils/SafeTransferLib.sol";
 
 import {vMaia, PartnerManagerFactory, ERC20} from "@maia/vMaia.sol";
 import {IBaseVault} from "@maia/interfaces/IBaseVault.sol";
+import {IERC4626PartnerManager} from "@maia/interfaces/IERC4626PartnerManager.sol";
 import {MockVault} from "./mock/MockVault.t.sol";
 
 import {bHermes} from "@hermes/bHermes.sol";
@@ -47,7 +48,7 @@ contract vMaiaTest is DSTestPlus {
             "vMAIA",
             address(bhermes),
             address(vault),
-            address(0)
+            address(this) // set owner to allow call to 'increaseConversionRate'
         );
     }
 
@@ -84,6 +85,24 @@ contract vMaiaTest is DSTestPlus {
 
         assertEq(maia.balanceOf(address(vmaia)), amount);
         assertEq(vmaia.balanceOf(address(this)), amount);
+    }
+
+    function testDepositMaiaPartnerGovernanceSupply() public {
+        testDepositMaia();
+        uint256 amount = vmaia.balanceOf(address(this));
+        maia.approve(address(vmaia), type(uint256).max);
+
+        // fast-forward to withdrawal Tuesday
+        hevm.warp(getFirstDayOfNextMonthUnix());
+
+        for (uint256 i = 0; i < 10; i++) {
+            // Assert that the partner governance supply is equal to vMaia total supply
+            assertEq(vmaia.totalSupply(), vmaia.partnerGovernance().totalSupply());
+
+            // dilute pbHermes by withdraw & deposit cycle
+            vmaia.withdraw(amount, address(this), address(this));
+            vmaia.deposit(amount, address(this));
+        }
     }
 
     function testDepositMaiaAmountFail() public {

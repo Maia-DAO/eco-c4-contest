@@ -57,7 +57,7 @@ contract BoostAggregatorFactoryTest is DSTestPlus {
 
         assertEq(factory.getBoostAggregators().length, 1);
 
-        factory.createBoostAggregator(owner);
+        factory.createBoostAggregator(owner, 0);
         assertEq(factory.getBoostAggregators().length, 2);
 
         BoostAggregator aggregator = factory.boostAggregators(1);
@@ -77,8 +77,8 @@ contract BoostAggregatorFactoryTest is DSTestPlus {
 
         assertEq(factory.getBoostAggregators().length, 1);
 
-        factory.createBoostAggregator(owner);
-        factory.createBoostAggregator(owner);
+        factory.createBoostAggregator(owner, 0);
+        factory.createBoostAggregator(owner, 0);
 
         assertEq(factory.getBoostAggregators().length, 3);
     }
@@ -89,8 +89,8 @@ contract BoostAggregatorFactoryTest is DSTestPlus {
 
         assertEq(factory.getBoostAggregators().length, 1);
 
-        factory.createBoostAggregator(owner);
-        factory.createBoostAggregator(owner2);
+        factory.createBoostAggregator(owner, 0);
+        factory.createBoostAggregator(owner2, 0);
 
         BoostAggregator aggregator = factory.boostAggregators(1);
         assertEq(factory.boostAggregatorIds(aggregator), 1);
@@ -106,14 +106,14 @@ contract BoostAggregatorFactoryTest is DSTestPlus {
 
         assertEq(factory.getBoostAggregators().length, 1);
 
-        factory.createBoostAggregator(owner);
+        factory.createBoostAggregator(owner, 0);
         assertEq(factory.getBoostAggregators().length, 2);
-        factory.createBoostAggregator(owner2);
+        factory.createBoostAggregator(owner2, 0);
         assertEq(factory.getBoostAggregators().length, 3);
     }
 
     function testCreateBoostAggregatorInvalidOwner() public {
         hevm.expectRevert(IBoostAggregatorFactory.InvalidOwner.selector);
-        factory.createBoostAggregator(address(0));
+        factory.createBoostAggregator(address(0), 0);
     }
 }

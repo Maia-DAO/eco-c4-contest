@@ -131,7 +131,7 @@ contract TalosStrategyStakedTest is TalosTestor {
         rewards = new FlywheelInstantRewards(flywheel);
         flywheel.setFlywheelRewards(address(rewards));
 
-        boostAggregator = new BoostAggregator(uniswapV3StakerContract, rewardToken, address(this));
+        boostAggregator = new BoostAggregator(uniswapV3StakerContract, rewardToken, address(this), 0);
 
         hevm.mockCall(
             address(this), abi.encodeWithSignature("attachUser(address)", address(boostAggregator)), abi.encode("")

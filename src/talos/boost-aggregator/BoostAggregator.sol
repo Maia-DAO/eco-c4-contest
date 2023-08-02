@@ -55,18 +55,22 @@ contract BoostAggregator is Ownable, IBoostAggregator {
     // divisioner for protocol fee
     uint256 private constant DIVISIONER = 10000;
 
+    uint256 public immutable maxFee;
+
     /**
      * @notice Creates a new BoostAggregator
      * @param _uniswapV3Staker The UniswapV3Staker contract
      * @param _hermes The hermes token contract
      * @param _owner The owner of this contract
      */
-    constructor(UniswapV3Staker _uniswapV3Staker, ERC20 _hermes, address _owner) {
+    constructor(UniswapV3Staker _uniswapV3Staker, ERC20 _hermes, address _owner, uint256 _maxFee) {
         _initializeOwner(_owner);
         uniswapV3Staker = _uniswapV3Staker;
         hermesGaugeBoost = uniswapV3Staker.hermesGaugeBoost();
         nonfungiblePositionManager = uniswapV3Staker.nonfungiblePositionManager();
         hermes = _hermes;
+        // maxFee is capped at 100%
+        maxFee = _maxFee > DIVISIONER ? DIVISIONER : _maxFee;
     }
 
     /*//////////////////////////////////////////////////////////////
@@ -151,7 +155,7 @@ contract BoostAggregator is Ownable, IBoostAggregator {
 
     /// @inheritdoc IBoostAggregator
     function setProtocolFee(uint256 _protocolFee) external onlyOwner {
-        if (_protocolFee > DIVISIONER) revert FeeTooHigh();
+        if (_protocolFee > maxFee) revert FeeTooHigh();
         protocolFee = _protocolFee;
     }
 

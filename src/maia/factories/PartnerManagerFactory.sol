@@ -38,6 +38,7 @@ contract PartnerManagerFactory is Ownable, IPartnerManagerFactory {
         _initializeOwner(_owner);
         bHermes = _bHermes;
         partners.push(PartnerManager(address(0)));
+        vaults.push(IBaseVault(address(0)));
     }
 
     /// @inheritdoc IPartnerManagerFactory

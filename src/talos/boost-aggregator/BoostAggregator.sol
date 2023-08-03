@@ -157,8 +157,11 @@ contract BoostAggregator is Ownable, IBoostAggregator {
 
     /// @inheritdoc IBoostAggregator
     function withdrawProtocolFees(address to) external onlyOwner {
-        uniswapV3Staker.claimReward(to, protocolRewards);
-        delete protocolRewards;
+        uint256 fees = protocolRewards;
+        if (fees > 0) {
+            uniswapV3Staker.claimReward(to, fees);
+            delete protocolRewards;
+        }
     }
 
     /// @inheritdoc IBoostAggregator

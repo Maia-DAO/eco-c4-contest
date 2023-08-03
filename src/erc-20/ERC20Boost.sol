@@ -154,13 +154,9 @@ abstract contract ERC20Boost is ERC20, Ownable, IERC20Boost {
 
         uint256 length = gaugeList.length;
         for (uint256 i = 0; i < length;) {
-            address gauge = gaugeList[i];
+            uint256 gaugeBoost = getUserGaugeBoost[user][gaugeList[i]].userGaugeBoost;
 
-            if (!_deprecatedGauges.contains(gauge)) {
-                uint256 gaugeBoost = getUserGaugeBoost[user][gauge].userGaugeBoost;
-
-                if (userBoost < gaugeBoost) userBoost = gaugeBoost;
-            }
+            if (userBoost < gaugeBoost) userBoost = gaugeBoost;
 
             unchecked {
                 i++;

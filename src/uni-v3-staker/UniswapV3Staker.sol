@@ -2,6 +2,7 @@
 // Rewards logic inspired by Uniswap V3 Contracts (Uniswap/v3-staker/contracts/UniswapV3Staker.sol)
 pragma solidity ^0.8.0;
 
+import {Ownable} from "solady/auth/Ownable.sol";
 import {SafeTransferLib} from "solady/utils/SafeTransferLib.sol";
 import {Multicallable} from "solady/utils/Multicallable.sol";
 
@@ -377,16 +378,16 @@ contract UniswapV3Staker is IUniswapV3Staker, Multicallable {
             // scope for bribeAddress, avoids stack too deep errors
             address bribeAddress = bribeDepots[key.pool];
 
-            if (bribeAddress != address(0)) {
-                nonfungiblePositionManager.collect(
-                    INonfungiblePositionManager.CollectParams({
-                        tokenId: tokenId,
-                        recipient: bribeAddress,
-                        amount0Max: type(uint128).max,
-                        amount1Max: type(uint128).max
-                    })
-                );
-            }
+            if (bribeAddress == address(0)) bribeAddress = Ownable(minter).owner();
+
+            nonfungiblePositionManager.collect(
+                INonfungiblePositionManager.CollectParams({
+                    tokenId: tokenId,
+                    recipient: bribeAddress,
+                    amount0Max: type(uint128).max,
+                    amount1Max: type(uint128).max
+                })
+            );
         }
 
         bytes32 incentiveId = IncentiveId.compute(key);
@@ -526,17 +527,37 @@ contract UniswapV3Staker is IUniswapV3Staker, Multicallable {
     function updateGauges(IUniswapV3Pool uniswapV3Pool) external {
         address uniswapV3Gauge = address(uniswapV3GaugeFactory.strategyGauges(address(uniswapV3Pool)));
 
-        if (uniswapV3Gauge == address(0)) revert InvalidGauge();
+        address currentGauge = address(gauges[uniswapV3Pool]);
+        bool newGaugeIsZero = uniswapV3Gauge == address(0);
 
-        if (address(gauges[uniswapV3Pool]) != uniswapV3Gauge) {
+        /*
+         | newGaugeIsZero | oldGaugeIsZero | action |
+         |----------------|----------------|--------|
+         | true           | true           | revert |
+         | true           | false          | add    |
+         | false          | true           | remove |
+         | false          | false          | update |
+        */
+        if (newGaugeIsZero && currentGauge == address(0)) revert InvalidGauge();
+
+        if (currentGauge != uniswapV3Gauge) {
             emit GaugeUpdated(uniswapV3Pool, uniswapV3Gauge);
 
             gauges[uniswapV3Pool] = UniswapV3Gauge(uniswapV3Gauge);
             gaugePool[uniswapV3Gauge] = uniswapV3Pool;
         }
 
-        updateBribeDepot(uniswapV3Pool);
-        updatePoolMinimumWidth(uniswapV3Pool);
+        if (newGaugeIsZero) {
+            bribeDepots[uniswapV3Pool] = address(0);
+            emit BribeDepotUpdated(uniswapV3Pool, address(0));
+
+            // if gauge is removed, set minimum width to max to prevent staking
+            poolsMinimumWidth[uniswapV3Pool] = type(uint24).max;
+            emit PoolMinimumWidthUpdated(uniswapV3Pool, type(uint24).max);
+        } else {
+            updateBribeDepot(uniswapV3Pool);
+            updatePoolMinimumWidth(uniswapV3Pool);
+        }
     }
 
     /// @inheritdoc IUniswapV3Staker

@@ -171,13 +171,27 @@ abstract contract ERC4626PartnerManager is PartnerUtilityManager, Ownable, ERC46
     /// @notice Returns the maximum amount of assets that can be withdrawn by a user.
     /// @dev Assumes that the user has already forfeited all utility tokens.
     function maxWithdraw(address user) public view virtual override returns (uint256) {
-        return balanceOf[user];
+        uint256 claimed;
+
+        if (userClaimedWeight[user] > claimed) claimed = userClaimedWeight[user];
+        if (userClaimedBoost[user] > claimed) claimed = userClaimedBoost[user];
+        if (userClaimedGovernance[user] > claimed) claimed = userClaimedGovernance[user];
+        if (userClaimedPartnerGovernance[user] > claimed) claimed = userClaimedPartnerGovernance[user];
+
+        return balanceOf[user] - claimed.divUp(bHermesRate);
     }
 
     /// @notice Returns the maximum amount of assets that can be redeemed by a user.
     /// @dev Assumes that the user has already forfeited all utility tokens.
     function maxRedeem(address user) public view virtual override returns (uint256) {
-        return balanceOf[user];
+        uint256 claimed;
+
+        if (userClaimedWeight[user] > claimed) claimed = userClaimedWeight[user];
+        if (userClaimedBoost[user] > claimed) claimed = userClaimedBoost[user];
+        if (userClaimedGovernance[user] > claimed) claimed = userClaimedGovernance[user];
+        if (userClaimedPartnerGovernance[user] > claimed) claimed = userClaimedPartnerGovernance[user];
+
+        return balanceOf[user] - claimed.divUp(bHermesRate);
     }
 
     /*///////////////////////////////////////////////////////////////

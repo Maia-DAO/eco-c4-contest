@@ -106,10 +106,10 @@ abstract contract BaseV2GaugeFactory is Ownable, IBaseV2GaugeFactory {
     /// @notice Creates a new gauge for the given strategy
     /// @param strategy The strategy address to create a gauge for
     /// @param data The information to pass to create a new gauge.
-    function createGauge(address strategy, bytes memory data) external onlyOwner {
+    function createGauge(address strategy, bytes memory data) external onlyOwner returns (BaseV2Gauge gauge) {
         if (address(strategyGauges[strategy]) != address(0)) revert GaugeAlreadyExists();
 
-        BaseV2Gauge gauge = newGauge(strategy, data);
+        gauge = newGauge(strategy, data);
         strategyGauges[strategy] = gauge;
 
         uint256 id = gauges.length;

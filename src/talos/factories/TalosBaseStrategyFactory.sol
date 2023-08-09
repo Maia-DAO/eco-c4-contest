@@ -56,13 +56,14 @@ abstract contract TalosBaseStrategyFactory is Ownable, ITalosBaseStrategyFactory
         IUniswapV3Pool pool,
         ITalosOptimizer optimizer,
         address strategyManager,
+        bytes32 salt,
         bytes memory data
     ) external {
         if (optimizerFactory.optimizerIds(TalosOptimizer(address(optimizer))) == 0) {
             revert UnrecognizedOptimizer();
         }
 
-        TalosBaseStrategy strategy = createTalosV3Strategy(pool, optimizer, strategyManager, data);
+        TalosBaseStrategy strategy = createTalosV3Strategy(pool, optimizer, strategyManager, salt, data);
 
         strategyIds[strategy] = strategies.length;
         strategies.push(strategy);
@@ -73,6 +74,7 @@ abstract contract TalosBaseStrategyFactory is Ownable, ITalosBaseStrategyFactory
         IUniswapV3Pool pool,
         ITalosOptimizer optimizer,
         address strategyManager,
+        bytes32 salt,
         bytes memory data
     ) internal virtual returns (TalosBaseStrategy);
 }

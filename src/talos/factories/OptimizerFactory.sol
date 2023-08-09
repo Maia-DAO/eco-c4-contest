@@ -39,9 +39,21 @@ contract OptimizerFactory is IOptimizerFactory {
         int24 _tickRangeMultiplier,
         uint24 _priceImpactPercentage,
         uint256 _maxTotalSupply,
-        address owner
+        address owner,
+        bytes32 _salt
     ) external {
-        TalosOptimizer optimizer = new TalosOptimizer(
+        bytes32 salt = keccak256(
+            abi.encodePacked(
+                _twapDuration,
+                _maxTwapDeviation,
+                _tickRangeMultiplier,
+                _priceImpactPercentage,
+                _maxTotalSupply,
+                owner,
+                _salt
+            )
+        );
+        TalosOptimizer optimizer = new TalosOptimizer{salt: salt}(
             _twapDuration,
             _maxTwapDeviation,
             _tickRangeMultiplier,

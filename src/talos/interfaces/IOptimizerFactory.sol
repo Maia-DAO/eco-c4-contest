@@ -34,6 +34,7 @@ interface IOptimizerFactory {
      * @param _priceImpactPercentage The price impact percentage
      * @param _maxTotalSupply The maximum total supply for Talos LPs
      * @param owner The owner of the optimizer
+     * @param _salt The salt to use for the optimizer
      */
     function createTalosOptimizer(
         uint32 _twapDuration,
@@ -41,6 +42,7 @@ interface IOptimizerFactory {
         int24 _tickRangeMultiplier,
         uint24 _priceImpactPercentage,
         uint256 _maxTotalSupply,
-        address owner
+        address owner,
+        bytes32 _salt
     ) external;
 }

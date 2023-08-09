@@ -79,7 +79,9 @@ contract BribesFactory is Ownable, IBribesFactory {
     function createBribeFlywheel(address bribeToken) public {
         if (address(flywheelTokens[bribeToken]) != address(0)) revert BribeFlywheelAlreadyExists();
 
-        FlywheelCore flywheel = new FlywheelCore(
+        bytes32 salt = keccak256(abi.encodePacked(bribeToken));
+
+        FlywheelCore flywheel = new FlywheelCore{salt: salt}(
             bribeToken,
             FlywheelBribeRewards(address(0)),
             flywheelGaugeWeightBooster,
@@ -93,7 +95,7 @@ contract BribesFactory is Ownable, IBribesFactory {
         bribeFlywheelIds[flywheel] = id;
         activeBribeFlywheels[flywheel] = true;
 
-        flywheel.setFlywheelRewards(address(new FlywheelBribeRewards(flywheel, rewardsCycleLength)));
+        flywheel.setFlywheelRewards(address(new FlywheelBribeRewards{salt: salt}(flywheel, rewardsCycleLength)));
 
         emit BribeFlywheelCreated(bribeToken, flywheel);
     }

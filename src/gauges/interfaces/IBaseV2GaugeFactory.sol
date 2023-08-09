@@ -94,7 +94,7 @@ interface IBaseV2GaugeFactory {
      * @param strategy The strategy address to create a gauge for.
      * @param data The information to pass to create a new gauge.
      */
-    function createGauge(address strategy, bytes memory data) external;
+    function createGauge(address strategy, bytes memory data) external returns (BaseV2Gauge);
 
     /**
      * @notice Removes a gauge and its underlying strategies from existence.

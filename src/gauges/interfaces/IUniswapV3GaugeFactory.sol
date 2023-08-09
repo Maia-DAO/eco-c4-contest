@@ -52,6 +52,12 @@ interface IUniswapV3GaugeFactory is IBaseV2GaugeFactory {
     /// @notice Flywheel for the uniswap v3 staker, that is responsible for distributing the rewards.
     function flywheelGaugeRewards() external view returns (FlywheelGaugeRewards);
 
+    /// @notice The uniswap v3 pool's gauge number.
+    /// @dev This is the nonce to pass as salt when creating gauges for each pool.
+    /// @param strategy The uniswap v3 pool address.
+    /// @return nonce The gauge number.
+    function strategyNonces(address strategy) external view returns (uint256 nonce);
+
     /*//////////////////////////////////////////////////////////////
                          ADMIN LOGIC
     //////////////////////////////////////////////////////////////*/

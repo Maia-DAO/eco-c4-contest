@@ -34,8 +34,9 @@ contract TalosStrategyVanillaFactory is TalosBaseStrategyFactory {
         IUniswapV3Pool pool,
         ITalosOptimizer optimizer,
         address strategyManager,
+        bytes32 salt,
         bytes memory
     ) internal override returns (TalosBaseStrategy) {
-        return DeployVanilla.createTalosV3Vanilla(pool, optimizer, nonfungiblePositionManager, strategyManager, owner());
+        return DeployVanilla.createTalosV3Vanilla(pool, optimizer, nonfungiblePositionManager, strategyManager, owner(), salt);
     }
 }

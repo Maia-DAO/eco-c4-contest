@@ -63,6 +63,7 @@ contract TalosStrategyStakedFactory is TalosBaseStrategyFactory, ITalosStrategyS
         IUniswapV3Pool pool,
         ITalosOptimizer optimizer,
         address strategyManager,
+        bytes32 salt,
         bytes memory data
     ) internal override returns (TalosBaseStrategy strategy) {
         BoostAggregator boostAggregator = abi.decode(data, (BoostAggregator));
@@ -71,7 +72,7 @@ contract TalosStrategyStakedFactory is TalosBaseStrategyFactory, ITalosStrategyS
         }
 
         strategy =
-            DeployStaked.createTalosV3Strategy(pool, optimizer, boostAggregator, strategyManager, flywheel, owner());
+            DeployStaked.createTalosV3Strategy(pool, optimizer, boostAggregator, strategyManager, flywheel, owner(), salt);
 
         flywheel.addStrategyForRewards(strategy);
     }

@@ -67,7 +67,7 @@ abstract contract BaseV2Gauge is Ownable, IBaseV2Gauge {
 
         epoch = (block.timestamp / WEEK) * WEEK;
 
-        multiRewardsDepot = new MultiRewardsDepot(address(this));
+        multiRewardsDepot = new MultiRewardsDepot{salt: keccak256(abi.encodePacked(this))}(address(this));
     }
 
     /// @inheritdoc IBaseV2Gauge

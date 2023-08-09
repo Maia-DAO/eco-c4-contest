@@ -23,9 +23,11 @@ library DeployStaked {
         BoostAggregator boostAggregator,
         address strategyManager,
         FlywheelCoreInstant flywheel,
-        address owner
+        address owner,
+        bytes32 _salt
     ) public returns (TalosBaseStrategy) {
-        return new TalosStrategyStaked(
+        bytes32 salt = keccak256(abi.encodePacked(pool, optimizer, strategyManager, flywheel, owner, _salt));
+        return new TalosStrategyStaked{salt: salt}(
                 pool,
                 optimizer,
                 boostAggregator,
@@ -67,15 +69,7 @@ contract TalosStrategyStaked is TalosStrategySimple, ITalosStrategyStaked {
         address _strategyManager,
         FlywheelCoreInstant _flywheel,
         address _owner
-    )
-        TalosStrategySimple(
-            _pool,
-            _optimizer,
-            _boostAggregator.nonfungiblePositionManager(),
-            _strategyManager,
-            _owner
-        )
-    {
+    ) TalosStrategySimple(_pool, _optimizer, _boostAggregator.nonfungiblePositionManager(), _strategyManager, _owner) {
         flywheel = _flywheel;
 
         boostAggregator = _boostAggregator;

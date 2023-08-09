@@ -24,9 +24,11 @@ library DeployVanilla {
         ITalosOptimizer optimizer,
         INonfungiblePositionManager nonfungiblePositionManager,
         address strategyManager,
-        address owner
+        address owner,
+        bytes32 _salt
     ) public returns (TalosBaseStrategy) {
-        return new TalosStrategyVanilla(
+        bytes32 salt = keccak256(abi.encodePacked(pool, optimizer, strategyManager, owner, _salt));
+        return new TalosStrategyVanilla{salt: salt}(
                 pool,
                 optimizer,
                 nonfungiblePositionManager,

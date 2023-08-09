@@ -49,8 +49,9 @@ interface IBoostAggregatorFactory {
     /**
      * @notice Creates a new boostAggregator
      * @param owner The owner of the boostAggregator
+     * @param _salt The salt to use for the boostAggregator
      */
-    function createBoostAggregator(address owner) external;
+    function createBoostAggregator(address owner, bytes32 _salt) external;
 
     /*//////////////////////////////////////////////////////////////
                                 EVENTS

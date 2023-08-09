@@ -422,9 +422,9 @@ contract BranchBridgeAgent is IBranchBridgeAgent {
         requiresFallbackGas
     {
         //Encode Data for cross-chain call.
-        bytes memory packedData = abi.encodePacked(
-            bytes1(0x07), depositNonce, _settlementNonce, msg.value.toUint128(), _gasToBoostSettlement
-        );
+        bytes memory packedData =
+            abi.encodePacked(bytes1(0x07), depositNonce, _settlementNonce, msg.value.toUint128(), _gasToBoostSettlement);
+
         //Update State and Perform Call
         _sendRetrieveOrRetry(packedData);
     }
@@ -1376,7 +1376,7 @@ contract BranchBridgeAgent is IBranchBridgeAgent {
         _;
     }
 
-    /// @notice Modifier verifies the caller is the Anycall Executor. 
+    /// @notice Modifier verifies the caller is the Anycall Executor.
     modifier requiresExecutor() {
         _requiresExecutor();
         _;

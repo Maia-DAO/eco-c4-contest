@@ -793,4 +793,45 @@ contract ERC20GaugesTest is DSTestPlus {
         assertEq(token.getGaugeWeight(gauge2), 0);
         assertEq(token.totalWeight(), 0);
     }
+
+    function testRemovingMoreGaugeWeightThanItShouldBe() public {
+        // initializing
+        token.setMaxGauges(2);
+        token.addGauge(gauge1);
+        token.addGauge(gauge2);
+        token.setMaxDelegates(2);
+
+        // test users
+        address alice = address(0x111);
+        address bob = address(0x222);
+
+        // give some token to alice
+        token.mint(alice, 200);
+
+        // alice delegate votes to self
+        hevm.prank(alice);
+        token.delegate(alice);
+        assertEq(token.getVotes(alice), 200);
+
+        // alice increments gauge1 and gauge2 with weight 100 respectively
+        hevm.startPrank(alice);
+        token.incrementGauge(gauge1, 100);
+        token.incrementGauge(gauge2, 100);
+        hevm.stopPrank();
+        assertEq(token.getUserGaugeWeight(alice, gauge1), 100);
+        assertEq(token.getUserGaugeWeight(alice, gauge2), 100);
+        assertEq(token.getUserWeight(alice), 200);
+
+        // removing gauge1
+        token.removeGauge(gauge1);
+
+        // transfer only 100 weight
+        hevm.prank(alice);
+        token.transfer(bob, 100);
+
+        // 100 weight is removed, the 100 weight of gauge2 is not removed
+        assertEq(token.getUserGaugeWeight(alice, gauge1), 0);
+        assertEq(token.getUserGaugeWeight(alice, gauge2), 100);
+        assertEq(token.getUserWeight(alice), 100);
+    }
 }

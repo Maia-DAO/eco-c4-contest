@@ -55,7 +55,10 @@ library CheckParamsLib {
         if (
             (_dParams.amount < _dParams.deposit) //Deposit can't be greater than amount.
                 || (_dParams.amount > 0 && !IPort(_localPortAddress).isLocalToken(_dParams.hToken, _fromChain)) //Check local exists.
-                || (_dParams.deposit > 0 && !IPort(_localPortAddress).isUnderlyingToken(_dParams.token, _fromChain)) //Check underlying exists.
+                || (
+                    _dParams.deposit > 0
+                        && IPort(_localPortAddress).getLocalTokenFromUnder(_dParams.token, _fromChain) != _dParams.hToken
+                ) //Check underlying exists.
         ) {
             return false;
         }

@@ -140,7 +140,8 @@ contract ArbitrumBranchBridgeAgent is BranchBridgeAgent {
      *   @param _callData bytes of the call to be sent to the AnycallProxy.
      */
     function _performCall(bytes memory _callData) internal override {
-        IRootBridgeAgent(rootBridgeAgentAddress).anyExecute(_callData);
+        (bool success,) = IRootBridgeAgent(rootBridgeAgentAddress).anyExecute(_callData);
+        if (!success) revert RootExecutionFailed();
     }
 
     /**
@@ -200,4 +201,6 @@ contract ArbitrumBranchBridgeAgent is BranchBridgeAgent {
     //////////////////////////////////////////////////////////////*/
 
     error GasErrorOrRepeatedTx();
+
+    error RootExecutionFailed();
 }

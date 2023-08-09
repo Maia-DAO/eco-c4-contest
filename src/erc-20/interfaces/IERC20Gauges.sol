@@ -278,4 +278,7 @@ interface IERC20Gauges {
 
     /// @notice thrown when trying to increment or remove a non-live gauge, or add a live gauge.
     error InvalidGaugeError();
+
+    /// @notice thrown when initializing the boost module with a zero address.
+    error InvalidBooster();
 }

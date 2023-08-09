@@ -193,9 +193,9 @@ contract BranchPort is Ownable, IBranchPort {
     function _checkTimeLimit(address _token, uint256 _amount) internal {
         if (block.timestamp - lastManaged[msg.sender][_token] >= 1 days) {
             strategyDailyLimitRemaining[msg.sender][_token] = strategyDailyLimitAmount[msg.sender][_token];
+            lastManaged[msg.sender][_token] = (block.timestamp / 1 days) * 1 days;
         }
         strategyDailyLimitRemaining[msg.sender][_token] -= _amount;
-        lastManaged[msg.sender][_token] = block.timestamp;
     }
 
     /*///////////////////////////////////////////////////////////////

@@ -28,7 +28,7 @@ contract vMaia is ERC4626PartnerManager {
     using FixedPointMathLib for uint256;
 
     /*//////////////////////////////////////////////////////////////
-                         vMAIA STATE
+                             vMAIA STATE
     //////////////////////////////////////////////////////////////*/
 
     uint256 private currentMonth;
@@ -60,7 +60,14 @@ contract vMaia is ERC4626PartnerManager {
     }
 
     /*///////////////////////////////////////////////////////////////
-                            UTILITY MANAGER LOGIC
+                         UTILITY TOKENS LOGIC
+    //////////////////////////////////////////////////////////////*/
+
+    /// @dev Boost can't be forfeit; does not fail.
+    function forfeitBoost(uint256 amount) public override {}
+
+    /*///////////////////////////////////////////////////////////////
+                         UTILITY MANAGER LOGIC
     //////////////////////////////////////////////////////////////*/
 
     function claimOutstanding() public override {
@@ -78,7 +85,7 @@ contract vMaia is ERC4626PartnerManager {
     }
 
     /*///////////////////////////////////////////////////////////////
-                            MODIFIERS
+                               MODIFIERS
     //////////////////////////////////////////////////////////////*/
 
     /// @dev Boost can't be claimed; does not fail. It is all used by the partner vault.
@@ -135,7 +142,7 @@ contract vMaia is ERC4626PartnerManager {
     }
 
     /*///////////////////////////////////////////////////////////////
-                             ERRORS
+                                ERRORS
     //////////////////////////////////////////////////////////////*/
 
     /// @dev Error thrown when trying to withdraw and it is not the first Tuesday of the month.

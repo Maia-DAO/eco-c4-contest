@@ -21,6 +21,9 @@ contract BoostAggregatorFactory is IBoostAggregatorFactory {
     /// @inheritdoc IBoostAggregatorFactory
     ERC20 public immutable hermes;
 
+    // divisioner for protocol fee
+    uint256 private constant DIVISIONER = 10000;
+
     /// @inheritdoc IBoostAggregatorFactory
     BoostAggregator[] public boostAggregators;
 
@@ -48,11 +51,11 @@ contract BoostAggregatorFactory is IBoostAggregatorFactory {
     //////////////////////////////////////////////////////////////*/
 
     /// @inheritdoc IBoostAggregatorFactory
-    function createBoostAggregator(address owner, bytes32 _salt) external {
+    function createBoostAggregator(address owner, uint256 maxFee, bytes32 salt) external {
         if (owner == address(0)) revert InvalidOwner();
+        if (maxFee > DIVISIONER) revert InvalidMaxFee();
 
-        bytes32 salt = keccak256(abi.encodePacked(owner, _salt));
-        BoostAggregator boostAggregator = new BoostAggregator{salt: salt}(uniswapV3Staker, hermes, owner);
+        BoostAggregator boostAggregator = new BoostAggregator{salt: keccak256(abi.encodePacked(owner, maxFee, salt))}(uniswapV3Staker, hermes, owner, maxFee);
 
         boostAggregatorIds[boostAggregator] = boostAggregators.length;
         boostAggregators.push(boostAggregator);

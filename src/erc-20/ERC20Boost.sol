@@ -136,7 +136,7 @@ abstract contract ERC20Boost is ERC20, Ownable, IERC20Boost {
 
     /// @inheritdoc IERC20Boost
     function detach(address user) external {
-        require(_userGauges[user].remove(msg.sender));
+        require(_userGauges[user].remove(msg.sender)); // Remove from set. Should never fail.
         delete getUserGaugeBoost[user][msg.sender];
 
         emit Detach(user, msg.sender);
@@ -154,13 +154,9 @@ abstract contract ERC20Boost is ERC20, Ownable, IERC20Boost {
 
         uint256 length = gaugeList.length;
         for (uint256 i = 0; i < length;) {
-            address gauge = gaugeList[i];
+            uint256 gaugeBoost = getUserGaugeBoost[user][gaugeList[i]].userGaugeBoost;
 
-            if (!_deprecatedGauges.contains(gauge)) {
-                uint256 gaugeBoost = getUserGaugeBoost[user][gauge].userGaugeBoost;
-
-                if (userBoost < gaugeBoost) userBoost = gaugeBoost;
-            }
+            if (userBoost < gaugeBoost) userBoost = gaugeBoost;
 
             unchecked {
                 i++;
@@ -174,8 +170,8 @@ abstract contract ERC20Boost is ERC20, Ownable, IERC20Boost {
     /// @inheritdoc IERC20Boost
     function decrementGaugeBoost(address gauge, uint256 boost) public {
         GaugeState storage gaugeState = getUserGaugeBoost[msg.sender][gauge];
-        if (boost >= gaugeState.userGaugeBoost) {
-            _userGauges[msg.sender].remove(gauge);
+        if (_deprecatedGauges.contains(gauge) || boost >= gaugeState.userGaugeBoost) {
+            require(_userGauges[msg.sender].remove(gauge)); // Remove from set. Should never fail.
             delete getUserGaugeBoost[msg.sender][gauge];
 
             emit Detach(msg.sender, gauge);
@@ -188,7 +184,7 @@ abstract contract ERC20Boost is ERC20, Ownable, IERC20Boost {
 
     /// @inheritdoc IERC20Boost
     function decrementGaugeAllBoost(address gauge) external {
-        require(_userGauges[msg.sender].remove(gauge));
+        require(_userGauges[msg.sender].remove(gauge)); // Remove from set. Should never fail.
         delete getUserGaugeBoost[msg.sender][gauge];
 
         emit Detach(msg.sender, gauge);

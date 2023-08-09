@@ -124,7 +124,7 @@ abstract contract FlywheelCore is Ownable, IFlywheelCore {
     /// @inheritdoc IFlywheelCore
     function setFlywheelRewards(address newFlywheelRewards) external onlyOwner {
         uint256 oldRewardBalance = rewardToken.balanceOf(address(flywheelRewards));
-        if (oldRewardBalance > 0) {
+        if (oldRewardBalance > 0 && flywheelRewards != address(0)) {
             rewardToken.safeTransferFrom(address(flywheelRewards), address(newFlywheelRewards), oldRewardBalance);
         }
 

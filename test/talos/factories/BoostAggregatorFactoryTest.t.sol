@@ -59,7 +59,7 @@ contract BoostAggregatorFactoryTest is DSTestPlus {
 
         assertEq(factory.getBoostAggregators().length, 1);
 
-        factory.createBoostAggregator(owner, nonce);
+        factory.createBoostAggregator(owner, 0, nonce);
         assertEq(factory.getBoostAggregators().length, 2);
 
         BoostAggregator aggregator = factory.boostAggregators(1);
@@ -79,9 +79,9 @@ contract BoostAggregatorFactoryTest is DSTestPlus {
 
         assertEq(factory.getBoostAggregators().length, 1);
 
-        factory.createBoostAggregator(owner, nonce);
+        factory.createBoostAggregator(owner, 0, nonce);
         nonce = bytes32(uint256(nonce) + 1);
-        factory.createBoostAggregator(owner, nonce);
+        factory.createBoostAggregator(owner, 0, nonce);
 
         assertEq(factory.getBoostAggregators().length, 3);
     }
@@ -92,8 +92,8 @@ contract BoostAggregatorFactoryTest is DSTestPlus {
 
         assertEq(factory.getBoostAggregators().length, 1);
 
-        factory.createBoostAggregator(owner, nonce);
-        factory.createBoostAggregator(owner2, nonce);
+        factory.createBoostAggregator(owner, 0, nonce);
+        factory.createBoostAggregator(owner2, 0, nonce);
 
         BoostAggregator aggregator = factory.boostAggregators(1);
         assertEq(factory.boostAggregatorIds(aggregator), 1);
@@ -109,14 +109,15 @@ contract BoostAggregatorFactoryTest is DSTestPlus {
 
         assertEq(factory.getBoostAggregators().length, 1);
 
-        factory.createBoostAggregator(owner, nonce);
+        factory.createBoostAggregator(owner, 0, nonce);
         assertEq(factory.getBoostAggregators().length, 2);
-        factory.createBoostAggregator(owner2, nonce);
+        factory.createBoostAggregator(owner2, 0, nonce);
+
         assertEq(factory.getBoostAggregators().length, 3);
     }
 
     function testCreateBoostAggregatorInvalidOwner() public {
         hevm.expectRevert(IBoostAggregatorFactory.InvalidOwner.selector);
-        factory.createBoostAggregator(address(0), nonce);
+        factory.createBoostAggregator(address(0), 0, nonce);
     }
 }

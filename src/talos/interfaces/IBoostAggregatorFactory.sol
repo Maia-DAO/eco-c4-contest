@@ -49,9 +49,10 @@ interface IBoostAggregatorFactory {
     /**
      * @notice Creates a new boostAggregator
      * @param owner The owner of the boostAggregator
-     * @param _salt The salt to use for the boostAggregator
+     * @param maxFee The max fee the boostAggregator can charge
+     * @param salt The salt to use for the boostAggregator
      */
-    function createBoostAggregator(address owner, bytes32 _salt) external;
+    function createBoostAggregator(address owner, uint256 maxFee, bytes32 salt) external;
 
     /*//////////////////////////////////////////////////////////////
                                 EVENTS
@@ -59,4 +60,7 @@ interface IBoostAggregatorFactory {
 
     /// @notice Thrown when the owner of the BoostAggregator is the zero address.
     error InvalidOwner();
+
+    /// @notice Thrown when the maxFee is greater than the divisioner.
+    error InvalidMaxFee();
 }

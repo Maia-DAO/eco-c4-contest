@@ -20,11 +20,12 @@ contract ERC20BoostTest is DSTestPlus {
         token = new MockERC20Boost(); // 1 hour cycles, 10 minute freeze
 
         hevm.mockCall(address(0), abi.encodeWithSignature("rewardToken()"), abi.encode(ERC20(address(0xDEAD))));
+        hevm.mockCall(address(this), abi.encodeWithSignature("bribesFactory()"), abi.encode(address(this)));
         hevm.mockCall(address(0), abi.encodeWithSignature("gaugeToken()"), abi.encode(ERC20Boost(address(0xBEEF))));
         hevm.mockCall(address(this), abi.encodeWithSignature("bHermesBoostToken()"), abi.encode(token));
 
-        gauge1 = address(new MockBaseV2Gauge(FlywheelGaugeRewards(address(0)), address(0), address(0)));
-        gauge2 = address(new MockBaseV2Gauge(FlywheelGaugeRewards(address(0)), address(0), address(0)));
+        gauge1 = address(new MockBaseV2Gauge(FlywheelGaugeRewards(address(0)), address(0)));
+        gauge2 = address(new MockBaseV2Gauge(FlywheelGaugeRewards(address(0)), address(0)));
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -312,7 +313,7 @@ contract ERC20BoostTest is DSTestPlus {
         token.updateUserBoost(address(1));
         (uint128 userGaugeBoost,) = token.getUserGaugeBoost(address(1), gauge1);
         require(userGaugeBoost == 100 ether, "userBoost not updated");
-        require(token.getUserBoost(address(1)) == 0, "userBoost not updated");
+        require(token.getUserBoost(address(1)) == 100 ether, "userBoost not updated");
     }
 
     function testDecrementGaugeBoost() public {
@@ -400,7 +401,7 @@ contract ERC20BoostTest is DSTestPlus {
         (newUserBoost2,) = token.getUserGaugeBoost(address(1), gauge2);
         require(newUserBoost == 100 ether, "userBoost not updated");
         require(newUserBoost2 == 90 ether, "userBoost not updated");
-        require(token.getUserBoost(address(1)) == 90 ether, "userBoost not updated");
+        require(token.getUserBoost(address(1)) == 100 ether, "userBoost incorrectly updated");
     }
 
     function testDecrementAllGaugesAllBoost() public {

@@ -28,7 +28,7 @@ contract vMaia is ERC4626PartnerManager {
     using FixedPointMathLib for uint256;
 
     /*//////////////////////////////////////////////////////////////
-                         vMAIA STATE
+                             vMAIA STATE
     //////////////////////////////////////////////////////////////*/
 
     uint256 private currentMonth;
@@ -60,35 +60,63 @@ contract vMaia is ERC4626PartnerManager {
     }
 
     /*///////////////////////////////////////////////////////////////
-                            MODIFIERS
+                         UTILITY TOKENS LOGIC
     //////////////////////////////////////////////////////////////*/
 
-    /// @dev Checks available weight allows for the call.
-    modifier checkWeight(uint256 amount) virtual override {
-        if (balanceOf[msg.sender] < amount + userClaimedWeight[msg.sender]) {
-            revert InsufficientShares();
-        }
-        _;
+    /// @dev Boost can't be forfeit; does not fail.
+    function forfeitBoost(uint256 amount) public override {}
+
+    /*///////////////////////////////////////////////////////////////
+                         UTILITY MANAGER LOGIC
+    //////////////////////////////////////////////////////////////*/
+
+    function claimOutstanding() public override {
+        uint256 balance = balanceOf[msg.sender] * bHermesRate;
+        /// @dev Never overflows since balandeOf >= userClaimed.
+        claimWeight(balance - userClaimedWeight[msg.sender]);
+        claimGovernance(balance - userClaimedGovernance[msg.sender]);
+        claimPartnerGovernance(balance - userClaimedPartnerGovernance[msg.sender]);
     }
 
-    /// @dev Checks available governance allows for the call.
-    modifier checkGovernance(uint256 amount) virtual override {
-        if (balanceOf[msg.sender] < amount + userClaimedGovernance[msg.sender]) {
-            revert InsufficientShares();
-        }
-        _;
+    function forfeitOutstanding() public override {
+        forfeitWeight(userClaimedWeight[msg.sender]);
+        forfeitGovernance(userClaimedGovernance[msg.sender]);
+        forfeitPartnerGovernance(userClaimedPartnerGovernance[msg.sender]);
     }
 
-    /// @dev Checks available partner governance allows for the call.
-    modifier checkPartnerGovernance(uint256 amount) virtual override {
-        if (balanceOf[msg.sender] < amount + userClaimedPartnerGovernance[msg.sender]) {
-            revert InsufficientShares();
-        }
-        _;
-    }
+    /*///////////////////////////////////////////////////////////////
+                               MODIFIERS
+    //////////////////////////////////////////////////////////////*/
 
     /// @dev Boost can't be claimed; does not fail. It is all used by the partner vault.
     function claimBoost(uint256 amount) public override {}
+
+    /*//////////////////////////////////////////////////////////////
+                    ER4626 WITHDRAWAL LIMIT LOGIC
+    //////////////////////////////////////////////////////////////*/
+
+    function _checkIfWithdrawalIsAllowed() internal view returns (bool) {
+        /// @dev Return true if unstake period has not ended yet.
+        if (unstakePeriodEnd >= block.timestamp) return true;
+
+        uint256 _currentMonth = DateTimeLib.getMonth(block.timestamp);
+        if (_currentMonth == currentMonth) return false;
+
+        (bool isTuesday,) = DateTimeLib.isTuesday(block.timestamp);
+        return isTuesday;
+    }
+
+    /// @notice Returns the maximum amount of assets that can be withdrawn by a user.
+    /// @dev Assumes that the user has already forfeited all utility tokens.
+    function maxWithdraw(address user) public view virtual override returns (uint256) {
+        return _checkIfWithdrawalIsAllowed() ? super.maxWithdraw(user) : 0;
+    }
+
+    /// @notice Returns the maximum amount of assets that can be redeemed by a user.
+    /// @dev Assumes that the user has already forfeited all utility tokens.
+    function maxRedeem(address user) public view virtual override returns (uint256) {
+        return _checkIfWithdrawalIsAllowed() ? super.maxRedeem(user) : 0;
+    }
 
     /*//////////////////////////////////////////////////////////////
                           INTERNAL HOOKS LOGIC
@@ -114,7 +142,7 @@ contract vMaia is ERC4626PartnerManager {
     }
 
     /*///////////////////////////////////////////////////////////////
-                             ERRORS
+                                ERRORS
     //////////////////////////////////////////////////////////////*/
 
     /// @dev Error thrown when trying to withdraw and it is not the first Tuesday of the month.

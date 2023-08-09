@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
+import {Ownable} from "solady/auth/Ownable.sol";
 import {SafeTransferLib} from "solady/utils/SafeTransferLib.sol";
 
 import {IUniswapV3Staker} from "@v3-staker/interfaces/IUniswapV3Staker.sol";
@@ -9,7 +10,7 @@ import {BaseV2Gauge, FlywheelGaugeRewards} from "./BaseV2Gauge.sol";
 import {IUniswapV3Gauge} from "./interfaces/IUniswapV3Gauge.sol";
 
 /// @title Uniswap V3 Gauge - Handles liquidity provider incentives for Uniswap V3 in the Base V2 Gauge implementation.
-contract UniswapV3Gauge is BaseV2Gauge, IUniswapV3Gauge {
+contract UniswapV3Gauge is Ownable, BaseV2Gauge, IUniswapV3Gauge {
     using SafeTransferLib for address;
 
     /*//////////////////////////////////////////////////////////////
@@ -36,7 +37,8 @@ contract UniswapV3Gauge is BaseV2Gauge, IUniswapV3Gauge {
         address _uniswapV3Pool,
         uint24 _minimumWidth,
         address _owner
-    ) BaseV2Gauge(_flywheelGaugeRewards, _uniswapV3Pool, _owner) {
+    ) BaseV2Gauge(_flywheelGaugeRewards, _uniswapV3Pool) {
+        _initializeOwner(_owner);
         uniswapV3Staker = _uniswapV3Staker;
         minimumWidth = _minimumWidth;
 

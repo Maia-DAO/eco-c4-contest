@@ -103,28 +103,11 @@ interface IBaseV2GaugeFactory {
     function removeGauge(BaseV2Gauge gauge) external;
 
     /*//////////////////////////////////////////////////////////////
-                           BRIBE LOGIC
-    //////////////////////////////////////////////////////////////*/
-
-    /**
-     * @notice Adds a new bribe to the gauge if the bribe address is already pre-approved by governance.
-     * @param gauge address of the gauge to add a new bribe.
-     * @param bribeToken address of the token to bribe the gauge with.
-     */
-    function addBribeToGauge(BaseV2Gauge gauge, address bribeToken) external;
-
-    /// @notice Removes a given bribe from a gauge, contingent on the removal being pre-approved by governance.
-    function removeBribeFromGauge(BaseV2Gauge gauge, address bribeToken) external;
-
-    /*//////////////////////////////////////////////////////////////
                             ERRORS
     //////////////////////////////////////////////////////////////*/
 
     /// @notice Throws when trying to add a gauge that already exists.
     error GaugeAlreadyExists();
-
-    /// @notice Throws when the caller is not the owner or BribesFactory owner.
-    error NotOwnerOrBribesFactoryOwner();
 
     /// @notice Throws when removing an invalid gauge.
     error InvalidGauge();

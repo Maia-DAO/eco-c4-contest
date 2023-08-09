@@ -20,6 +20,4 @@ abstract contract RewardsDepot is IRewardsDepot {
         balance = _asset.balanceOf(address(this));
         _asset.safeTransfer(_rewardsContract, balance);
     }
-
-    modifier onlyFlywheelRewards() virtual;
 }

@@ -405,7 +405,7 @@ contract CoreRootBridgeAgentTest is Test {
         bytes memory packedData = abi.encodePacked(bytes1(0x02), data);
 
         //Call Deposit function
-        encodeCallNoDeposit(
+        encodeSystemCall(
             payable(avaxCoreBridgeAgentAddress),
             payable(address(coreBridgeAgent)),
             chainNonce[avaxChainId]++,
@@ -445,7 +445,7 @@ contract CoreRootBridgeAgentTest is Test {
         bytes memory packedData = abi.encodePacked(bytes1(0x02), data);
 
         //Call Deposit function
-        encodeCallNoDeposit(
+        encodeSystemCall(
             payable(avaxCoreBridgeAgentAddress),
             payable(address(coreBridgeAgent)),
             chainNonce[avaxChainId]++,

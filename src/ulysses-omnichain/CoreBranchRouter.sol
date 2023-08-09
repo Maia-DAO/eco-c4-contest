@@ -75,7 +75,7 @@ contract CoreBranchRouter is BaseBranchRouter {
         bytes memory packedData = abi.encodePacked(bytes1(0x02), data);
 
         //Send Cross-Chain request (System Response/Request)
-        IBridgeAgent(localBridgeAgentAddress).performCallOut{value: msg.value}(msg.sender, packedData, 0, 0);
+        IBridgeAgent(localBridgeAgentAddress).performSystemCallOut{value: msg.value}(msg.sender, packedData, 0, 0);
     }
 
     /*///////////////////////////////////////////////////////////////

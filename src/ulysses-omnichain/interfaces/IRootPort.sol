@@ -339,6 +339,7 @@ interface IRootPort {
     error AlreadyAddedEcosystemToken();
 
     error AlreadyAddedBridgeAgent();
+    error AlreadyAddedBridgeAgentFactory();
     error BridgeAgentNotAllowed();
     error UnrecognizedCoreRootRouter();
     error UnrecognizedLocalBranchPort();

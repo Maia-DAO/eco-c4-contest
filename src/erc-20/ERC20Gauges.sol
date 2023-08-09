@@ -5,10 +5,11 @@ pragma solidity ^0.8.0;
 import {SafeCastLib} from "solady/utils/SafeCastLib.sol";
 
 import {ReentrancyGuard} from "solmate/utils/ReentrancyGuard.sol";
+import {ERC20} from "solmate/tokens/ERC20.sol";
 
 import {EnumerableSet} from "@lib/EnumerableSet.sol";
 
-import {IBaseV2Gauge} from "@gauges/interfaces/IBaseV2Gauge.sol";
+import {IFlywheelBooster} from "@rewards/interfaces/IFlywheelBooster.sol";
 
 import {ERC20MultiVotes} from "./ERC20MultiVotes.sol";
 
@@ -20,15 +21,20 @@ abstract contract ERC20Gauges is ERC20MultiVotes, ReentrancyGuard, IERC20Gauges 
     using EnumerableSet for EnumerableSet.AddressSet;
     using SafeCastLib for *;
 
+    IFlywheelBooster flywheelBooster;
+
     /**
      * @notice Construct a new ERC20Gauges
      * @param _gaugeCycleLength the length of a gauge cycle in seconds
      * @param _incrementFreezeWindow the length of the grace period in seconds
      */
-    constructor(uint32 _gaugeCycleLength, uint32 _incrementFreezeWindow) {
+    constructor(address _flywheelBooster, uint32 _gaugeCycleLength, uint32 _incrementFreezeWindow) {
         if (_incrementFreezeWindow >= _gaugeCycleLength) revert IncrementFreezeError();
         gaugeCycleLength = _gaugeCycleLength;
         incrementFreezeWindow = _incrementFreezeWindow;
+
+        if (_flywheelBooster == address(0)) revert InvalidBooster();
+        flywheelBooster = IFlywheelBooster(_flywheelBooster);
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -205,7 +211,7 @@ abstract contract ERC20Gauges is ERC20MultiVotes, ReentrancyGuard, IERC20Gauges 
             if (cycle - block.timestamp <= incrementFreezeWindow) revert IncrementFreezeError();
         }
 
-        IBaseV2Gauge(gauge).accrueBribes(user);
+        flywheelBooster.accrueBribesPositiveDelta(user, ERC20(gauge), weight);
 
         bool added = _userGauges[user].add(gauge); // idempotent add
         if (added && _userGauges[user].length() > maxGauges && !canContractExceedMaxGauges[user]) {
@@ -294,7 +300,7 @@ abstract contract ERC20Gauges is ERC20MultiVotes, ReentrancyGuard, IERC20Gauges 
 
         uint112 oldWeight = getUserGaugeWeight[user][gauge];
 
-        IBaseV2Gauge(gauge).accrueBribes(user);
+        flywheelBooster.accrueBribesNegativeDelta(user, ERC20(gauge), weight);
 
         getUserGaugeWeight[user][gauge] = oldWeight - weight;
         if (oldWeight == weight) {

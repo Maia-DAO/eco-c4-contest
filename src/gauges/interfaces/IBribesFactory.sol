@@ -24,14 +24,8 @@ interface IBribesFactory {
     /// @notice Mapping that attributes an id to every bribe created.
     function bribeFlywheelIds(FlywheelCore) external view returns (uint256);
 
-    /// @notice Mapping that attributes a boolean value depending on whether the bribe is active or not.
-    function activeBribeFlywheels(FlywheelCore) external view returns (bool);
-
     /// @notice Mapping that holds the address of the bribe token of a given flywheel.
-    function flywheelTokens(address) external view returns (FlywheelCore);
-
-    /// @notice The gauge manager contract.
-    function gaugeManager() external view returns (BaseV2GaugeManager);
+    function tokenToFlywheel(address) external view returns (FlywheelCore);
 
     /// @notice Returns all the bribes created by the factory.
     function getBribeFlywheels() external view returns (FlywheelCore[] memory);
@@ -46,13 +40,13 @@ interface IBribesFactory {
      * @param gauge address of the gauge to add the bribe to.
      * @param bribeToken address of the token to create a bribe for.
      */
-    function addGaugetoFlywheel(address gauge, address bribeToken) external;
+    function addGaugetoFlywheel(address gauge, address bribeToken) external returns (FlywheelCore flywheel);
 
     /**
      * @notice Creates a new flywheel for the given bribe token address.
      * @param bribeToken address of the token to create a bribe for.
      */
-    function createBribeFlywheel(address bribeToken) external;
+    function createBribeFlywheel(address bribeToken) external returns (FlywheelCore flywheel);
 
     /*//////////////////////////////////////////////////////////////
                             EVENTS
@@ -67,4 +61,10 @@ interface IBribesFactory {
 
     /// @notice Throws when trying to add a bribe flywheel for a token that already exists.
     error BribeFlywheelAlreadyExists();
+
+    /// @notice Throws when trying to add a bribe flywheel for a strategy that is not a gauge.
+    error InvalidGauge();
+
+    /// @notice Throws when trying to add a bribe flywheel for zero address.
+    error InvalidBribeToken();
 }

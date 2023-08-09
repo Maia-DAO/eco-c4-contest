@@ -60,32 +60,26 @@ contract vMaia is ERC4626PartnerManager {
     }
 
     /*///////////////////////////////////////////////////////////////
-                            MODIFIERS
+                            UTILITY MANAGER LOGIC
     //////////////////////////////////////////////////////////////*/
 
-    /// @dev Checks available weight allows for the call.
-    modifier checkWeight(uint256 amount) virtual override {
-        if (balanceOf[msg.sender] < amount + userClaimedWeight[msg.sender]) {
-            revert InsufficientShares();
-        }
-        _;
+    function claimOutstanding() public override {
+        uint256 balance = balanceOf[msg.sender] * bHermesRate;
+        /// @dev Never overflows since balandeOf >= userClaimed.
+        claimWeight(balance - userClaimedWeight[msg.sender]);
+        claimGovernance(balance - userClaimedGovernance[msg.sender]);
+        claimPartnerGovernance(balance - userClaimedPartnerGovernance[msg.sender]);
     }
 
-    /// @dev Checks available governance allows for the call.
-    modifier checkGovernance(uint256 amount) virtual override {
-        if (balanceOf[msg.sender] < amount + userClaimedGovernance[msg.sender]) {
-            revert InsufficientShares();
-        }
-        _;
+    function forfeitOutstanding() public override {
+        forfeitWeight(userClaimedWeight[msg.sender]);
+        forfeitGovernance(userClaimedGovernance[msg.sender]);
+        forfeitPartnerGovernance(userClaimedPartnerGovernance[msg.sender]);
     }
 
-    /// @dev Checks available partner governance allows for the call.
-    modifier checkPartnerGovernance(uint256 amount) virtual override {
-        if (balanceOf[msg.sender] < amount + userClaimedPartnerGovernance[msg.sender]) {
-            revert InsufficientShares();
-        }
-        _;
-    }
+    /*///////////////////////////////////////////////////////////////
+                            MODIFIERS
+    //////////////////////////////////////////////////////////////*/
 
     /// @dev Boost can't be claimed; does not fail. It is all used by the partner vault.
     function claimBoost(uint256 amount) public override {}

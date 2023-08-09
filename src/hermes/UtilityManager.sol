@@ -51,6 +51,13 @@ abstract contract UtilityManager is IUtilityManager {
                         UTILITY TOKENS LOGIC
     //////////////////////////////////////////////////////////////*/
 
+    // TODO /// @inheritdoc IUtilityManager
+    function forfeitOutstanding() public virtual {
+        forfeitWeight(userClaimedWeight[msg.sender]);
+        forfeitBoost(userClaimedBoost[msg.sender]);
+        forfeitGovernance(userClaimedGovernance[msg.sender]);
+    }
+
     /// @inheritdoc IUtilityManager
     function forfeitMultiple(uint256 amount) public virtual {
         forfeitWeight(amount);

@@ -67,12 +67,6 @@ interface IMultiRewardsDepot {
      */
     function addAsset(address rewardsContract, address asset) external;
 
-    /**
-     *  @notice Removes an asset from the reward contract that distributes the rewards.
-     *  @param rewardsContract address of the contract to remove the asset from being distributed.
-     */
-    function removeAsset(address rewardsContract) external;
-
     /*//////////////////////////////////////////////////////////////
                                 EVENTS
     //////////////////////////////////////////////////////////////*/
@@ -84,20 +78,10 @@ interface IMultiRewardsDepot {
      */
     event AssetAdded(address indexed rewardsContract, address indexed asset);
 
-    /**
-     * @notice Emitted when an asset is removed from a rewards contract.
-     * @param rewardsContract address of the rewards contract.
-     * @param asset address of the asset to be distributed.
-     */
-    event AssetRemoved(address indexed rewardsContract, address indexed asset);
-
     /*///////////////////////////////////////////////////////////////
                                 ERRORS
     //////////////////////////////////////////////////////////////*/
 
     /// @notice Error thrown when trying to add existing flywheel rewards or assets.
     error ErrorAddingAsset();
-
-    /// @notice Error thrown when trying to remove non-existing flywheel rewards.
-    error ErrorRemovingAsset();
 }

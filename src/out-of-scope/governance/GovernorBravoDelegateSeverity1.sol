@@ -14,16 +14,16 @@ contract GovernorBravoConstantsSeverity1 {
     uint256 public constant MAX_PROPOSAL_THRESHOLD = 0.01 ether; // 1% of GovToken
 
     /// @notice The minimum setable voting period
-    uint256 public constant MIN_VOTING_PERIOD = 5760; // About 24 hours
+    uint256 public constant MIN_VOTING_PERIOD = 7200; // About 24 hours
 
     /// @notice The max setable voting period
-    uint256 public constant MAX_VOTING_PERIOD = 40320; // About 1 week
+    uint256 public constant MAX_VOTING_PERIOD = 50400; // About 1 week
 
     /// @notice The min setable voting delay
     uint256 public constant MIN_VOTING_DELAY = 1;
 
     /// @notice The max setable voting delay
-    uint256 public constant MAX_VOTING_DELAY = 40320; // About 1 week
+    uint256 public constant MAX_VOTING_DELAY = 50400; // About 1 week
 
     /// @notice The number of votes in support of a proposal required in order for a quorum to be reached and for a vote to succeed
     uint256 public constant quorumVotes = 0.04 ether; // 4% of GovToken

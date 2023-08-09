@@ -220,12 +220,14 @@ library PoolVariables {
         int24 _tickSpacing,
         int24 baseThreshold,
         ERC20 _token0,
-        ERC20 _token1
+        ERC20 _token1,
+        uint256 protocolFees0,
+        uint256 protocolFees1
     ) internal returns (bool zeroForOne, int256 amountSpecified, uint160 sqrtPriceLimitX96) {
         PoolVariables.Info memory cache;
 
-        cache.amount0Desired = _token0.balanceOf(address(this));
-        cache.amount1Desired = _token1.balanceOf(address(this));
+        cache.amount0Desired = _token0.balanceOf(address(this)) - protocolFees0;
+        cache.amount1Desired = _token1.balanceOf(address(this)) - protocolFees1;
         emit Snapshot(cache.amount0Desired, cache.amount1Desired);
 
         //Calc base ticks

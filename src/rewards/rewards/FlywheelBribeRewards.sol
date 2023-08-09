@@ -2,6 +2,8 @@
 // Rewards logic inspired by Tribe DAO Contracts (flywheel-v2/src/rewards/FlywheelDynamicRewards.sol)
 pragma solidity ^0.8.0;
 
+import {Ownable} from "solady/auth/Ownable.sol";
+
 import {ERC20} from "solmate/tokens/ERC20.sol";
 
 import {FlywheelCore} from "../base/FlywheelCore.sol";
@@ -11,7 +13,7 @@ import {FlywheelAcummulatedRewards} from "../rewards/FlywheelAcummulatedRewards.
 import {IFlywheelBribeRewards} from "../interfaces/IFlywheelBribeRewards.sol";
 
 /// @title Flywheel Accumulated Bribes Reward Stream
-contract FlywheelBribeRewards is FlywheelAcummulatedRewards, IFlywheelBribeRewards {
+contract FlywheelBribeRewards is Ownable, FlywheelAcummulatedRewards, IFlywheelBribeRewards {
     /*//////////////////////////////////////////////////////////////
                         REWARDS CONTRACT STATE
     //////////////////////////////////////////////////////////////*/
@@ -26,7 +28,9 @@ contract FlywheelBribeRewards is FlywheelAcummulatedRewards, IFlywheelBribeRewar
      */
     constructor(FlywheelCore _flywheel, uint256 _rewardsCycleLength)
         FlywheelAcummulatedRewards(_flywheel, _rewardsCycleLength)
-    {}
+    {
+        _initializeOwner(msg.sender);
+    }
 
     /// @notice calculate and transfer accrued rewards to flywheel core
     function getNextCycleRewards(ERC20 strategy) internal override returns (uint256) {
@@ -34,10 +38,9 @@ contract FlywheelBribeRewards is FlywheelAcummulatedRewards, IFlywheelBribeRewar
     }
 
     /// @inheritdoc IFlywheelBribeRewards
-    function setRewardsDepot(RewardsDepot rewardsDepot) external {
-        /// @dev Anyone can call this, whitelisting is handled in FlywheelCore
-        rewardsDepots[ERC20(msg.sender)] = rewardsDepot;
+    function setRewardsDepot(address strategy, RewardsDepot rewardsDepot) external onlyOwner {
+        rewardsDepots[ERC20(strategy)] = rewardsDepot;
 
-        emit AddRewardsDepot(msg.sender, rewardsDepot);
+        emit AddRewardsDepot(strategy, rewardsDepot);
     }
 }

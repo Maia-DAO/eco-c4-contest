@@ -131,7 +131,7 @@ contract TalosStrategyStakedTest is TalosTestor {
         rewards = new FlywheelInstantRewards(flywheel);
         flywheel.setFlywheelRewards(address(rewards));
 
-        boostAggregator = new BoostAggregator(uniswapV3StakerContract, rewardToken, address(this));
+        boostAggregator = new BoostAggregator(uniswapV3StakerContract, rewardToken, address(this), 0);
 
         hevm.mockCall(
             address(this), abi.encodeWithSignature("attachUser(address)", address(boostAggregator)), abi.encode("")
@@ -196,7 +196,7 @@ contract TalosStrategyStakedTest is TalosTestor {
 
         hevm.prank(to);
         hevm.expectRevert(abi.encodePacked(""));
-        talosBaseStrategy.deposit(0, 0, to);
+        talosBaseStrategy.deposit(0, 0, to, 0, 0, block.timestamp);
     }
 
     function testDepositSameAmountsMultipleTimes(uint256 amount0Desired, address toFirst, address toSecond)
@@ -248,7 +248,7 @@ contract TalosStrategyStakedTest is TalosTestor {
 
         hevm.prank(user1);
         hevm.expectRevert(ITalosBaseStrategy.RedeemingZeroShares.selector);
-        talosBaseStrategy.redeem(0, 0, 0, user1, user1);
+        talosBaseStrategy.redeem(0, 0, 0, user1, user1, block.timestamp);
     }
 
     //////////////////////////////////////////////////////////////////

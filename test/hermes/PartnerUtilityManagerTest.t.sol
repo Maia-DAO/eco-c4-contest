@@ -28,7 +28,7 @@ contract PartnerUtilityManagerTest is DSTestPlus {
 
     function setUp() public {
         partnerManager = new MockPartnerUtilityManager(
-            address(new bHermesGauges(address(this), 1 weeks, 1 days / 2)),
+            address(new bHermesGauges(address(this), address(this), 1 weeks, 1 days / 2)),
             address(new bHermesBoost(address(this))),
             address(new ERC20Votes(address(this))),
             address(new ERC20Votes(address(this))),

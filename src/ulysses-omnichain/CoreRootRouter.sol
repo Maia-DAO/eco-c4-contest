@@ -327,8 +327,15 @@ contract CoreRootRouter is IRootRouter, Ownable {
         requiresExecutor
         returns (bool, bytes memory)
     {
-        /// FUNC ID: 3 (_setLocalToken)
-        if (_funcId == 0x03) {
+        ///  FUNC ID: 2 (_addLocalToken)
+        if (_funcId == 0x02) {
+            (address underlyingAddress, address localAddress, string memory name, string memory symbol) =
+                abi.decode(_encodedData, (address, address, string, string));
+
+            _addLocalToken(underlyingAddress, localAddress, name, symbol, fromChainId);
+
+            /// FUNC ID: 3 (_setLocalToken)
+        } else if (_funcId == 0x03) {
             (address globalAddress, address localAddress) = abi.decode(_encodedData, (address, address));
 
             _setLocalToken(globalAddress, localAddress, fromChainId);
@@ -347,7 +354,7 @@ contract CoreRootRouter is IRootRouter, Ownable {
     }
 
     /// @inheritdoc IRootRouter
-    function anyExecute(bytes1 _funcId, bytes calldata _encodedData, uint24 _fromChainId)
+    function anyExecute(bytes1 _funcId, bytes calldata _encodedData, uint24)
         external
         payable
         override
@@ -360,13 +367,6 @@ contract CoreRootRouter is IRootRouter, Ownable {
                 abi.decode(_encodedData, (address, address, uint24, uint128));
 
             _addGlobalToken(remoteExecutionGas, globalAddress, gasReceiver, toChain);
-
-            ///  FUNC ID: 2 (_addLocalToken)
-        } else if (_funcId == 0x02) {
-            (address underlyingAddress, address localAddress, string memory name, string memory symbol) =
-                abi.decode(_encodedData, (address, address, string, string));
-
-            _addLocalToken(underlyingAddress, localAddress, name, symbol, _fromChainId);
 
             /// Unrecognized Function Selector
         } else {

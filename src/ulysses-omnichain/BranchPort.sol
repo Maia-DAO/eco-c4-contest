@@ -170,7 +170,7 @@ contract BranchPort is Ownable, IBranchPort {
 
     /// @inheritdoc IBranchPort
     function replenishReserves(address _strategy, address _token, uint256 _amount) external lock {
-        if (!isStrategyToken[_token]) revert UnrecognizedStrategyToken();
+        if (getPortStrategyTokenDebt[_strategy][_token] < _amount) revert NoDebtToRepay();
         if (!isPortStrategy[_strategy][_token]) revert UnrecognizedPortStrategy();
 
         uint256 reservesLacking = _reservesLacking(_token);
@@ -413,6 +413,7 @@ contract BranchPort is Ownable, IBranchPort {
 
     /// @notice Modifier that require msg sender to be an active Port Strategy
     modifier requiresPortStrategy(address _token) {
+        if (!isStrategyToken[_token]) revert UnrecognizedStrategyToken();
         if (!isPortStrategy[msg.sender][_token]) revert UnrecognizedPortStrategy();
         _;
     }

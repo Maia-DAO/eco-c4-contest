@@ -21,6 +21,9 @@ contract BoostAggregatorFactory is IBoostAggregatorFactory {
     /// @inheritdoc IBoostAggregatorFactory
     ERC20 public immutable hermes;
 
+    // divisioner for protocol fee
+    uint256 private constant DIVISIONER = 10000;
+
     /// @inheritdoc IBoostAggregatorFactory
     BoostAggregator[] public boostAggregators;
 
@@ -48,9 +51,10 @@ contract BoostAggregatorFactory is IBoostAggregatorFactory {
     //////////////////////////////////////////////////////////////*/
 
     /// @inheritdoc IBoostAggregatorFactory
-    function createBoostAggregator(address owner) external {
+    function createBoostAggregator(address owner, uint256 maxFee) external {
         if (owner == address(0)) revert InvalidOwner();
-        BoostAggregator boostAggregator = new BoostAggregator(uniswapV3Staker, hermes, owner);
+        if (maxFee > DIVISIONER) revert InvalidMaxFee();
+        BoostAggregator boostAggregator = new BoostAggregator(uniswapV3Staker, hermes, owner, maxFee);
 
         boostAggregatorIds[boostAggregator] = boostAggregators.length;
         boostAggregators.push(boostAggregator);

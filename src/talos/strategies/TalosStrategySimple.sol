@@ -29,7 +29,8 @@ abstract contract TalosStrategySimple is TalosBaseStrategy {
 
     function doRerange() internal override returns (uint256 amount0, uint256 amount1) {
         (tickLower, tickUpper, amount0, amount1, tokenId, liquidity) = nonfungiblePositionManager.rerange(
-            PoolActions.ActionParams(pool, optimizer, token0, token1, tickSpacing), poolFee
+            PoolActions.ActionParams(pool, optimizer, token0, token1, tickSpacing, protocolFees0, protocolFees1),
+            poolFee
         );
     }
 
@@ -37,7 +38,7 @@ abstract contract TalosStrategySimple is TalosBaseStrategy {
         int24 baseThreshold = tickSpacing * optimizer.tickRangeMultiplier();
 
         PoolActions.ActionParams memory actionParams =
-            PoolActions.ActionParams(pool, optimizer, token0, token1, tickSpacing);
+            PoolActions.ActionParams(pool, optimizer, token0, token1, tickSpacing, protocolFees0, protocolFees1);
 
         PoolActions.swapToEqualAmounts(actionParams, baseThreshold);
 

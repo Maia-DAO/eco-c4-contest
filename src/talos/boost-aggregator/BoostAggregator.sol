@@ -115,12 +115,15 @@ contract BoostAggregator is Ownable, IBoostAggregator {
 
         uint256 pendingRewards = uniswapV3Staker.tokenIdRewards(tokenId) - tokenIdRewards[tokenId];
 
-        if (pendingRewards > DIVISIONER) {
-            uint256 newProtocolRewards = (pendingRewards * protocolFee) / DIVISIONER;
-            /// @dev protocol rewards stay in stake contract
-            protocolRewards += newProtocolRewards;
-            pendingRewards -= newProtocolRewards;
+        uint256 newProtocolRewards = (pendingRewards * protocolFee) / DIVISIONER;
+        /// @dev protocol rewards stay in stake contract
+        protocolRewards += newProtocolRewards;
+        // never overflows because protocolFee <= DIVISIONER
+        pendingRewards -= newProtocolRewards;
 
+        // Only claim rewards if there are any
+        // or it would claim all accrued rewards in the staker belonging to the boost aggregator
+        if (pendingRewards > 0) {
             address rewardsDepot = userToRewardsDepot[user];
             if (rewardsDepot != address(0)) {
                 // claim rewards to user's rewardsDepot

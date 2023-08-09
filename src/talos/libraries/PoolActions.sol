@@ -33,13 +33,21 @@ library PoolActions {
         ERC20 token0;
         ERC20 token1;
         int24 tickSpacing;
+        uint256 protocolFees0;
+        uint256 protocolFees1;
     }
 
     function swapToEqualAmounts(ActionParams memory actionParams, int24 baseThreshold) internal {
         (bool zeroForOne, int256 amountSpecified, uint160 sqrtPriceLimitX96) = actionParams
             .pool
             .getSwapToEqualAmountsParams(
-            actionParams.optimizer, actionParams.tickSpacing, baseThreshold, actionParams.token0, actionParams.token1
+            actionParams.optimizer,
+            actionParams.tickSpacing,
+            baseThreshold,
+            actionParams.token0,
+            actionParams.token1,
+            actionParams.protocolFees0,
+            actionParams.protocolFees1
         );
 
         //Swap imbalanced token as long as we haven't used the entire amountSpecified and haven't reached the price limit
@@ -63,12 +71,18 @@ library PoolActions {
     {
         int24 baseThreshold = actionParams.tickSpacing * actionParams.optimizer.tickRangeMultiplier();
 
-        uint256 balance0;
-        uint256 balance1;
-        (balance0, balance1, tickLower, tickUpper) = getThisPositionTicks(
-            actionParams.pool, actionParams.token0, actionParams.token1, baseThreshold, actionParams.tickSpacing
+        // Reutilizing the same variables to avoid stack too deep
+        // In this case, we are using amount0 and amount1 to store token balances to add liquidity
+        (amount0, amount1, tickLower, tickUpper) = getThisPositionTicks(
+            actionParams.pool,
+            actionParams.token0,
+            actionParams.token1,
+            baseThreshold,
+            actionParams.tickSpacing,
+            actionParams.protocolFees0,
+            actionParams.protocolFees1
         );
-        emit Snapshot(balance0, balance1);
+        emit Snapshot(amount0, amount1);
 
         (tokenId, liquidity, amount0, amount1) = nonfungiblePositionManager.mint(
             INonfungiblePositionManager.MintParams({
@@ -77,8 +91,8 @@ library PoolActions {
                 fee: poolFee,
                 tickLower: tickLower,
                 tickUpper: tickUpper,
-                amount0Desired: balance0,
-                amount1Desired: balance1,
+                amount0Desired: amount0,
+                amount1Desired: amount1,
                 amount0Min: 0,
                 amount1Min: 0,
                 recipient: address(this),
@@ -92,11 +106,13 @@ library PoolActions {
         ERC20 token0,
         ERC20 token1,
         int24 baseThreshold,
-        int24 tickSpacing
+        int24 tickSpacing,
+        uint256 protocolFees0,
+        uint256 protocolFees1
     ) private view returns (uint256 balance0, uint256 balance1, int24 tickLower, int24 tickUpper) {
         // Emit snapshot to record balances
-        balance0 = token0.balanceOf(address(this));
-        balance1 = token1.balanceOf(address(this));
+        balance0 = token0.balanceOf(address(this)) - protocolFees0;
+        balance1 = token1.balanceOf(address(this)) - protocolFees1;
 
         //Get exact ticks depending on Optimizer's balances
         (tickLower, tickUpper) = pool.getPositionTicks(balance0, balance1, baseThreshold, tickSpacing);

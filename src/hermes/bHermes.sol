@@ -52,9 +52,15 @@ import {UtilityManager} from "./UtilityManager.sol";
 contract bHermes is UtilityManager, ERC4626DepositOnly {
     using SafeTransferLib for address;
 
-    constructor(ERC20 _hermes, address _owner, uint32 _gaugeCycleLength, uint32 _incrementFreezeWindow)
+    constructor(
+        ERC20 _hermes,
+        address _owner,
+        address _flywheelBooster,
+        uint32 _gaugeCycleLength,
+        uint32 _incrementFreezeWindow
+    )
         UtilityManager(
-            address(new bHermesGauges(_owner, _gaugeCycleLength, _incrementFreezeWindow)),
+            address(new bHermesGauges(_owner, _flywheelBooster, _gaugeCycleLength, _incrementFreezeWindow)),
             address(new bHermesBoost(_owner)),
             address(new bHermesVotes(_owner))
         )

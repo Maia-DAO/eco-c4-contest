@@ -32,4 +32,12 @@ interface ITalosManager is AutomationCompatibleInterface {
 
     /// @notice TALOS strategy to rebalance or rerange
     function strategy() external view returns (ITalosBaseStrategy);
+
+
+    /*//////////////////////////////////////////////////////////////
+                                ERRORS
+    //////////////////////////////////////////////////////////////*/
+
+    /// @notice Emitted when the strategy being set is the zero address
+    error AddressZero();
 }

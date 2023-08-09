@@ -6,13 +6,7 @@ import "@gauges/factories/BribesFactory.sol";
 contract MockBribesFactory is BribesFactory {
 
     constructor(
-        BaseV2GaugeManager _gaugeManager,
-        FlywheelBoosterGaugeWeight _flywheelGaugeWeightBooster,
         uint256 _rewardsCycleLength,
         address _owner
-    ) BribesFactory(_gaugeManager, _flywheelGaugeWeightBooster, _rewardsCycleLength, _owner) {}
-
-    // function getFlywheelGaugeWeightBooster() public returns (FlywheelBoosterGaugeWeight) {
-    //     return flywheelGaugeWeightBooster;
-    // }
+    ) BribesFactory(_rewardsCycleLength, _owner) {}
 }

@@ -25,7 +25,7 @@ interface IFlywheelBribeRewards is IFlywheelAcummulatedRewards {
      * @notice swap out the flywheel rewards contract
      *  @param rewardsDepot the new rewards depot to set
      */
-    function setRewardsDepot(RewardsDepot rewardsDepot) external;
+    function setRewardsDepot(address strategy, RewardsDepot rewardsDepot) external;
 
     /*//////////////////////////////////////////////////////////////
                                 EVENTS

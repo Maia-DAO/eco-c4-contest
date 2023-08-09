@@ -216,6 +216,7 @@ interface IBranchPort {
 
     error InvalidMinimumReservesRatio();
     error InsufficientReserves();
+    error NoDebtToRepay();
     error UnrecognizedCore();
     error UnrecognizedBridgeAgent();
     error UnrecognizedBridgeAgentFactory();

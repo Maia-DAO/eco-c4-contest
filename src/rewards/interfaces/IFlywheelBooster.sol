@@ -4,6 +4,8 @@ pragma solidity ^0.8.0;
 
 import {ERC20} from "solmate/tokens/ERC20.sol";
 
+import {FlywheelCore} from "@rewards/FlywheelCoreStrategy.sol";
+
 /**
  * @title Balance Booster Module for Flywheel
  *  @author Maia DAO (https://github.com/Maia-DAO)
@@ -19,6 +21,49 @@ import {ERC20} from "solmate/tokens/ERC20.sol";
  *          This prevents gaming of the reward calculation function by using manipulated balances when accruing.
  */
 interface IFlywheelBooster {
+    /*///////////////////////////////////////////////////////////////
+                        FLYWHEEL BOOSTER STATE
+    ///////////////////////////////////////////////////////////////*/
+
+    /**
+     * @notice Gets the flywheel bribe at index to accrue rewards for a given user per strategy.
+     *   @param user the user to get bribes for
+     *   @param strategy the strategy to get bribes for
+     *   @return flywheel bribe to accrue rewards for a given user for a strategy
+     */
+    function userGaugeFlywheels(address user, ERC20 strategy, uint256 index) external returns (FlywheelCore flywheel);
+
+    /**
+     * @notice Gets the index + 1 of the flywheel in userGaugeFlywheels array. 0 means not opted in.
+     *   @param user the user to get the flywheel index for
+     *   @param strategy the strategy to get the flywheel index for
+     *   @param flywheel the flywheel to get the index for
+     *   @return id the index + 1 of the flywheel in userGaugeFlywheels array. 0 means not opted in.
+     */
+    function userGaugeflywheelId(address user, ERC20 strategy, FlywheelCore flywheel) external returns (uint256 id);
+
+    /**
+     * @notice Gets the gauge weight for a given strategy.
+     *   @param strategy the strategy to get the gauge weight for
+     *   @param flywheel the flywheel to get the gauge weight for
+     *   @return gaugeWeight the gauge weight for a given strategy
+     */
+    function flywheelStrategyGaugeWeight(ERC20 strategy, FlywheelCore flywheel)
+        external
+        returns (uint256 gaugeWeight);
+
+    /*///////////////////////////////////////////////////////////////
+                            VIEW HELPERS
+    ///////////////////////////////////////////////////////////////*/
+
+    /**
+     * @notice Gets the flywheel bribes to accrue rewards for a given user per strategy.
+     *   @param user the user to get bribes for
+     *   @param strategy the strategy to get bribes for
+     *   @return flywheel bribes to accrue rewards for a given user per strategy
+     */
+    function getUserGaugeFlywheels(address user, ERC20 strategy) external returns (FlywheelCore[] memory flywheel);
+
     /**
      * @notice calculate the boosted supply of a strategy.
      *   @param strategy the strategy to calculate boosted supply of
@@ -33,4 +78,61 @@ interface IFlywheelBooster {
      *   @return the boosted balance
      */
     function boostedBalanceOf(ERC20 strategy, address user) external view returns (uint256);
+
+    /*///////////////////////////////////////////////////////////////
+                        USER BRIBE OPT-IN/OPT-OUT
+    ///////////////////////////////////////////////////////////////*/
+
+    /**
+     * @notice opt-in to a flywheel for a strategy
+     *   @param strategy the strategy to opt-in to
+     *   @param flywheel the flywheel to opt-in to
+     */
+    function optIn(ERC20 strategy, FlywheelCore flywheel) external;
+
+    /**
+     * @notice opt-out of a flywheel for a strategy
+     *   @param strategy the strategy to opt-out of
+     *   @param flywheel the flywheel to opt-out of
+     */
+    function optOut(ERC20 strategy, FlywheelCore flywheel) external;
+
+    /*///////////////////////////////////////////////////////////////
+                       bHERMES GAUGE WEIGHT ACCRUAL
+    ///////////////////////////////////////////////////////////////*/
+
+    /**
+     * @notice accrue gauge weight for a user for a strategy before increasing their gauge weight
+     *   @param user the user to accrue gauge weight for
+     *   @param strategy the strategy to accrue gauge weight for
+     *   @param delta the amount of gauge weight to accrue
+     */
+    function accrueBribesPositiveDelta(address user, ERC20 strategy, uint256 delta) external;
+
+    /**
+     * @notice accrue gauge weight for a user for a strategy before decreasing their gauge weight
+     *   @param user the user to accrue gauge weight for
+     *   @param strategy the strategy to accrue gauge weight for
+     *   @param delta the amount of gauge weight to accrue
+     */
+    function accrueBribesNegativeDelta(address user, ERC20 strategy, uint256 delta) external;
+
+    /*///////////////////////////////////////////////////////////////
+                                ERRORS
+    ///////////////////////////////////////////////////////////////*/
+
+    /// @notice error thrown when user is already opted in to a flywheel for a strategy
+    error AlreadyOptedIn();
+
+    /// @notice error thrown when user tries to opt out of a flywheel they are not opted in to
+    error NotOptedIn();
+
+    /// @notice error thrown when initializing the booster more than once
+    error AlreadyInitialized();
+
+    /// @notice Throws when trying to opt in to a strategy that is not a gauge.
+    error InvalidGauge();
+
+    /// @notice Throws when trying to opt in to an invalid flywheel.
+    error InvalidFlywheel();
 }

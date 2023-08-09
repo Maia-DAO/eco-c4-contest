@@ -29,7 +29,7 @@ contract BaseV2MinterTest is DSTestPlus {
     function setUp() public {
         rewardToken = new MockERC20("test reward token", "RTKN", 18);
 
-        bHermesToken = new bHermes(rewardToken, address(this), 1 weeks, 12 hours);
+        bHermesToken = new bHermes(rewardToken, address(this), address(this), 1 weeks, 12 hours);
 
         baseV2Minter = new BaseV2Minter(address(bHermesToken), address(this), address(this));
 

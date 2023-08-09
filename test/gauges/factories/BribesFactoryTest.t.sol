@@ -4,15 +4,15 @@ pragma solidity ^0.8.0;
 import {console2} from "forge-std/console2.sol";
 import {DSTestPlus} from "solmate/test/utils/DSTestPlus.sol";
 
-import { MockERC20 } from "../mocks/MockERC20.sol";
+import {MockERC20} from "../mocks/MockERC20.sol";
 import "../mocks/MockBaseV2GaugeManager.sol";
 
 import "../mocks/MockBribesFactory.sol";
 
 error Unauthorized();
+error InvalidGauge();
 
 contract BribesFactoryTest is DSTestPlus {
-
     address gaugeManager = address(0xCAFE);
     address flywheelGaugeWeightBooster = address(0xBCAA);
     uint256 rewardsCycleLength = 10;
@@ -26,14 +26,8 @@ contract BribesFactoryTest is DSTestPlus {
     ERC20 bribeToken2;
 
     function mockBHermes() public {
-        hevm.mockCall(_bHermes,
-                    abi.encodeWithSignature("gaugeWeight()"),
-                    abi.encode(address(0xCAFC))
-                    );
-        hevm.mockCall(_bHermes,
-                    abi.encodeWithSignature("gaugeBoost()"),
-                    abi.encode(address(0xCAFD))
-                    );
+        hevm.mockCall(_bHermes, abi.encodeWithSignature("gaugeWeight()"), abi.encode(address(0xCAFC)));
+        hevm.mockCall(_bHermes, abi.encodeWithSignature("gaugeBoost()"), abi.encode(address(0xCAFD)));
     }
 
     function setUp() public {
@@ -43,9 +37,8 @@ contract BribesFactoryTest is DSTestPlus {
             address(this),
             _admin
         );
+        hevm.prank(flywheelGaugeWeightBooster);
         factory = new MockBribesFactory(
-            manager,
-            FlywheelBoosterGaugeWeight(flywheelGaugeWeightBooster),
             rewardsCycleLength,
             address(this)
         );
@@ -54,8 +47,6 @@ contract BribesFactoryTest is DSTestPlus {
     }
 
     function testConstructor() public {
-        assertEq(address(factory.gaugeManager()), address(manager));
-        // assertEq(address(factory.flywheelGaugeWeightBooster()), flywheelGaugeWeightBooster);
         assertEq(factory.rewardsCycleLength(), rewardsCycleLength);
         assertEq(factory.owner(), address(this));
     }
@@ -63,12 +54,11 @@ contract BribesFactoryTest is DSTestPlus {
     function testCreateBribeFlywheel() public {
         factory.createBribeFlywheel(address(bribeToken));
 
-        FlywheelCore flywheel = factory.flywheelTokens(address(bribeToken));
+        FlywheelCore flywheel = factory.tokenToFlywheel(address(bribeToken));
 
         assertEq(flywheel.rewardToken(), address(bribeToken));
         assertEq(address(flywheel.flywheelBooster()), flywheelGaugeWeightBooster);
         assertEq(flywheel.owner(), address(factory));
-        assertTrue(factory.activeBribeFlywheels(flywheel));
         assertFalse(address(flywheel.flywheelRewards()) == address(0));
 
         flywheel = factory.bribeFlywheels(0);
@@ -76,7 +66,6 @@ contract BribesFactoryTest is DSTestPlus {
         assertEq(flywheel.rewardToken(), address(bribeToken));
         assertEq(address(flywheel.flywheelBooster()), flywheelGaugeWeightBooster);
         assertEq(flywheel.owner(), address(factory));
-        assertTrue(factory.activeBribeFlywheels(flywheel));
         assertFalse(address(flywheel.flywheelRewards()) == address(0));
     }
 
@@ -100,9 +89,9 @@ contract BribesFactoryTest is DSTestPlus {
 
         FlywheelCore flywheel = factory.bribeFlywheels(0);
         FlywheelCore flywheel2 = factory.bribeFlywheels(1);
-        
-        assertEq(factory.bribeFlywheelIds(flywheel), 0);
-        assertEq(factory.bribeFlywheelIds(flywheel2), 1);
+
+        assertEq(factory.bribeFlywheelIds(flywheel), 1);
+        assertEq(factory.bribeFlywheelIds(flywheel2), 2);
     }
 
     function testCreateBribeFlywheelAlreadyExists() public {
@@ -111,43 +100,30 @@ contract BribesFactoryTest is DSTestPlus {
         factory.createBribeFlywheel(address(bribeToken));
     }
 
-    function testAddGaugetoFlywheel(address gauge, BaseV2GaugeFactory gaugeFactory) public {
-        hevm.assume(address(gaugeFactory) != address(0));
+    function testAddGaugetoFlywheel(address gauge) public {
+        hevm.mockCall(address(this), abi.encodeWithSignature("isGauge(address)"), abi.encode(true));
+        hevm.mockCall(address(gauge), abi.encodeWithSignature("multiRewardsDepot()"), abi.encode(address(0)));
+        hevm.mockCall(address(0), abi.encodeWithSignature("addAsset()"), abi.encode(address(0)));
 
-        manager.addGaugeFactory(gaugeFactory);
         factory.createBribeFlywheel(address(bribeToken));
-
-        factory.bribeFlywheels(0);
-
-        hevm.prank(address(gaugeFactory));
         factory.addGaugetoFlywheel(gauge, address(bribeToken));
     }
 
-    function testAddGaugetoFlywheelNotExists(address gauge, BaseV2GaugeFactory gaugeFactory) public {
-        hevm.assume(address(gaugeFactory) != address(0));
+    function testAddGaugetoFlywheelNotExists(address gauge) public {
+        hevm.mockCall(address(this), abi.encodeWithSignature("isGauge(address)"), abi.encode(true));
+        hevm.mockCall(address(gauge), abi.encodeWithSignature("multiRewardsDepot()"), abi.encode(address(0)));
+        hevm.mockCall(address(0), abi.encodeWithSignature("addAsset()"), abi.encode(address(0)));
 
-        manager.addGaugeFactory(gaugeFactory);
-
-        hevm.prank(address(gaugeFactory));
         hevm.expectEmit(false, false, false, false);
         emit BribeFlywheelCreated(address(bribeToken), FlywheelCore(address(0)));
         factory.addGaugetoFlywheel(gauge, address(bribeToken));
     }
 
-    function testAddGaugetoFlywheelUnauthorized(address gauge, BaseV2GaugeFactory gaugeFactory) public {
-        hevm.assume(address(gaugeFactory) != address(0));
+    function testAddGaugetoFlywheelInvalidGauge(address gauge) public {
+        hevm.mockCall(address(this), abi.encodeWithSignature("isGauge(address)"), abi.encode(false));
+        hevm.mockCall(address(0), abi.encodeWithSignature("addAsset()"), abi.encode(address(0)));
 
-        hevm.prank(address(gaugeFactory));
-        hevm.expectRevert(Unauthorized.selector);
-        factory.addGaugetoFlywheel(gauge, address(bribeToken));
-    }
-
-    function testAddGaugetoFlywheelUnauthorizedNotFactory(address gauge, BaseV2GaugeFactory gaugeFactory) public {
-        hevm.assume(address(gaugeFactory) != address(0));
-
-        manager.addGaugeFactory(gaugeFactory);
-
-        hevm.expectRevert(Unauthorized.selector);
+        hevm.expectRevert(InvalidGauge.selector);
         factory.addGaugetoFlywheel(gauge, address(bribeToken));
     }
 

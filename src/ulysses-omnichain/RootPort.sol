@@ -404,7 +404,11 @@ contract RootPort is Ownable, IRootPort {
 
     /// @inheritdoc IRootPort
     function addBridgeAgentFactory(address _bridgeAgentFactory) external onlyOwner {
-        bridgeAgentFactories[bridgeAgentsLenght++] = _bridgeAgentFactory;
+        if (isBridgeAgentFactory[_bridgeAgentFactory]) revert AlreadyAddedBridgeAgentFactory();
+
+        bridgeAgentFactories.push(_bridgeAgentFactory);
+        bridgeAgentFactoriesLenght++;
+        isBridgeAgentFactory[_bridgeAgentFactory] = true;
 
         emit BridgeAgentFactoryAdded(_bridgeAgentFactory);
     }

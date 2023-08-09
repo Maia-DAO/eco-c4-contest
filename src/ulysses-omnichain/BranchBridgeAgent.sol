@@ -422,15 +422,18 @@ contract BranchBridgeAgent is IBranchBridgeAgent {
         requiresFallbackGas
     {
         //Encode Data for cross-chain call.
-        bytes memory packedData = abi.encodePacked(
-            bytes1(0x07), depositNonce++, _settlementNonce, msg.value.toUint128(), _gasToBoostSettlement
-        );
+        bytes memory packedData =
+            abi.encodePacked(bytes1(0x07), depositNonce, _settlementNonce, msg.value.toUint128(), _gasToBoostSettlement);
+
         //Update State and Perform Call
         _sendRetrieveOrRetry(packedData);
     }
 
     /// @inheritdoc IBranchBridgeAgent
     function retrieveDeposit(uint32 _depositNonce) external payable lock requiresFallbackGas {
+        //Check if deposit belongs to message sender
+        if (getDeposit[_depositNonce].owner != msg.sender) revert NotDepositOwner();
+
         //Encode Data for cross-chain call.
         bytes memory packedData = abi.encodePacked(bytes1(0x08), _depositNonce, msg.value.toUint128(), uint128(0));
 
@@ -1271,7 +1274,7 @@ contract BranchBridgeAgent is IBranchBridgeAgent {
             /// DEPOSIT FLAG: 4, 5
         } else if ((flag == 0x04) || (flag == 0x05)) {
             //Save nonce
-            _depositNonce = uint32(bytes4(data[PARAMS_START_SIGNED:PARAMS_START_SIGNED + PARAMS_TKN_START]));
+            _depositNonce = uint32(bytes4(data[PARAMS_START_SIGNED:PARAMS_START_SIGNED]));
 
             //Make tokens available to depositor.
             _clearDeposit(_depositNonce);
@@ -1287,7 +1290,7 @@ contract BranchBridgeAgent is IBranchBridgeAgent {
         } else if (flag == 0x06) {
             //Save nonce
             _depositNonce = uint32(
-                bytes4(data[PARAMS_START_SIGNED + PARAMS_START:PARAMS_START_SIGNED + PARAMS_TKN_START + PARAMS_START])
+                bytes4(data[PARAMS_START_SIGNED + PARAMS_START:PARAMS_START_SIGNED + PARAMS_TKN_START])
             );
 
             //Make tokens available to depositor.
@@ -1376,7 +1379,7 @@ contract BranchBridgeAgent is IBranchBridgeAgent {
         _;
     }
 
-    /// @notice Modifier verifies the caller is the Anycall Executor. 
+    /// @notice Modifier verifies the caller is the Anycall Executor.
     modifier requiresExecutor() {
         _requiresExecutor();
         _;

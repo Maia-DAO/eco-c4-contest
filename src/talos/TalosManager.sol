@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
+import {Ownable} from "solady/auth/Ownable.sol";
+
 import {IUniswapV3Pool} from "@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol";
 
 import {ITalosBaseStrategy} from "./interfaces/ITalosBaseStrategy.sol";
@@ -11,7 +13,7 @@ import {PoolVariables} from "./libraries/PoolVariables.sol";
 import {ITalosManager, AutomationCompatibleInterface} from "./interfaces/ITalosManager.sol";
 
 /// @title Talos Strategy Manager - Manages rebalancing and reranging of Talos Positions
-contract TalosManager is AutomationCompatibleInterface, ITalosManager {
+contract TalosManager is Ownable, AutomationCompatibleInterface, ITalosManager {
     using PoolVariables for IUniswapV3Pool;
 
     /*//////////////////////////////////////////////////////////////
@@ -31,28 +33,34 @@ contract TalosManager is AutomationCompatibleInterface, ITalosManager {
     int24 public immutable ticksFromUpperRerange;
 
     /// @inheritdoc ITalosManager
-    ITalosBaseStrategy public immutable strategy;
+    ITalosBaseStrategy public strategy;
 
     /**
      * @notice Construct a new Talos Strategy Manager contract.
-     * @param _strategy Strategy to manage.
+     * @param _owner Owner to set strategy.
      * @param _ticksFromLowerRebalance Ticks from lower tick to rebalance.
      * @param _ticksFromUpperRebalance Ticks from upper tick to rebalance.
      * @param _ticksFromLowerRerange Ticks from lower tick to rerange.
      * @param _ticksFromUpperRerange Ticks from upper tick to rerange.
      */
     constructor(
-        address _strategy,
+        address _owner,
         int24 _ticksFromLowerRebalance,
         int24 _ticksFromUpperRebalance,
         int24 _ticksFromLowerRerange,
         int24 _ticksFromUpperRerange
     ) {
-        strategy = ITalosBaseStrategy(_strategy);
+        _initializeOwner(_owner);
         ticksFromLowerRebalance = _ticksFromLowerRebalance;
         ticksFromUpperRebalance = _ticksFromUpperRebalance;
         ticksFromLowerRerange = _ticksFromLowerRerange;
         ticksFromUpperRerange = _ticksFromUpperRerange;
+    }
+
+    function setStrategy(ITalosBaseStrategy _strategy) external onlyOwner {
+        if (address(strategy) == address(0)) revert AddressZero();
+        renounceOwnership();
+        strategy = _strategy;
     }
 
     /*//////////////////////////////////////////////////////////////

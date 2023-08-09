@@ -51,10 +51,11 @@ contract BoostAggregatorFactory is IBoostAggregatorFactory {
     //////////////////////////////////////////////////////////////*/
 
     /// @inheritdoc IBoostAggregatorFactory
-    function createBoostAggregator(address owner, uint256 maxFee) external {
+    function createBoostAggregator(address owner, uint256 maxFee, bytes32 salt) external {
         if (owner == address(0)) revert InvalidOwner();
         if (maxFee > DIVISIONER) revert InvalidMaxFee();
-        BoostAggregator boostAggregator = new BoostAggregator(uniswapV3Staker, hermes, owner, maxFee);
+
+        BoostAggregator boostAggregator = new BoostAggregator{salt: keccak256(abi.encodePacked(owner, maxFee, salt))}(uniswapV3Staker, hermes, owner, maxFee);
 
         boostAggregatorIds[boostAggregator] = boostAggregators.length;
         boostAggregators.push(boostAggregator);

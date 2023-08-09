@@ -54,7 +54,7 @@ abstract contract BaseV2Gauge is IBaseV2Gauge {
 
         epoch = (block.timestamp / WEEK) * WEEK;
 
-        multiRewardsDepot = new MultiRewardsDepot(address(BaseV2GaugeFactory(msg.sender).bribesFactory()));
+        multiRewardsDepot = new MultiRewardsDepot{salt: keccak256(abi.encodePacked(this))}(address(BaseV2GaugeFactory(msg.sender).bribesFactory()));
     }
 
     /*///////////////////////////////////////////////////////////////

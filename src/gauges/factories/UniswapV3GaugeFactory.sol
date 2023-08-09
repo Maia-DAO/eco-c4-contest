@@ -37,6 +37,9 @@ contract UniswapV3GaugeFactory is BaseV2GaugeFactory, IUniswapV3GaugeFactory {
     /// @inheritdoc IUniswapV3GaugeFactory
     FlywheelGaugeRewards public immutable override flywheelGaugeRewards;
 
+    /// @inheritdoc IUniswapV3GaugeFactory
+    mapping(address strategy => uint256 nonce) public override strategyNonces;
+
     /**
      * @notice Creates a new Uniswap V3 Gauge Factory
      * @param _gaugeManager Gauge Factory manager
@@ -75,7 +78,7 @@ contract UniswapV3GaugeFactory is BaseV2GaugeFactory, IUniswapV3GaugeFactory {
     /// @notice Creates a new Uniswap V3 Gauge
     function newGauge(address strategy, bytes memory data) internal override returns (BaseV2Gauge) {
         uint24 minimumWidth = abi.decode(data, (uint24));
-        return new UniswapV3Gauge(
+        return new UniswapV3Gauge{salt: keccak256(abi.encodePacked(strategy, strategyNonces[strategy]++))}(
                 flywheelGaugeRewards,
                 address(uniswapV3Staker),
                 strategy,

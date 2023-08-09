@@ -50,8 +50,9 @@ interface IBoostAggregatorFactory {
      * @notice Creates a new boostAggregator
      * @param owner The owner of the boostAggregator
      * @param maxFee The max fee the boostAggregator can charge
+     * @param salt The salt to use for the boostAggregator
      */
-    function createBoostAggregator(address owner, uint256 maxFee) external;
+    function createBoostAggregator(address owner, uint256 maxFee, bytes32 salt) external;
 
     /*//////////////////////////////////////////////////////////////
                                 EVENTS

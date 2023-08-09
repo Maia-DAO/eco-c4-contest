@@ -53,12 +53,14 @@ interface ITalosBaseStrategyFactory {
      * @param pool The address of the pool to create a talos strategy for.
      * @param optimizer Address of the optimizer attached to the strategy.
      * @param strategyManager Address of the manager of the strategy.
+     * @param salt Salt used to create the strategy.
      * @param data Additional data needed to create the strategy
      */
     function createTalosBaseStrategy(
         IUniswapV3Pool pool,
         ITalosOptimizer optimizer,
         address strategyManager,
+        bytes32 salt,
         bytes memory data
     ) external;
 

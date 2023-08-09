@@ -9,7 +9,6 @@ import "../mocks/MockOptimizerFactory.sol";
 error Unauthorized();
 
 contract OptimizerFactoryTest is DSTestPlus {
-
     MockOptimizerFactory factory;
 
     function setUp() public {
@@ -27,7 +26,8 @@ contract OptimizerFactoryTest is DSTestPlus {
         int24 tickRangeMultiplier,
         uint24 priceImpactPercentage,
         uint256 maxTotalSupply,
-        address owner
+        address owner,
+        bytes32 salt
     ) public {
         hevm.assume(owner != address(0));
         hevm.assume(maxTwapDeviation >= 20);
@@ -36,12 +36,7 @@ contract OptimizerFactoryTest is DSTestPlus {
         hevm.assume(maxTotalSupply != 0);
 
         factory.createTalosOptimizer(
-            twapDuration,
-            maxTwapDeviation,
-            tickRangeMultiplier,
-            priceImpactPercentage,
-            maxTotalSupply,
-            owner
+            twapDuration, maxTwapDeviation, tickRangeMultiplier, priceImpactPercentage, maxTotalSupply, owner, salt
         );
 
         assertEq(factory.optimizerIds(factory.optimizers(1)), 1);
@@ -53,10 +48,13 @@ contract OptimizerFactoryTest is DSTestPlus {
         int24 tickRangeMultiplier,
         uint24 priceImpactPercentage,
         uint256 maxTotalSupply,
-        address owner
+        address owner,
+        bytes32 salt
     ) public {
         assertEq(factory.getOptimizers().length, 1);
-        testCreateTalosOptimizer(twapDuration, maxTwapDeviation, tickRangeMultiplier, priceImpactPercentage, maxTotalSupply, owner);
+        testCreateTalosOptimizer(
+            twapDuration, maxTwapDeviation, tickRangeMultiplier, priceImpactPercentage, maxTotalSupply, owner, salt
+        );
         assertEq(factory.getOptimizers().length, 2);
     }
 
@@ -67,28 +65,43 @@ contract OptimizerFactoryTest is DSTestPlus {
         uint24 priceImpactPercentage,
         uint256 maxTotalSupply,
         address owner,
-        uint32 twapDuration2,
-        int24 maxTwapDeviation2,
-        int24 tickRangeMultiplier2,
-        uint24 priceImpactPercentage2,
-        uint256 maxTotalSupply2,
-        address owner2
+        bytes32 salt,
+        bytes32 salt2
     ) public {
-        hevm.assume(owner != address(0) && owner2 != address(0) && owner != owner2);
-        hevm.assume(twapDuration != twapDuration2);
-        hevm.assume(maxTwapDeviation != maxTwapDeviation2);
-        hevm.assume(tickRangeMultiplier != tickRangeMultiplier2);
-        hevm.assume(priceImpactPercentage != priceImpactPercentage2);
-        hevm.assume(maxTotalSupply != maxTotalSupply2);
+        hevm.assume(owner != address(0));
+        hevm.assume(salt != salt2);
 
-        testCreateTalosOptimizer(twapDuration, maxTwapDeviation, tickRangeMultiplier, priceImpactPercentage, maxTotalSupply, owner);
-        testCreateTalosOptimizer(twapDuration2, maxTwapDeviation2, tickRangeMultiplier2, priceImpactPercentage2, maxTotalSupply2, owner2);
+        testCreateTalosOptimizer(
+            twapDuration, maxTwapDeviation, tickRangeMultiplier, priceImpactPercentage, maxTotalSupply, owner, salt
+        );
+        testCreateTalosOptimizer(
+            twapDuration, maxTwapDeviation, tickRangeMultiplier, priceImpactPercentage, maxTotalSupply, owner, salt2
+        );
 
         TalosOptimizer optimizer = factory.optimizers(1);
         assertEq(factory.optimizerIds(optimizer), 1);
         assertEq(optimizer.owner(), owner);
         TalosOptimizer optimizer2 = factory.optimizers(2);
         assertEq(factory.optimizerIds(optimizer2), 2);
-        assertEq(optimizer2.owner(), owner2);
+        assertEq(optimizer2.owner(), owner);
+    }
+
+    function testFailCreateBoostAggregator(
+        uint32 twapDuration,
+        int24 maxTwapDeviation,
+        int24 tickRangeMultiplier,
+        uint24 priceImpactPercentage,
+        uint256 maxTotalSupply,
+        address owner,
+        bytes32 salt
+    ) public {
+        hevm.assume(owner != address(0));
+
+        testCreateTalosOptimizer(
+            twapDuration, maxTwapDeviation, tickRangeMultiplier, priceImpactPercentage, maxTotalSupply, owner, salt
+        );
+        testCreateTalosOptimizer(
+            twapDuration, maxTwapDeviation, tickRangeMultiplier, priceImpactPercentage, maxTotalSupply, owner, salt
+        );
     }
 }

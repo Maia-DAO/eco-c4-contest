@@ -121,6 +121,8 @@ contract GovernorBravoDelegateStorageV1 is GovernorBravoDelegatorStorage {
         uint256 startBlock;
         /// @notice The block at which voting ends: votes must be cast prior to this block
         uint256 endBlock;
+        /// @notice Total supply at the time of proposal creation
+        uint256 totalSupply; 
         /// @notice Current number of votes in favor of this proposal
         uint256 forVotes;
         /// @notice Current number of votes in opposition to this proposal

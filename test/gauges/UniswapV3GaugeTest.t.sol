@@ -331,6 +331,12 @@ contract UniswapV3GaugeTest is DSTestPlus {
 
         gauge.accrueBribes(address(this));
 
+        require(token.balanceOf(address(bribeRewards)) == 0);
+
+        hevm.warp(block.timestamp + 604800); // skip to next cycle
+
+        gauge.accrueBribes(address(this));
+
         require(token.balanceOf(address(bribeRewards)) == 100 ether);
     }
 
@@ -346,6 +352,12 @@ contract UniswapV3GaugeTest is DSTestPlus {
         emit AddedBribeFlywheel(flywheel);
 
         gauge.addBribeFlywheel(flywheel);
+
+        gauge.accrueBribes(address(this));
+
+        require(token.balanceOf(address(bribeRewards)) == 0);
+
+        hevm.warp(block.timestamp + 604800); // skip to next cycle
 
         gauge.accrueBribes(address(this));
 

@@ -180,7 +180,7 @@ contract BaseV2GaugeTest is DSTestPlus {
     }
 
     function testNewEpochWorkThenFail() external {
-        hevm.warp(WEEK); // skip to cycle 1
+        hevm.warp(block.timestamp + WEEK); // skip to cycle 1
 
         hevm.expectEmit(true, true, true, true);
         emit Distribute(0, WEEK);
@@ -192,7 +192,7 @@ contract BaseV2GaugeTest is DSTestPlus {
     }
 
     function testNewEpochEmpty() external {
-        hevm.warp(WEEK); // skip to cycle 1
+        hevm.warp(block.timestamp + WEEK); // skip to cycle 1
 
         hevm.expectEmit(true, true, true, true);
         emit Distribute(0, WEEK);
@@ -201,7 +201,7 @@ contract BaseV2GaugeTest is DSTestPlus {
     }
 
     function testNewEpoch() external {
-        hevm.warp(WEEK); // skip to cycle 1
+        hevm.warp(block.timestamp + WEEK); // skip to cycle 1
 
         hevm.mockCall(address(rewards), abi.encodeWithSignature("getAccruedRewards()"), abi.encode(100e18));
 
@@ -212,7 +212,7 @@ contract BaseV2GaugeTest is DSTestPlus {
     }
 
     function testNewEpoch(uint256 amount) external {
-        hevm.warp(WEEK); // skip to cycle 1
+        hevm.warp(block.timestamp + WEEK); // skip to cycle 1
 
         hevm.mockCall(address(rewards), abi.encodeWithSignature("getAccruedRewards()"), abi.encode(amount));
 
@@ -223,7 +223,7 @@ contract BaseV2GaugeTest is DSTestPlus {
     }
 
     function testNewEpochTwice(uint256 amount) external {
-        hevm.warp(WEEK); // skip to cycle 1
+        hevm.warp(block.timestamp + WEEK); // skip to cycle 1
 
         hevm.mockCall(address(rewards), abi.encodeWithSignature("getAccruedRewards()"), abi.encode(amount));
 
@@ -241,7 +241,7 @@ contract BaseV2GaugeTest is DSTestPlus {
     }
 
     function testNewEpochTwiceSecondHasNothing(uint256 amount) external {
-        hevm.warp(WEEK); // skip to cycle 1
+        hevm.warp(block.timestamp + WEEK); // skip to cycle 1
 
         hevm.mockCall(address(rewards), abi.encodeWithSignature("getAccruedRewards()"), abi.encode(amount));
 
@@ -302,6 +302,10 @@ contract BaseV2GaugeTest is DSTestPlus {
         gauge.addBribeFlywheel(flywheel);
 
         gauge.accrueBribes(address(this));
+        require(token.balanceOf(address(bribeRewards)) == 0);
+
+        hevm.warp(block.timestamp + WEEK); // skip to first cycle
+        gauge.accrueBribes(address(this));
 
         require(token.balanceOf(address(bribeRewards)) == 100 ether);
     }
@@ -319,6 +323,10 @@ contract BaseV2GaugeTest is DSTestPlus {
 
         gauge.addBribeFlywheel(flywheel);
 
+        gauge.accrueBribes(address(this));
+        require(token.balanceOf(address(bribeRewards)) == 0);
+
+        hevm.warp(block.timestamp + WEEK); // skip to first cycle
         gauge.accrueBribes(address(this));
 
         require(token.balanceOf(address(bribeRewards)) == amount);
@@ -343,6 +351,11 @@ contract BaseV2GaugeTest is DSTestPlus {
 
         gauge.addBribeFlywheel(flywheel);
 
+        gauge.accrueBribes(address(this));
+
+        require(token.balanceOf(address(bribeRewards)) == 0);
+
+        hevm.warp(block.timestamp + WEEK); // skip to first cycle
         gauge.accrueBribes(address(this));
 
         require(token.balanceOf(address(bribeRewards)) == 100 ether);
@@ -373,6 +386,10 @@ contract BaseV2GaugeTest is DSTestPlus {
 
         gauge.addBribeFlywheel(flywheel);
 
+        gauge.accrueBribes(address(this));
+        require(token.balanceOf(address(bribeRewards)) == 0);
+
+        hevm.warp(block.timestamp + WEEK); // skip to first cycle
         gauge.accrueBribes(address(this));
 
         require(token.balanceOf(address(bribeRewards)) == amount);
@@ -407,7 +424,7 @@ contract BaseV2GaugeTest is DSTestPlus {
 
         require(token.balanceOf(address(bribeRewards)) == 0);
 
-        hevm.warp(WEEK); // skip to cycle 1
+        hevm.warp(block.timestamp + WEEK); // skip to cycle 1
 
         gauge.accrueBribes(address(this));
 
@@ -443,7 +460,7 @@ contract BaseV2GaugeTest is DSTestPlus {
 
         require(token.balanceOf(address(bribeRewards)) == 0);
 
-        hevm.warp(WEEK); // skip to cycle 1
+        hevm.warp(block.timestamp + WEEK); // skip to cycle 1
 
         gauge.accrueBribes(address(this));
 

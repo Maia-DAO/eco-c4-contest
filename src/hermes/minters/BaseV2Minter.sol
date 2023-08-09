@@ -131,10 +131,10 @@ contract BaseV2Minter is Ownable, IBaseV2Minter {
             uint256 _circulatingSupply = circulatingSupply();
 
             uint256 _growth = calculateGrowth(newWeeklyEmission);
-            uint256 _required = _growth + newWeeklyEmission;
             /// @dev share of newWeeklyEmission emissions sent to DAO.
-            uint256 share = (_required * daoShare) / base;
-            _required += share;
+            uint256 share = (newWeeklyEmission * daoShare) / base;
+
+            uint256 _required = weekly + _growth + share;
             uint256 _balanceOf = underlying.balanceOf(address(this));
             if (_balanceOf < _required) {
                 HERMES(underlying).mint(address(this), _required - _balanceOf);

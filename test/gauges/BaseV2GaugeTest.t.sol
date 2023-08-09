@@ -89,7 +89,7 @@ contract BaseV2GaugeTest is DSTestPlus {
     }
 
     function testNewEpochWorkThenFail() external {
-        hevm.warp(WEEK); // skip to cycle 1
+        hevm.warp(block.timestamp + WEEK); // skip to cycle 1
 
         hevm.expectEmit(true, true, true, true);
         emit Distribute(0, WEEK);
@@ -101,7 +101,7 @@ contract BaseV2GaugeTest is DSTestPlus {
     }
 
     function testNewEpochEmpty() external {
-        hevm.warp(WEEK); // skip to cycle 1
+        hevm.warp(block.timestamp + WEEK); // skip to cycle 1
 
         hevm.expectEmit(true, true, true, true);
         emit Distribute(0, WEEK);
@@ -110,7 +110,7 @@ contract BaseV2GaugeTest is DSTestPlus {
     }
 
     function testNewEpoch() external {
-        hevm.warp(WEEK); // skip to cycle 1
+        hevm.warp(block.timestamp + WEEK); // skip to cycle 1
 
         hevm.mockCall(address(rewards), abi.encodeWithSignature("getAccruedRewards()"), abi.encode(100e18));
 
@@ -121,7 +121,7 @@ contract BaseV2GaugeTest is DSTestPlus {
     }
 
     function testNewEpoch(uint256 amount) external {
-        hevm.warp(WEEK); // skip to cycle 1
+        hevm.warp(block.timestamp + WEEK); // skip to cycle 1
 
         hevm.mockCall(address(rewards), abi.encodeWithSignature("getAccruedRewards()"), abi.encode(amount));
 
@@ -132,7 +132,7 @@ contract BaseV2GaugeTest is DSTestPlus {
     }
 
     function testNewEpochTwice(uint256 amount) external {
-        hevm.warp(WEEK); // skip to cycle 1
+        hevm.warp(block.timestamp + WEEK); // skip to cycle 1
 
         hevm.mockCall(address(rewards), abi.encodeWithSignature("getAccruedRewards()"), abi.encode(amount));
 
@@ -150,7 +150,7 @@ contract BaseV2GaugeTest is DSTestPlus {
     }
 
     function testNewEpochTwiceSecondHasNothing(uint256 amount) external {
-        hevm.warp(WEEK); // skip to cycle 1
+        hevm.warp(block.timestamp + WEEK); // skip to cycle 1
 
         hevm.mockCall(address(rewards), abi.encodeWithSignature("getAccruedRewards()"), abi.encode(amount));
 
@@ -177,6 +177,11 @@ contract BaseV2GaugeTest is DSTestPlus {
         token.mint(address(depot), 100 ether);
 
         booster.optIn(ERC20(address(gauge)), flywheel);
+        
+        require(token.balanceOf(address(bribeRewards)) == 0);
+
+        hevm.warp(block.timestamp + WEEK); // skip to first cycle
+        flywheel.accrue(ERC20(address(gauge)), address(this));
 
         require(token.balanceOf(address(bribeRewards)) == 100 ether);
     }
@@ -190,6 +195,11 @@ contract BaseV2GaugeTest is DSTestPlus {
         token.mint(address(depot), amount);
 
         booster.optIn(ERC20(address(gauge)), flywheel);
+
+        require(token.balanceOf(address(bribeRewards)) == 0);
+
+        hevm.warp(block.timestamp + WEEK); // skip to first cycle
+        flywheel.accrue(ERC20(address(gauge)), address(this));
 
         require(token.balanceOf(address(bribeRewards)) == amount);
     }

@@ -159,13 +159,13 @@ abstract contract ERC4626PartnerManager is PartnerUtilityManager, Ownable, ERC46
     /// @notice Returns the maximum amount of assets that can be deposited by a user.
     /// @dev Returns the remaining balance of the bHermes divided by the bHermesRate.
     function maxDeposit(address) public view virtual override returns (uint256) {
-        return (address(bHermesToken).balanceOf(address(this))) / bHermesRate - totalSupply;
+        return address(bHermesToken).balanceOf(address(this)) / bHermesRate - totalSupply;
     }
 
     /// @notice Returns the maximum amount of assets that can be deposited by a user.
     /// @dev Returns the remaining balance of the bHermes divided by the bHermesRate.
     function maxMint(address) public view virtual override returns (uint256) {
-        return (address(bHermesToken).balanceOf(address(this))) / bHermesRate - totalSupply;
+        return address(bHermesToken).balanceOf(address(this)) / bHermesRate - totalSupply;
     }
 
     /// @notice Returns the maximum amount of assets that can be withdrawn by a user.
@@ -228,17 +228,17 @@ abstract contract ERC4626PartnerManager is PartnerUtilityManager, Ownable, ERC46
 
     /// @inheritdoc IERC4626PartnerManager
     function increaseConversionRate(uint256 newRate) external onlyOwner {
-        if (newRate < bHermesRate) revert InvalidRate();
+        uint256 _bHermesRate = bHermesRate;
+        if (newRate <= _bHermesRate) revert InvalidRate();
 
-        if (newRate > (address(bHermesToken).balanceOf(address(this)) / totalSupply)) {
+        uint256 _totalSupply = totalSupply;
+        if (newRate > (address(bHermesToken).balanceOf(address(this)) / _totalSupply)) {
             revert InsufficientBacking();
         }
 
         bHermesRate = newRate;
-
-        partnerGovernance.mint(
-            address(this), totalSupply * (newRate - bHermesRate)
-        );
+        
+        partnerGovernance.mint(address(this), _totalSupply * (newRate - _bHermesRate));
 
         bHermesToken.claimOutstanding();
     }
@@ -342,8 +342,8 @@ abstract contract ERC4626PartnerManager is PartnerUtilityManager, Ownable, ERC46
         uint256 userBalance = (balanceOf[from] - amount) * bHermesRate;
 
         if (
-            userBalance < userClaimedWeight[from] || userBalance < userClaimedBoost[from] 
-                || userBalance < userClaimedGovernance[from]  || userBalance <  userClaimedPartnerGovernance[from] 
+            userBalance < userClaimedWeight[from] || userBalance < userClaimedBoost[from]
+                || userBalance < userClaimedGovernance[from] || userBalance < userClaimedPartnerGovernance[from]
         ) revert InsufficientUnderlying();
 
         _;

@@ -42,4 +42,11 @@ interface IPartnerUtilityManager {
     /// @notice Claims amounts of partner governance utility token.
     /// @param amount The amount to send to partner manager
     function claimPartnerGovernance(uint256 amount) external;
+
+    /*///////////////////////////////////////////////////////////////
+                                EVENTS
+    //////////////////////////////////////////////////////////////*/
+
+    /// @notice Emitted when a user claims partner governance.
+    event ClaimPartnerGovernance(address indexed user, uint256 amount);
 }

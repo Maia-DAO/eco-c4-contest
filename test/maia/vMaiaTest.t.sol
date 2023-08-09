@@ -155,12 +155,12 @@ contract vMaiaTest is DSTestPlus {
         if (deposit) testDepositMaia();
 
         bool shouldPass = true;
-        if (newRate < vmaia.bHermesRate()) {
+        if (newRate <= vmaia.bHermesRate()) {
+            shouldPass = false;
             hevm.expectRevert(IERC4626PartnerManager.InvalidRate.selector);
-            shouldPass = false;
         } else if (vmaia.totalSupply() > 0 && newRate > (bhermes.balanceOf(address(vmaia)) / vmaia.totalSupply())) {
-            hevm.expectRevert(IERC4626PartnerManager.InsufficientBacking.selector);
             shouldPass = false;
+            hevm.expectRevert(IERC4626PartnerManager.InsufficientBacking.selector);
         }
 
         vmaia.increaseConversionRate(newRate);
@@ -179,16 +179,14 @@ contract vMaiaTest is DSTestPlus {
     function testClaimAfterIncreaseConversionRate() public {
         increaseConversionRate(2, true);
 
+        vmaia.totalSupply();
+
         vmaia.gaugeWeight().approve(address(vmaia), type(uint256).max);
         vmaia.governance().approve(address(vmaia), type(uint256).max);
         vmaia.partnerGovernance().approve(address(vmaia), type(uint256).max);
 
         uint256 amount = 100 ether;
         uint256 expect = amount * bHermesRate;
-
-        // claim and forfeit Outstanding
-        vmaia.claimOutstanding();
-        vmaia.forfeitOutstanding();
 
         // claim Weight
         vmaia.claimWeight(expect);
@@ -216,6 +214,7 @@ contract vMaiaTest is DSTestPlus {
         vmaia.gaugeWeight().approve(address(vmaia), type(uint256).max);
         vmaia.governance().approve(address(vmaia), type(uint256).max);
         vmaia.partnerGovernance().approve(address(vmaia), type(uint256).max);
+
         vmaia.forfeitOutstanding();
 
         assertEq(vmaia.bHermesToken().gaugeWeight().balanceOf(address(this)), 0);

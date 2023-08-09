@@ -156,8 +156,11 @@ abstract contract PartnerUtilityManager is UtilityManager, IPartnerUtilityManage
 
     /// @inheritdoc IPartnerUtilityManager
     function claimPartnerGovernance(uint256 amount) public checkPartnerGovernance(amount) {
+        if (amount == 0) return;
         userClaimedPartnerGovernance[msg.sender] += amount;
         address(partnerGovernance).safeTransfer(msg.sender, amount);
+
+        emit ClaimPartnerGovernance(msg.sender, amount);
     }
 
     /*///////////////////////////////////////////////////////////////

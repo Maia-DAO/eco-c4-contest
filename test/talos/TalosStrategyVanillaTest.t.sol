@@ -43,6 +43,7 @@ contract TalosStrategyVanillaTest is TalosTestor {
             address(this),
             address(this)
         );
+        hevm.warp(block.timestamp + 1000);
     }
 
     //////////////////////////////////////////////////////////////////
@@ -87,7 +88,7 @@ contract TalosStrategyVanillaTest is TalosTestor {
 
         hevm.prank(to);
         hevm.expectRevert(abi.encodePacked(""));
-        talosBaseStrategy.deposit(0, 0, to);
+        talosBaseStrategy.deposit(0, 0, to, 0, 0, block.timestamp);
     }
 
     function testDepositSameAmountsMultipleTimes(uint256 amount0Desired, address toFirst, address toSecond)
@@ -139,7 +140,7 @@ contract TalosStrategyVanillaTest is TalosTestor {
 
         hevm.prank(user1);
         hevm.expectRevert(ITalosBaseStrategy.RedeemingZeroShares.selector);
-        talosBaseStrategy.redeem(0, 0, 0, user1, user1);
+        talosBaseStrategy.redeem(0, 0, 0, user1, user1, block.timestamp);
     }
 
     //////////////////////////////////////////////////////////////////

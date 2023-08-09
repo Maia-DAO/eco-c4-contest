@@ -99,13 +99,16 @@ abstract contract TalosBaseStrategy is Ownable, ERC20, ReentrancyGuard, ITalosBa
     //////////////////////////////////////////////////////////////*/
 
     /// @inheritdoc ITalosBaseStrategy
-    function init(uint256 amount0Desired, uint256 amount1Desired, address receiver)
-        external
-        virtual
-        nonReentrant
-        returns (uint256 shares, uint256 amount0, uint256 amount1)
-    {
+    function init(
+        uint256 amount0Desired,
+        uint256 amount1Desired,
+        address receiver,
+        uint256 amount0Min,
+        uint256 amount1Min,
+        uint256 deadline
+    ) external virtual checkDeviation returns (uint256 shares, uint256 amount0, uint256 amount1) {
         if (initialized) revert AlreadyInitialized();
+        initialized = true;
 
         {
             // Own Scope to avoid stack to deep
@@ -125,42 +128,49 @@ abstract contract TalosBaseStrategy is Ownable, ERC20, ReentrancyGuard, ITalosBa
         address(_token0).safeTransferFrom(msg.sender, address(this), amount0Desired);
         address(_token1).safeTransferFrom(msg.sender, address(this), amount1Desired);
 
-        INonfungiblePositionManager _nonfungiblePositionManager = nonfungiblePositionManager; // Saves an extra SLOAD
+        {
+            INonfungiblePositionManager _nonfungiblePositionManager = nonfungiblePositionManager; // Saves an extra SLOAD
 
-        address(_token0).safeApprove(address(_nonfungiblePositionManager), type(uint256).max);
-        address(_token1).safeApprove(address(_nonfungiblePositionManager), type(uint256).max);
+            address(_token0).safeApprove(address(_nonfungiblePositionManager), type(uint256).max);
+            address(_token1).safeApprove(address(_nonfungiblePositionManager), type(uint256).max);
 
-        uint128 _liquidity;
-        uint256 _tokenId;
-        (_tokenId, _liquidity, amount0, amount1) = _nonfungiblePositionManager.mint(
-            INonfungiblePositionManager.MintParams({
-                token0: address(_token0),
-                token1: address(_token1),
-                fee: poolFee,
-                tickLower: tickLower,
-                tickUpper: tickUpper,
-                amount0Desired: amount0Desired,
-                amount1Desired: amount1Desired,
-                amount0Min: 0,
-                amount1Min: 0,
-                recipient: address(this),
-                deadline: block.timestamp
-            })
-        );
+            // Bump variables to avoid stack too deep
+            uint256 _amount0Desired = amount0Desired;
+            uint256 _amount1Desired = amount1Desired;
+            uint256 _amount0Min = amount0Min;
+            uint256 _amount1Min = amount1Min;
+            uint256 _deadline = deadline;
+            uint256 _amount0;
+            uint256 _amount1;
+            (tokenId, liquidity, _amount0, _amount1) = _nonfungiblePositionManager.mint(
+                INonfungiblePositionManager.MintParams({
+                    token0: address(_token0),
+                    token1: address(_token1),
+                    fee: poolFee,
+                    tickLower: tickLower,
+                    tickUpper: tickUpper,
+                    amount0Desired: _amount0Desired,
+                    amount1Desired: _amount1Desired,
+                    amount0Min: _amount0Min,
+                    amount1Min: _amount1Min,
+                    recipient: address(this),
+                    deadline: _deadline
+                })
+            );
+            amount0 = _amount0;
+            amount1 = _amount1;
+        }
 
         if (amount0 == 0 && amount1 == 0) revert AmountsAreZero();
 
-        shares = _liquidity * MULTIPLIER;
-        liquidity = _liquidity;
-        tokenId = _tokenId;
+        shares = liquidity * MULTIPLIER;
 
+        if (shares > optimizer.maxTotalSupply()) revert ExceedingMaxTotalSupply();
         _mint(receiver, shares);
-        if (totalSupply > optimizer.maxTotalSupply()) revert ExceedingMaxTotalSupply();
 
         emit Initialize(tokenId, msg.sender, receiver, amount0, amount1, shares);
 
-        afterDeposit(_tokenId);
-        initialized = true;
+        afterDeposit(tokenId);
 
         // Refund in both assets.
         if (amount0 < amount0Desired) {
@@ -179,14 +189,14 @@ abstract contract TalosBaseStrategy is Ownable, ERC20, ReentrancyGuard, ITalosBa
     //////////////////////////////////////////////////////////////*/
 
     /// @inheritdoc ITalosBaseStrategy
-    function deposit(uint256 amount0Desired, uint256 amount1Desired, address receiver)
-        public
-        virtual
-        override
-        nonReentrant
-        checkDeviation
-        returns (uint256 shares, uint256 amount0, uint256 amount1)
-    {
+    function deposit(
+        uint256 amount0Desired,
+        uint256 amount1Desired,
+        address receiver,
+        uint256 amount0Min,
+        uint256 amount1Min,
+        uint256 deadline
+    ) public virtual override nonReentrant checkDeviation returns (uint256 shares, uint256 amount0, uint256 amount1) {
         uint256 _tokenId = tokenId;
 
         beforeDeposit(_tokenId, receiver);
@@ -198,16 +208,24 @@ abstract contract TalosBaseStrategy is Ownable, ERC20, ReentrancyGuard, ITalosBa
 
         uint128 liquidityDifference;
 
-        (liquidityDifference, amount0, amount1) = nonfungiblePositionManager.increaseLiquidity(
-            INonfungiblePositionManager.IncreaseLiquidityParams({
-                tokenId: _tokenId,
-                amount0Desired: amount0Desired,
-                amount1Desired: amount1Desired,
-                amount0Min: 0,
-                amount1Min: 0,
-                deadline: block.timestamp
-            })
-        );
+        // Bump variables to avoid stack too deep
+        uint256 _amount0Desired = amount0Desired;
+        uint256 _amount1Desired = amount1Desired;
+        {
+            uint256 _amount0Min = amount0Min;
+            uint256 _amount1Min = amount1Min;
+            uint256 _deadline = deadline;
+            (liquidityDifference, amount0, amount1) = nonfungiblePositionManager.increaseLiquidity(
+                INonfungiblePositionManager.IncreaseLiquidityParams({
+                    tokenId: _tokenId,
+                    amount0Desired: _amount0Desired,
+                    amount1Desired: _amount1Desired,
+                    amount0Min: _amount0Min,
+                    amount1Min: _amount1Min,
+                    deadline: _deadline
+                })
+            );
+        }
 
         if (amount0 == 0 && amount1 == 0) revert AmountsAreZero();
 
@@ -223,26 +241,26 @@ abstract contract TalosBaseStrategy is Ownable, ERC20, ReentrancyGuard, ITalosBa
         afterDeposit(_tokenId);
 
         // Refund in both assets.
-        if (amount0 < amount0Desired) {
-            uint256 refund0 = amount0Desired - amount0;
+        if (amount0 < _amount0Desired) {
+            uint256 refund0 = _amount0Desired - amount0;
             address(_token0).safeTransfer(msg.sender, refund0);
         }
 
-        if (amount1 < amount1Desired) {
-            uint256 refund1 = amount1Desired - amount1;
+        if (amount1 < _amount1Desired) {
+            uint256 refund1 = _amount1Desired - amount1;
             address(_token1).safeTransfer(msg.sender, refund1);
         }
     }
 
     /// @inheritdoc ITalosBaseStrategy
-    function redeem(uint256 shares, uint256 amount0Min, uint256 amount1Min, address receiver, address _owner)
-        public
-        virtual
-        override
-        nonReentrant
-        checkDeviation
-        returns (uint256 amount0, uint256 amount1)
-    {
+    function redeem(
+        uint256 shares,
+        uint256 amount0Min,
+        uint256 amount1Min,
+        address receiver,
+        address _owner,
+        uint256 deadline
+    ) public virtual override nonReentrant checkDeviation returns (uint256 amount0, uint256 amount1) {
         if (msg.sender != _owner) {
             uint256 allowed = allowance[_owner][msg.sender]; // Saves gas for limited approvals.
 
@@ -254,31 +272,27 @@ abstract contract TalosBaseStrategy is Ownable, ERC20, ReentrancyGuard, ITalosBa
 
         uint256 _tokenId = tokenId;
 
-        beforeRedeem(_tokenId, receiver);
+        beforeRedeem(_tokenId, _owner);
 
-        INonfungiblePositionManager _nonfungiblePositionManager = nonfungiblePositionManager; // Saves an extra SLOAD
         {
             uint128 liquidityToDecrease = uint128((liquidity * shares) / totalSupply);
 
-            (amount0, amount1) = _nonfungiblePositionManager.decreaseLiquidity(
+            nonfungiblePositionManager.decreaseLiquidity(
                 INonfungiblePositionManager.DecreaseLiquidityParams({
                     tokenId: _tokenId,
                     liquidity: liquidityToDecrease,
                     amount0Min: amount0Min,
                     amount1Min: amount1Min,
-                    deadline: block.timestamp
+                    deadline: deadline
                 })
             );
-
-            if (amount0 == 0 && amount1 == 0) revert AmountsAreZero();
 
             _burn(_owner, shares);
 
             liquidity -= liquidityToDecrease;
         }
-        emit Redeem(msg.sender, receiver, _owner, amount0, amount1, shares);
 
-        (amount0, amount1) = _nonfungiblePositionManager.collect(
+        (amount0, amount1) = nonfungiblePositionManager.collect(
             INonfungiblePositionManager.CollectParams({
                 tokenId: _tokenId,
                 recipient: receiver,
@@ -286,6 +300,10 @@ abstract contract TalosBaseStrategy is Ownable, ERC20, ReentrancyGuard, ITalosBa
                 amount1Max: type(uint128).max
             })
         );
+
+        if (amount0 == 0 && amount1 == 0) revert AmountsAreZero();
+
+        emit Redeem(msg.sender, receiver, _owner, amount0, amount1, shares);
 
         afterRedeem(_tokenId);
     }
@@ -406,8 +424,8 @@ abstract contract TalosBaseStrategy is Ownable, ERC20, ReentrancyGuard, ITalosBa
         uint256 balance0 = _token0.balanceOf(address(this));
         uint256 balance1 = _token1.balanceOf(address(this));
         require(balance0 >= amount0 && balance1 >= amount1);
-        if (amount0 > 0) _token0.transfer(msg.sender, amount0);
-        if (amount1 > 0) _token1.transfer(msg.sender, amount1);
+        if (amount0 > 0) address(_token0).safeTransfer(msg.sender, amount0);
+        if (amount1 > 0) address(_token1).safeTransfer(msg.sender, amount1);
 
         protocolFees0 = _protocolFees0 - amount0;
         protocolFees1 = _protocolFees1 - amount1;

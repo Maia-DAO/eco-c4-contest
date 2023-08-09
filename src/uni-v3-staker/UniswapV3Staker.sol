@@ -340,7 +340,7 @@ contract UniswapV3Staker is IUniswapV3Staker, Multicallable {
 
     function restakeToken(uint256 tokenId) external {
         IncentiveKey storage incentiveId = stakedIncentiveKey[tokenId];
-        if (incentiveId.startTime != 0) _unstakeToken(incentiveId, tokenId, true);
+        if (incentiveId.startTime != 0) _unstakeToken(incentiveId, tokenId, false);
 
         (IUniswapV3Pool pool, int24 tickLower, int24 tickUpper, uint128 liquidity) =
             NFTPositionInfo.getPositionInfo(factory, nonfungiblePositionManager, tokenId);

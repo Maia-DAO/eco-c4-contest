@@ -21,7 +21,8 @@ interface IFlywheelAcummulatedRewards {
     function rewardsCycleLength() external view returns (uint256);
 
     /// @notice end of current active rewards cycle's UNIX timestamp.
-    function endCycle() external view returns (uint256);
+    function endCycles(ERC20 strategy) external view returns (uint256);
+
 
     /*//////////////////////////////////////////////////////////////
                         FLYWHEEL CORE FUNCTIONS

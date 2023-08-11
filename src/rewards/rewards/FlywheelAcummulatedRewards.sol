@@ -23,7 +23,7 @@ abstract contract FlywheelAcummulatedRewards is BaseFlywheelRewards, IFlywheelAc
     uint256 public immutable override rewardsCycleLength;
 
     /// @inheritdoc IFlywheelAcummulatedRewards
-    uint256 public override endCycle;
+    mapping(ERC20 strategy => uint256 endCycle) public override endCycles;
 
     /**
      * @notice Flywheel Instant Rewards constructor.
@@ -42,13 +42,15 @@ abstract contract FlywheelAcummulatedRewards is BaseFlywheelRewards, IFlywheelAc
     function getAccruedRewards(ERC20 strategy) external override onlyFlywheel returns (uint256 amount) {
         uint32 timestamp = block.timestamp.toUint32();
 
+        uint256 endCycle = endCycles[strategy];
+
         // if cycle has ended, reset cycle and transfer all available
         if (timestamp >= endCycle) {
-            amount = getNextCycleRewards(strategy);
+            if (endCycle != 0) amount = getNextCycleRewards(strategy);
 
             // reset for next cycle
             uint256 newEndCycle = ((timestamp + rewardsCycleLength) / rewardsCycleLength) * rewardsCycleLength;
-            endCycle = newEndCycle;
+            endCycles[strategy] = newEndCycle;
 
             emit NewRewardsCycle(timestamp, newEndCycle, amount);
         } else {

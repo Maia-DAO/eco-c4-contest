@@ -200,6 +200,12 @@ contract UniswapV3GaugeTest is DSTestPlus {
 
         booster.optIn(ERC20(address(gauge)), flywheel);
 
+        require(token.balanceOf(address(bribeRewards)) == 0);
+
+        hevm.warp(block.timestamp + 604800); // skip to next cycle
+
+        flywheel.accrue(ERC20(address(gauge)), address(this));
+
         require(token.balanceOf(address(bribeRewards)) == 100 ether);
     }
 
@@ -212,6 +218,12 @@ contract UniswapV3GaugeTest is DSTestPlus {
         token.mint(address(depot), amount);
 
         booster.optIn(ERC20(address(gauge)), flywheel);
+
+        require(token.balanceOf(address(bribeRewards)) == 0);
+
+        hevm.warp(block.timestamp + 604800); // skip to next cycle
+
+        flywheel.accrue(ERC20(address(gauge)), address(this));
 
         require(token.balanceOf(address(bribeRewards)) == amount);
     }

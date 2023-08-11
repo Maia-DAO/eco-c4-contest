@@ -1,8 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import {Ownable} from "solady/auth/Ownable.sol";
-
 import {ERC20} from "solmate/tokens/ERC20.sol";
 
 import {bHermesBoost} from "@hermes/tokens/bHermesBoost.sol";
@@ -17,7 +15,7 @@ import {BaseV2GaugeFactory} from "./factories/BaseV2GaugeFactory.sol";
 import {IBaseV2Gauge} from "./interfaces/IBaseV2Gauge.sol";
 
 /// @title Base V2 Gauge - Base contract for handling liquidity provider incentives and voter's bribes.
-abstract contract BaseV2Gauge is Ownable, IBaseV2Gauge {
+abstract contract BaseV2Gauge is IBaseV2Gauge {
     /*///////////////////////////////////////////////////////////////
                             GAUGE STATE
     //////////////////////////////////////////////////////////////*/
@@ -32,12 +30,6 @@ abstract contract BaseV2Gauge is Ownable, IBaseV2Gauge {
     FlywheelGaugeRewards public immutable override flywheelGaugeRewards;
 
     /// @inheritdoc IBaseV2Gauge
-    mapping(FlywheelCore => bool) public override isActive;
-
-    /// @inheritdoc IBaseV2Gauge
-    mapping(FlywheelCore => bool) public override added;
-
-    /// @inheritdoc IBaseV2Gauge
     address public override strategy;
 
     /// @inheritdoc IBaseV2Gauge
@@ -46,9 +38,6 @@ abstract contract BaseV2Gauge is Ownable, IBaseV2Gauge {
     /// @inheritdoc IBaseV2Gauge
     uint256 public override epoch;
 
-    /// @notice Bribes flywheels array to accrue bribes from.
-    FlywheelCore[] private bribeFlywheels;
-
     /// @notice 1 week in seconds.
     uint256 internal constant WEEK = 1 weeks;
 
@@ -56,10 +45,8 @@ abstract contract BaseV2Gauge is Ownable, IBaseV2Gauge {
      * @notice Constructs the BaseV2Gauge contract.
      * @param _flywheelGaugeRewards The FlywheelGaugeRewards contract.
      * @param _strategy The strategy address.
-     * @param _owner The owner address.
      */
-    constructor(FlywheelGaugeRewards _flywheelGaugeRewards, address _strategy, address _owner) {
-        _initializeOwner(_owner);
+    constructor(FlywheelGaugeRewards _flywheelGaugeRewards, address _strategy) {
         flywheelGaugeRewards = _flywheelGaugeRewards;
         rewardToken = _flywheelGaugeRewards.rewardToken();
         hermesGaugeBoost = BaseV2GaugeFactory(msg.sender).bHermesBoostToken();
@@ -67,12 +54,7 @@ abstract contract BaseV2Gauge is Ownable, IBaseV2Gauge {
 
         epoch = (block.timestamp / WEEK) * WEEK;
 
-        multiRewardsDepot = new MultiRewardsDepot(address(this));
-    }
-
-    /// @inheritdoc IBaseV2Gauge
-    function getBribeFlywheels() external view returns (FlywheelCore[] memory) {
-        return bribeFlywheels;
+        multiRewardsDepot = new MultiRewardsDepot(address(BaseV2GaugeFactory(msg.sender).bribesFactory()));
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -107,49 +89,9 @@ abstract contract BaseV2Gauge is Ownable, IBaseV2Gauge {
         hermesGaugeBoost.detach(user);
     }
 
-    /// @inheritdoc IBaseV2Gauge
-    function accrueBribes(address user) external {
-        FlywheelCore[] storage _bribeFlywheels = bribeFlywheels;
-        uint256 length = _bribeFlywheels.length;
-        for (uint256 i = 0; i < length;) {
-            if (isActive[_bribeFlywheels[i]]) _bribeFlywheels[i].accrue(ERC20(address(this)), user);
-
-            unchecked {
-                i++;
-            }
-        }
-    }
-
     /*///////////////////////////////////////////////////////////////
                             ADMIN ACTIONS    
     //////////////////////////////////////////////////////////////*/
-
-    /// @inheritdoc IBaseV2Gauge
-    function addBribeFlywheel(FlywheelCore bribeFlywheel) external onlyOwner {
-        /// @dev Can't add existing flywheel (active or not)
-        if (added[bribeFlywheel]) revert FlywheelAlreadyAdded();
-
-        address flyWheelRewards = address(bribeFlywheel.flywheelRewards());
-        FlywheelBribeRewards(flyWheelRewards).setRewardsDepot(multiRewardsDepot);
-
-        multiRewardsDepot.addAsset(flyWheelRewards, bribeFlywheel.rewardToken());
-        bribeFlywheels.push(bribeFlywheel);
-        isActive[bribeFlywheel] = true;
-        added[bribeFlywheel] = true;
-
-        emit AddedBribeFlywheel(bribeFlywheel);
-    }
-
-    /// @inheritdoc IBaseV2Gauge
-    function removeBribeFlywheel(FlywheelCore bribeFlywheel) external onlyOwner {
-        /// @dev Can only remove active flywheels
-        if (!isActive[bribeFlywheel]) revert FlywheelNotActive();
-
-        /// @dev This is permanent; can't be re-added
-        delete isActive[bribeFlywheel];
-
-        emit RemoveBribeFlywheel(bribeFlywheel);
-    }
 
     /// @notice Only the strategy can attach and detach users.
     modifier onlyStrategy() virtual {

@@ -5,26 +5,34 @@ import {console2} from "forge-std/console2.sol";
 
 import {DSTestPlus} from "solmate/test/utils/DSTestPlus.sol";
 
+import {FlywheelBoosterGaugeWeight} from "@rewards/booster/FlywheelBoosterGaugeWeight.sol";
+
 import {MockBaseV2Gauge, FlywheelGaugeRewards, ERC20} from "../gauges/mocks/MockBaseV2Gauge.sol";
 
 import {MockERC20Gauges, ERC20Gauges} from "./mocks/MockERC20Gauges.t.sol";
 
 contract ERC20GaugesTest is DSTestPlus {
+    FlywheelBoosterGaugeWeight flywheelBooster;
+
     MockERC20Gauges token;
     address gauge1;
     address gauge2;
 
     function setUp() public {
-        token = new MockERC20Gauges(address(this), 3600, 600); // 1 hour cycles, 10 minute freeze
+        flywheelBooster = new FlywheelBoosterGaugeWeight(1 weeks);
+
+        token = new MockERC20Gauges(address(this), address(flywheelBooster), 3600, 600); // 1 hour cycles, 10 minute freeze
+        flywheelBooster.transferOwnership(address(token));
 
         hevm.mockCall(address(0), abi.encodeWithSignature("rewardToken()"), abi.encode(ERC20(address(0xDEAD))));
+        hevm.mockCall(address(this), abi.encodeWithSignature("bribesFactory()"), abi.encode(address(this)));
         hevm.mockCall(address(0), abi.encodeWithSignature("gaugeToken()"), abi.encode(ERC20Gauges(address(0xBEEF))));
         hevm.mockCall(
             address(this), abi.encodeWithSignature("bHermesBoostToken()"), abi.encode(ERC20Gauges(address(0xBABE)))
         );
 
-        gauge1 = address(new MockBaseV2Gauge(FlywheelGaugeRewards(address(0)), address(0), address(0)));
-        gauge2 = address(new MockBaseV2Gauge(FlywheelGaugeRewards(address(0)), address(0), address(0)));
+        gauge1 = address(new MockBaseV2Gauge(FlywheelGaugeRewards(address(0)), address(0)));
+        gauge2 = address(new MockBaseV2Gauge(FlywheelGaugeRewards(address(0)), address(0)));
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -212,7 +220,7 @@ contract ERC20GaugesTest is DSTestPlus {
         unchecked {
             uint112 sum;
             for (uint256 i = 0; i < 8; i++) {
-                gauges[i] = address(new MockBaseV2Gauge(FlywheelGaugeRewards(address(0)), address(0), address(0)));
+                gauges[i] = address(new MockBaseV2Gauge(FlywheelGaugeRewards(address(0)), address(0)));
                 hevm.assume(
                     amounts[i] > 0 && sum + amounts[i] >= sum && !token.isGauge(gauges[i]) && gauges[i] != address(0)
                 );
@@ -298,7 +306,7 @@ contract ERC20GaugesTest is DSTestPlus {
         unchecked {
             uint112 sum;
             for (uint256 i = 0; i < 8; i++) {
-                gauges[i] = address(new MockBaseV2Gauge(FlywheelGaugeRewards(address(0)), address(0), address(0)));
+                gauges[i] = address(new MockBaseV2Gauge(FlywheelGaugeRewards(address(0)), address(0)));
                 hevm.assume(
                     amounts[i] > 0 && sum + amounts[i] >= sum && !token.isGauge(gauges[i]) && gauges[i] != address(0)
                 );

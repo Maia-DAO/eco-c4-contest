@@ -135,32 +135,4 @@ abstract contract BaseV2GaugeFactory is Ownable, IBaseV2GaugeFactory {
         delete strategyGauges[gauge.strategy()];
         gaugeManager.removeGauge(address(gauge));
     }
-
-    /*//////////////////////////////////////////////////////////////
-                           BRIBE LOGIC
-    //////////////////////////////////////////////////////////////*/
-
-    /// @inheritdoc IBaseV2GaugeFactory
-    function addBribeToGauge(BaseV2Gauge gauge, address bribeToken) external onlyOwnerOrBribesFactoryOwner {
-        if (!activeGauges[gauge]) revert InvalidGauge();
-        gauge.addBribeFlywheel(bribesFactory.flywheelTokens(bribeToken));
-        bribesFactory.addGaugetoFlywheel(address(gauge), bribeToken);
-    }
-
-    /// @inheritdoc IBaseV2GaugeFactory
-    function removeBribeFromGauge(BaseV2Gauge gauge, address bribeToken) external onlyOwnerOrBribesFactoryOwner {
-        if (!activeGauges[gauge]) revert InvalidGauge();
-        gauge.removeBribeFlywheel(bribesFactory.flywheelTokens(bribeToken));
-    }
-
-    /*//////////////////////////////////////////////////////////////
-                           MODIFIERS
-    //////////////////////////////////////////////////////////////*/
-
-    modifier onlyOwnerOrBribesFactoryOwner() {
-        if (msg.sender != bribesFactory.owner() && msg.sender != owner()) {
-            revert NotOwnerOrBribesFactoryOwner();
-        }
-        _;
-    }
 }

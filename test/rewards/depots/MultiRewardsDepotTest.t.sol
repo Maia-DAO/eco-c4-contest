@@ -30,7 +30,7 @@ contract MultiRewardsDepotTest is DSTestPlus {
 
     function testAddAssetAlreadyExists() public {
         hevm.expectRevert(abi.encodeWithSignature("ErrorAddingAsset()"));
-        depot.addAsset(address(this), address(rewardToken));
+        depot.addAsset(address(this), address(1));
     }
 
     function testAddAssetAlreadyExists(address flywheelRewards) public {
@@ -39,7 +39,6 @@ contract MultiRewardsDepotTest is DSTestPlus {
     }
 
     function testGetRewards() public {
-        testAddAsset();
         rewardToken.mint(address(depot), 100 ether);
 
         depot.getRewards();
@@ -48,14 +47,12 @@ contract MultiRewardsDepotTest is DSTestPlus {
     }
 
     function testGetRewardsNoAvailable() public {
-        testAddAsset();
         depot.getRewards();
 
         assertEq(rewardToken.balanceOf(address(this)), 0);
     }
 
     function testGetRewardsNotAllowed() public {
-        testAddAsset();
         rewardToken.mint(address(depot), 100 ether);
 
         hevm.prank(address(2));
@@ -64,7 +61,6 @@ contract MultiRewardsDepotTest is DSTestPlus {
     }
 
     function testGetRewardsTwice() public {
-        testAddAsset();
         rewardToken.mint(address(depot), 100 ether);
 
         depot.getRewards();
@@ -79,7 +75,6 @@ contract MultiRewardsDepotTest is DSTestPlus {
     }
 
     function testGetRewardsTwiceFirstHasNothing() public {
-        testAddAsset();
         depot.getRewards();
 
         assertEq(rewardToken.balanceOf(address(this)), 0 ether);
@@ -92,7 +87,6 @@ contract MultiRewardsDepotTest is DSTestPlus {
     }
 
     function testGetRewardsTwiceSecondHasNothing() public {
-        testAddAsset();
         rewardToken.mint(address(depot), 100 ether);
 
         depot.getRewards();

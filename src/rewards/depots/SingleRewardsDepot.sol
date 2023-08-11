@@ -29,16 +29,9 @@ contract SingleRewardsDepot is RewardsDepot {
     //////////////////////////////////////////////////////////////*/
 
     /// @inheritdoc IRewardsDepot
-    function getRewards() external override onlyFlywheelRewards returns (uint256 balance) {
-        return transferRewards(asset, rewardsContract);
-    }
-
-    /*///////////////////////////////////////////////////////////////
-                                MODIFIERS   
-    //////////////////////////////////////////////////////////////*/
-
-    modifier onlyFlywheelRewards() override {
-        if (msg.sender != address(rewardsContract)) revert FlywheelRewardsError();
-        _;
+    function getRewards() external override returns (uint256 balance) {
+        address _rewardsContract = rewardsContract;
+        if (msg.sender != address(_rewardsContract)) revert FlywheelRewardsError();
+        return transferRewards(asset, _rewardsContract);
     }
 }

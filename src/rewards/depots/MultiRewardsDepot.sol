@@ -14,13 +14,10 @@ contract MultiRewardsDepot is Ownable, RewardsDepot, IMultiRewardsDepot {
     //////////////////////////////////////////////////////////////*/
 
     /// @dev _assets[rewardsContracts] => asset (reward Token)
-    mapping(address => address) private _assets;
-
-    /// @notice _isRewardsContracts[rewardsContracts] => true/false
-    mapping(address => bool) private _isRewardsContract;
+    mapping(address rewardsContracts => address rewardToken) private _assets;
 
     /// @notice _isAsset[asset] => true/false
-    mapping(address => bool) private _isAsset;
+    mapping(address rewardToken => address rewardsContracts) private _rewardsContracts;
 
     /**
      * @notice MultiRewardsDepot constructor
@@ -35,8 +32,11 @@ contract MultiRewardsDepot is Ownable, RewardsDepot, IMultiRewardsDepot {
     //////////////////////////////////////////////////////////////*/
 
     /// @inheritdoc IMultiRewardsDepot
-    function getRewards() external override(RewardsDepot, IMultiRewardsDepot) onlyFlywheelRewards returns (uint256) {
-        return transferRewards(_assets[msg.sender], msg.sender);
+    function getRewards() external override(RewardsDepot, IMultiRewardsDepot) returns (uint256) {
+        address asset = _assets[msg.sender];
+        if (asset == address(0)) revert FlywheelRewardsError();
+
+        return transferRewards(asset, msg.sender);
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -45,32 +45,10 @@ contract MultiRewardsDepot is Ownable, RewardsDepot, IMultiRewardsDepot {
 
     /// @inheritdoc IMultiRewardsDepot
     function addAsset(address rewardsContract, address asset) external onlyOwner {
-        if (_isAsset[asset] || _isRewardsContract[rewardsContract]) revert ErrorAddingAsset();
-        _isAsset[asset] = true;
-        _isRewardsContract[rewardsContract] = true;
+        if (_assets[rewardsContract] != address(0) || _rewardsContracts[asset] != address(0)) revert ErrorAddingAsset();
+        _rewardsContracts[asset] = rewardsContract;
         _assets[rewardsContract] = asset;
 
         emit AssetAdded(rewardsContract, asset);
-    }
-
-    /// @inheritdoc IMultiRewardsDepot
-    function removeAsset(address rewardsContract) external onlyOwner {
-        if (!_isRewardsContract[rewardsContract]) revert ErrorRemovingAsset();
-
-        emit AssetRemoved(rewardsContract, _assets[rewardsContract]);
-
-        delete _isAsset[_assets[rewardsContract]];
-        delete _isRewardsContract[rewardsContract];
-        delete _assets[rewardsContract];
-    }
-
-    /*///////////////////////////////////////////////////////////////
-                                MODIFIERS   
-    //////////////////////////////////////////////////////////////*/
-
-    /// @notice modifier to check if msg.sender is a rewards contract
-    modifier onlyFlywheelRewards() override {
-        if (!_isRewardsContract[msg.sender]) revert FlywheelRewardsError();
-        _;
     }
 }

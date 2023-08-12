@@ -57,7 +57,7 @@ contract BaseBranchRouter is IBranchRouter, Ownable {
     /// @inheritdoc IBranchRouter
     function callOut(bytes calldata params, uint128 remoteExecutionGas) external payable lock {
         IBridgeAgent(localBridgeAgentAddress).performCallOut{value: msg.value}(
-            msg.sender, params, 0, remoteExecutionGas, false
+            msg.sender, params, 0, remoteExecutionGas, true
         );
     }
 
@@ -68,7 +68,7 @@ contract BaseBranchRouter is IBranchRouter, Ownable {
         lock
     {
         IBridgeAgent(localBridgeAgentAddress).performCallOutAndBridge{value: msg.value}(
-            msg.sender, params, dParams, 0, remoteExecutionGas, false
+            msg.sender, params, dParams, 0, remoteExecutionGas, true
         );
     }
 
@@ -79,7 +79,7 @@ contract BaseBranchRouter is IBranchRouter, Ownable {
         uint128 remoteExecutionGas
     ) external payable lock {
         IBridgeAgent(localBridgeAgentAddress).performCallOutAndBridgeMultiple{value: msg.value}(
-            msg.sender, params, dParams, 0, remoteExecutionGas, false
+            msg.sender, params, dParams, 0, remoteExecutionGas, true
         );
     }
 

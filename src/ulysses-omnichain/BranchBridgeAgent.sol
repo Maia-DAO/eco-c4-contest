@@ -109,7 +109,7 @@ contract BranchBridgeAgent is IBranchBridgeAgent {
     /// @notice Address for Local Port Address where funds deposited from this chain are kept, managed and supplied to different Port Strategies.
     address public immutable localPortAddress;
 
-    address public bridgeAgentExecutorAddress;
+    address public immutable bridgeAgentExecutorAddress;
 
     /*///////////////////////////////////////////////////////////////
                         DEPOSITS STATE
@@ -180,17 +180,12 @@ contract BranchBridgeAgent is IBranchBridgeAgent {
     //////////////////////////////////////////////////////////////*/
 
     /// @inheritdoc IBranchBridgeAgent
-    function callOut(bytes calldata _params, uint128 _remoteExecutionGas, bool _hasFallbackToggled)
-        external
-        payable
-        lock
-        requiresFallbackGas
-    {
+    function callOut(bytes calldata _params, uint128 _remoteExecutionGas) external payable lock requiresFallbackGas {
         //Wrap the gas allocated for omnichain execution.
         wrappedNativeToken.deposit{value: msg.value}();
 
         //Perform Call without deposit
-        _callOut(msg.sender, _params, msg.value.toUint128(), _remoteExecutionGas, _hasFallbackToggled);
+        _callOut(msg.sender, _params, msg.value.toUint128(), _remoteExecutionGas);
     }
 
     /// @inheritdoc IBranchBridgeAgent
@@ -226,7 +221,7 @@ contract BranchBridgeAgent is IBranchBridgeAgent {
     }
 
     /// @inheritdoc IBranchBridgeAgent
-    function callOutSigned(bytes calldata _params, uint128 _remoteExecutionGas, bool _hasFallbackToggled)
+    function callOutSigned(bytes calldata _params, uint128 _remoteExecutionGas)
         external
         payable
         lock
@@ -234,12 +229,7 @@ contract BranchBridgeAgent is IBranchBridgeAgent {
     {
         //Encode Data for cross-chain call.
         bytes memory packedData = abi.encodePacked(
-            _hasFallbackToggled ? bytes1(0x04) & 0x0F : bytes1(0x04),
-            msg.sender,
-            depositNonce,
-            _params,
-            msg.value.toUint128(),
-            _remoteExecutionGas
+            bytes1(0x04), msg.sender, depositNonce, _params, msg.value.toUint128(), _remoteExecutionGas
         );
 
         //Wrap the gas allocated for omnichain execution.
@@ -480,8 +470,7 @@ contract BranchBridgeAgent is IBranchBridgeAgent {
         address _depositor,
         bytes calldata _params,
         uint128 _gasToBridgeOut,
-        uint128 _remoteExecutionGas,
-        bool _hasFallbackToggled
+        uint128 _remoteExecutionGas
     ) external payable lock requiresRouter {
         //Get remote call execution deposited gas.
         (uint128 gasToBridgeOut, bool isRemote) =
@@ -506,8 +495,7 @@ contract BranchBridgeAgent is IBranchBridgeAgent {
         address _depositor,
         bytes calldata _params,
         uint128 _gasToBridgeOut,
-        uint128 _remoteExecutionGas,
-        bool _hasFallbackToggled
+        uint128 _remoteExecutionGas
     ) external payable lock requiresRouter {
         //Get remote call execution deposited gas.
         (uint128 gasToBridgeOut, bool isRemote) =
@@ -520,7 +508,7 @@ contract BranchBridgeAgent is IBranchBridgeAgent {
         _requiresFallbackGas(gasToBridgeOut);
 
         //Perform Call
-        _callOut(_depositor, _params, gasToBridgeOut, _remoteExecutionGas, _hasFallbackToggled);
+        _callOut(_depositor, _params, gasToBridgeOut, _remoteExecutionGas);
     }
 
     /// @inheritdoc IBranchBridgeAgent
@@ -668,25 +656,15 @@ contract BranchBridgeAgent is IBranchBridgeAgent {
      *   @param _params RLP enconded parameters to execute on the root chain.
      *   @param _gasToBridgeOut gas allocated for the cross-chain call.
      *   @param _remoteExecutionGas gas allocated for branch chain execution.
-     *   @param _hasFallbackToggled if true, fallback is toggled on.
      *   @dev ACTION ID: 1 (Call without deposit)
      *
      */
-    function _callOut(
-        address _depositor,
-        bytes calldata _params,
-        uint128 _gasToBridgeOut,
-        uint128 _remoteExecutionGas,
-        bool _hasFallbackToggled
-    ) internal {
+    function _callOut(address _depositor, bytes calldata _params, uint128 _gasToBridgeOut, uint128 _remoteExecutionGas)
+        internal
+    {
         //Encode Data for cross-chain call.
-        bytes memory packedData = abi.encodePacked(
-            _hasFallbackToggled ? bytes1(0x01) & 0x0F : bytes1(0x01),
-            depositNonce,
-            _params,
-            _gasToBridgeOut,
-            _remoteExecutionGas
-        );
+        bytes memory packedData =
+            abi.encodePacked(bytes1(0x01), depositNonce, _params, _gasToBridgeOut, _remoteExecutionGas);
 
         //Perform Call
         _noDepositCall(_depositor, packedData, _gasToBridgeOut);

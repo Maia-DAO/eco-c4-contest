@@ -162,11 +162,10 @@ interface IBranchBridgeAgent is IApp {
      * @notice Function to perform a call to the Root Omnichain Router without token deposit.
      *   @param params enconded parameters to execute on the root chain router.
      *   @param remoteExecutionGas gas allocated for remote branch execution.
-     *   @param hasFallbackToggled flag to indicate if the fallback function was toggled.
      *   @dev DEPOSIT ID: 1 (Call without deposit)
      *
      */
-    function callOut(bytes calldata params, uint128 remoteExecutionGas, bool hasFallbackToggled) external payable;
+    function callOut(bytes calldata params, uint128 remoteExecutionGas) external payable;
 
     /**
      * @notice Function to perform a call to the Root Omnichain Router while depositing a single asset.
@@ -204,13 +203,10 @@ interface IBranchBridgeAgent is IApp {
      * @notice Function to perform a call to the Root Omnichain Router without token deposit with msg.sender information.
      *   @param params enconded parameters to execute on the root chain router.
      *   @param remoteExecutionGas gas allocated for remote branch execution.
-     *   @param hasFallbackToggled flag to indicate if the fallback function was toggled.
      *   @dev DEPOSIT ID: 4 (Call without deposit and verified sender)
      *
      */
-    function callOutSigned(bytes calldata params, uint128 remoteExecutionGas, bool hasFallbackToggled)
-        external
-        payable;
+    function callOutSigned(bytes calldata params, uint128 remoteExecutionGas) external payable;
 
     /**
      * @notice Function to perform a call to the Root Omnichain Router while depositing a single asset msg.sender.

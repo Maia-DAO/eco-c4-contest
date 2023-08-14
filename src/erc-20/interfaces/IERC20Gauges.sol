@@ -2,6 +2,8 @@
 // Gauge weight logic inspired by Tribe DAO Contracts (flywheel-v2/src/token/ERC20Gauges.sol)
 pragma solidity ^0.8.0;
 
+import {IFlywheelBooster} from "@rewards/interfaces/IFlywheelBooster.sol";
+
 /**
  * @title  An ERC20 with an embedded "Gauge" style vote with liquid weights
  *  @author Maia DAO (https://github.com/Maia-DAO)
@@ -44,6 +46,12 @@ interface IERC20Gauges {
     /*///////////////////////////////////////////////////////////////
                             GAUGE STATE
     //////////////////////////////////////////////////////////////*/
+
+    /**
+     * @notice returns the flywheel booster contract
+     */
+    function flywheelBooster() external view returns (IFlywheelBooster);
+
     /**
      * @notice a mapping from a user to their total allocated weight across all gauges
      */
@@ -259,6 +267,9 @@ interface IERC20Gauges {
 
     /// @notice emitted when changing a contract's approval to go over the max gauges.
     event CanContractExceedMaxGaugesUpdate(address indexed account, bool canContractExceedMaxGauges);
+
+    /// @notice emitted when changing a contract's approval to go over the max gauges.
+    event SetFlywheelBooster(address indexed newFlywheelBooster);
 
     /*///////////////////////////////////////////////////////////////
                             ERRORS

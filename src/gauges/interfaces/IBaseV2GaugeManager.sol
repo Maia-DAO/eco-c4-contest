@@ -103,6 +103,12 @@ interface IBaseV2GaugeManager {
      */
     function changeAdmin(address newAdmin) external;
 
+    /**
+     * @notice Changes the flywheel booster address in bHermesGauges.
+     * @param newFlywheelBooster address of the new flywheel booster.
+     */
+    function changeFlywheelBooster(address newFlywheelBooster) external;
+
     /*///////////////////////////////////////////////////////////////
                             EVENTS
     //////////////////////////////////////////////////////////////*/

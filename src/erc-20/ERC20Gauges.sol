@@ -21,8 +21,6 @@ abstract contract ERC20Gauges is ERC20MultiVotes, ReentrancyGuard, IERC20Gauges 
     using EnumerableSet for EnumerableSet.AddressSet;
     using SafeCastLib for *;
 
-    IFlywheelBooster flywheelBooster;
-
     /**
      * @notice Construct a new ERC20Gauges
      * @param _gaugeCycleLength the length of a gauge cycle in seconds
@@ -35,11 +33,16 @@ abstract contract ERC20Gauges is ERC20MultiVotes, ReentrancyGuard, IERC20Gauges 
 
         if (_flywheelBooster == address(0)) revert InvalidBooster();
         flywheelBooster = IFlywheelBooster(_flywheelBooster);
+
+        emit SetFlywheelBooster(_flywheelBooster);
     }
 
     /*///////////////////////////////////////////////////////////////
                             GAUGE STATE
     //////////////////////////////////////////////////////////////*/
+
+    /// @inheritdoc IERC20Gauges
+    IFlywheelBooster public override flywheelBooster;
 
     /// @inheritdoc IERC20Gauges
     uint32 public immutable override gaugeCycleLength;
@@ -472,6 +475,13 @@ abstract contract ERC20Gauges is ERC20MultiVotes, ReentrancyGuard, IERC20Gauges 
         canContractExceedMaxGauges[account] = canExceedMax;
 
         emit CanContractExceedMaxGaugesUpdate(account, canExceedMax);
+    }
+
+    function setFlywheelBooster(address newFlywheelBooster) external onlyOwner {
+        if (newFlywheelBooster == address(0)) revert InvalidBooster();
+        flywheelBooster = IFlywheelBooster(newFlywheelBooster);
+
+        emit SetFlywheelBooster(newFlywheelBooster);
     }
 
     /*///////////////////////////////////////////////////////////////

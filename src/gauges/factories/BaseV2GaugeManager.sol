@@ -153,6 +153,11 @@ contract BaseV2GaugeManager is Ownable, IBaseV2GaugeManager {
         emit ChangedAdmin(newAdmin);
     }
 
+    /// @inheritdoc IBaseV2GaugeManager
+    function changeFlywheelBooster(address newFlywheelBooster) external onlyAdmin {
+        bHermesGaugeWeight.setFlywheelBooster(newFlywheelBooster);
+    }
+
     /*//////////////////////////////////////////////////////////////
                             MODIFIERS
     //////////////////////////////////////////////////////////////*/

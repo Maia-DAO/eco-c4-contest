@@ -513,7 +513,11 @@ abstract contract ERC20Gauges is ERC20MultiVotes, ReentrancyGuard, IERC20Gauges 
      */
     function transferFrom(address from, address to, uint256 amount) public virtual override returns (bool) {
         _decrementWeightUntilFree(from, amount);
-        return super.transferFrom(from, to, amount);
+        if (from != msg.sender) {
+            return super.transferFrom(from, to, amount);
+        } else {
+            return super.transfer(to, amount);
+        }
     }
 
     /**

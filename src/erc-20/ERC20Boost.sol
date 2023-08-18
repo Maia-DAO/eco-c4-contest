@@ -322,7 +322,11 @@ abstract contract ERC20Boost is ERC20, Ownable, IERC20Boost {
         notAttached(from, amount)
         returns (bool)
     {
-        return super.transferFrom(from, to, amount);
+        if (from != msg.sender) {
+            return super.transferFrom(from, to, amount);
+        } else {
+            return super.transfer(to, amount);
+        }
     }
 
     /*///////////////////////////////////////////////////////////////

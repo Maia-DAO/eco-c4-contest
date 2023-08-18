@@ -46,7 +46,11 @@ contract VirtualAccount is IVirtualAccount {
         blockNumber = block.number;
         returnData = new bytes[](calls.length);
         for (uint256 i = 0; i < calls.length; i++) {
-            (bool success, bytes memory data) = calls[i].target.call(calls[i].callData);
+            bool success;
+            bytes memory data;
+            if (isContract(calls[i].target)) {
+                (success, data) = calls[i].target.call(calls[i].callData);
+            }
             if (!success) revert CallFailed();
             returnData[i] = data;
         }
@@ -59,6 +63,18 @@ contract VirtualAccount is IVirtualAccount {
     /// @inheritdoc IERC721Receiver
     function onERC721Received(address, address, uint256, bytes calldata) external pure override returns (bytes4) {
         return this.onERC721Received.selector;
+    }
+
+    /*//////////////////////////////////////////////////////////////
+                            INTERNAL HELPERS
+    //////////////////////////////////////////////////////////////*/
+
+    function isContract(address addr) internal view returns (bool) {
+        uint256 size;
+        assembly {
+            size := extcodesize(addr)
+        }
+        return size > 0;
     }
 
     /*///////////////////////////////////////////////////////////////

@@ -577,15 +577,17 @@ contract ArbitrumBranchTest is DSTestPlus {
         //Get some gas.
         hevm.deal(address(this), 1 ether);
 
+        hevm.expectRevert(bytes4(keccak256("RootExecutionFailed()")));
+
         //Add new localToken
         arbitrumCoreRouter.addLocalToken(ftmGlobalToken);
 
-        newArbitrumAssetGlobalAddress =
-            RootPort(rootPort).getLocalTokenFromUnder(address(arbitrumNativeToken), rootChainId);
+        // newArbitrumAssetGlobalAddress =
+        //     RootPort(rootPort).getLocalTokenFromUnder(address(arbitrumNativeToken), rootChainId);
 
-        console2.log("New: ", newArbitrumAssetGlobalAddress);
+        // console2.log("New: ", newArbitrumAssetGlobalAddress);
 
-        require(newArbitrumAssetGlobalAddress == address(0), "Token should not be added"); //Error should be thrown and caught
+        // require(newArbitrumAssetGlobalAddress == address(0), "Token should not be added"); //Error should be thrown and caught
     }
 
     function testDepositToPort() public {
@@ -661,14 +663,16 @@ contract ArbitrumBranchTest is DSTestPlus {
 
         {
             outputToken = newArbitrumAssetGlobalAddress;
-            amountOut = 100 ether;
+            amountOut = 99 ether;
             depositOut = 50 ether;
 
             Multicall2.Call[] memory calls = new Multicall2.Call[](1);
 
-            //Prepare call to transfer 100 hAVAX form virtual account to Mock App (could be bribes)
-            calls[0] = Multicall2.Call({target: 0x0000000000000000000000000000000000000000, callData: ""});
-            // callData: abi.encodeWithSelector(bytes4(0xa9059cbb), mockApp, 100 ether)
+            //Prepare call to transfer 100 hAVAX form virtual account to Mock App
+            calls[0] = Multicall2.Call({
+                target: newArbitrumAssetGlobalAddress,
+                callData: abi.encodeWithSelector(bytes4(0xa9059cbb), mockApp, 1 ether)
+            });
 
             //Output Params
             OutputParams memory outputParams = OutputParams(address(this), outputToken, amountOut, depositOut);
@@ -735,7 +739,7 @@ contract ArbitrumBranchTest is DSTestPlus {
 
         console2.log("User Global Balance:", MockERC20(newArbitrumAssetGlobalAddress).balanceOf(address(this)));
         require(
-            MockERC20(newArbitrumAssetGlobalAddress).balanceOf(address(this)) == 50 ether,
+            MockERC20(newArbitrumAssetGlobalAddress).balanceOf(address(this)) == 49 ether,
             "User should have 50 global tokens"
         );
     }
@@ -763,8 +767,11 @@ contract ArbitrumBranchTest is DSTestPlus {
         {
             Multicall2.Call[] memory calls = new Multicall2.Call[](1);
 
-            //Mock action could be transfer
-            calls[0] = Multicall2.Call({target: 0x0000000000000000000000000000000000000000, callData: ""});
+            //Prepare call to transfer 100 hAVAX form virtual account to Mock App
+            calls[0] = Multicall2.Call({
+                target: newArbitrumAssetGlobalAddress,
+                callData: abi.encodeWithSelector(bytes4(0xa9059cbb), mockApp, 0 ether)
+            });
 
             //Output Params
             OutputParams memory outputParams =

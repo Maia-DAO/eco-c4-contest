@@ -86,11 +86,13 @@ contract BaseV2Minter is Ownable, IBaseV2Minter {
     function setDao(address _dao) external onlyOwner {
         /// @dev DAO can be set to address(0) to disable DAO rewards.
         dao = _dao;
+        if (_dao == address(0)) daoShare = 0;
     }
 
     /// @inheritdoc IBaseV2Minter
     function setDaoShare(uint256 _daoShare) external onlyOwner {
         if (_daoShare > max_dao_share) revert DaoShareTooHigh();
+        if (dao == address(0)) revert DaoRewardsAreDisabled();
         daoShare = _daoShare;
     }
 

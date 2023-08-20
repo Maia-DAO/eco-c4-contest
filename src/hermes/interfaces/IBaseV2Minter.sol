@@ -123,4 +123,7 @@ interface IBaseV2Minter is IRewardsStream {
 
     /// @dev Throws when the new dao share is higher than 30%.
     error DaoShareTooHigh();
+
+    /// @dev Throws when the updating dao share without a dao set.
+    error DaoRewardsAreDisabled();
 }

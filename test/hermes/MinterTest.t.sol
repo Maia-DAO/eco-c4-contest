@@ -206,7 +206,7 @@ contract BaseV2MinterTest is DSTestPlus {
         hevm.warp(block.timestamp + 1 weeks);
 
         hevm.expectEmit(true, true, true, true);
-        emit Mint(address(this), 10, 500, 5, 1);
+        emit Mint(address(this), 10, 500, 5, 0);
 
         baseV2Minter.updatePeriod();
         assertEq(baseV2Minter.activePeriod(), block.timestamp);

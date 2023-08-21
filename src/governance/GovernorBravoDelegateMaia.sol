@@ -123,7 +123,7 @@ contract GovernorBravoDelegate is GovernorBravoDelegateStorageV2, GovernorBravoE
         // Allow addresses above proposal threshold and whitelisted addresses to propose
         require(
             govToken.getPriorVotes(msg.sender, sub256(block.number, 1))
-                > getProposalThresholdAmount(govToken.totalSupply()) || isWhitelisted(msg.sender),
+                >= getProposalThresholdAmount(govToken.totalSupply()) || isWhitelisted(msg.sender),
             "GovernorBravo::propose: proposer votes below proposal threshold"
         );
         require(
@@ -248,9 +248,9 @@ contract GovernorBravoDelegate is GovernorBravoDelegateStorageV2, GovernorBravoE
                 require(
                     (
                         govToken.getPriorVotes(proposal.proposer, sub256(block.number, 1))
-                            < getProposalThresholdAmount(proposal.totalSupply)
-                    ) && msg.sender == whitelistGuardian,
-                    "GovernorBravo::cancel: whitelisted proposer"
+                            <= getProposalThresholdAmount(proposal.totalSupply)
+                    ),
+                    "GovernorBravo::cancel: proposer above threshold"
                 );
             } else {
                 require(

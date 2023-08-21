@@ -250,7 +250,7 @@ library PoolVariables {
             : int256((cache.amount1Desired - cache.amount1) / 2); // always positive. "overflow" safe convertion cuz we are dividing by 2
 
         // Calculate Price limit depending on price impact
-        uint160 exactSqrtPriceImpact = (sqrtPriceX96 * (_strategy.priceImpactPercentage() / 2)) / GLOBAL_DIVISIONER;
+        uint160 exactSqrtPriceImpact = (sqrtPriceX96 * _strategy.priceImpactPercentage()) / (2 * GLOBAL_DIVISIONER);
         sqrtPriceLimitX96 = zeroForOne ? sqrtPriceX96 - exactSqrtPriceImpact : sqrtPriceX96 + exactSqrtPriceImpact;
     }
 

@@ -218,12 +218,10 @@ abstract contract ERC4626PartnerManager is PartnerUtilityManager, Ownable, ERC46
         address(gaugeWeight).safeApprove(oldPartnerVault, 0);
         address(gaugeBoost).safeApprove(oldPartnerVault, 0);
         address(governance).safeApprove(oldPartnerVault, 0);
-        address(partnerGovernance).safeApprove(oldPartnerVault, 0);
 
         address(gaugeWeight).safeApprove(newPartnerVault, type(uint256).max);
         address(gaugeBoost).safeApprove(newPartnerVault, type(uint256).max);
         address(governance).safeApprove(newPartnerVault, type(uint256).max);
-        address(partnerGovernance).safeApprove(newPartnerVault, type(uint256).max);
 
         partnerVault = newPartnerVault;
         if (newPartnerVault != address(0)) IBaseVault(newPartnerVault).applyAll();

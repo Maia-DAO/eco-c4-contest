@@ -125,7 +125,7 @@ contract ERC4626PartnerManagerTest is DSTestPlus {
         require(manager.totalSupply() == 100 ether);
     }
 
-    function testConvertToShares() public view{
+    function testConvertToShares() public view {
         require(manager.convertToShares(100 ether) == 100 ether);
     }
 
@@ -135,7 +135,7 @@ contract ERC4626PartnerManagerTest is DSTestPlus {
         require(manager.convertToShares(100 ether) == 100 ether);
     }
 
-    function testConvertToAssets() public view{
+    function testConvertToAssets() public view {
         require(manager.convertToAssets(100 ether) == 100 ether);
     }
 
@@ -145,11 +145,11 @@ contract ERC4626PartnerManagerTest is DSTestPlus {
         require(manager.convertToAssets(100 ether) == 100 ether);
     }
 
-    function testPreviewDeposit() public view{
+    function testPreviewDeposit() public view {
         require(manager.previewDeposit(100 ether) == 100 ether);
     }
 
-    function testPreviewMint() public view{
+    function testPreviewMint() public view {
         require(manager.previewDeposit(100 ether) == 100 ether);
     }
 
@@ -174,6 +174,9 @@ contract ERC4626PartnerManagerTest is DSTestPlus {
 
         _bHermes.transfer(address(manager), 1000 ether);
 
+        console2.log(manager.maxDeposit(address(0)));
+        console2.logUint(1000 * 1e18);
+
         require(manager.maxDeposit(address(0)) == 1000 ether);
     }
 
@@ -185,6 +188,8 @@ contract ERC4626PartnerManagerTest is DSTestPlus {
         _bHermes.deposit(1000 ether, address(this));
 
         _bHermes.transfer(address(manager), 1000 ether);
+
+        console2.log(manager.maxDeposit(address(0)));
 
         require(manager.maxDeposit(address(0)) == 1000 ether);
     }

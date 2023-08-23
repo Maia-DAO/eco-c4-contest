@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 // Logic inspired by Popsicle Finance Contracts (PopsicleV3Optimizer/contracts/libraries/PoolActions.sol)
-pragma solidity ^0.8.0;
+pragma solidity >=0.8.0 <0.8.20;
 
 import {ERC20} from "solmate/tokens/ERC20.sol";
 

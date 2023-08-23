@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 // Logic inspired by Popsicle Finance Contracts (PopsicleV3Optimizer/contracts/popsicle-v3-optimizer/OptimizerStrategy.sol)
-pragma solidity ^0.8.0;
+pragma solidity >=0.8.0 <0.8.20;
 
 import {Ownable} from "solady/auth/Ownable.sol";
 

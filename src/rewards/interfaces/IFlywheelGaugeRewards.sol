@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 // Rewards logic inspired by Tribe DAO Contracts (flywheel-v2/src/rewards/FlywheelGaugeRewards.sol)
-pragma solidity ^0.8.0;
+pragma solidity >=0.8.0 <0.8.20;
 
 import {ERC20} from "solmate/tokens/ERC20.sol";
 

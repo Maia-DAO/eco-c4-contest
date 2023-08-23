@@ -25,7 +25,6 @@ library RewardMath {
         uint160 secondsPerLiquidityInsideInitialX128,
         uint160 secondsPerLiquidityInsideX128
     ) internal pure returns (uint160 boostedSecondsInsideX128) {
-
         uint160 secondsInsideX128;
         unchecked {
             // this operation is safe, as the difference cannot be greater than 1/stake.liquidity
@@ -36,7 +35,7 @@ library RewardMath {
             // calculate boosted seconds insisde
             // 40% of original value + 60% of ((staked duration * boost amount) / boost total supply)
             boostedSecondsInsideX128 = uint160(
-                ((secondsInsideX128 * 4) / 10) + ((((stakedDuration << 128) * boostAmount) / boostTotalSupply) * 6) / 10
+                ((secondsInsideX128 * 4) / 10) + (6 * (((stakedDuration << 128) * boostAmount) / boostTotalSupply)) / 10
             );
 
             // calculate boosted seconds inside, can't be larger than the original reward amount

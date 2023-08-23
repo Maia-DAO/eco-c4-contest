@@ -168,13 +168,13 @@ abstract contract ERC4626PartnerManager is PartnerUtilityManager, Ownable, ERC46
     /// @notice Returns the maximum amount of assets that can be deposited by a user.
     /// @dev Returns the remaining balance of the bHermes divided by the bHermesRate.
     function maxDeposit(address) public view virtual override returns (uint256) {
-        return address(bHermesToken).balanceOf(address(this)) / bHermesRate - totalSupply;
+        return address(bHermesToken).balanceOf(address(this)) * BASE / bHermesRate - totalSupply;
     }
 
     /// @notice Returns the maximum amount of assets that can be deposited by a user.
     /// @dev Returns the remaining balance of the bHermes divided by the bHermesRate.
     function maxMint(address) public view virtual override returns (uint256) {
-        return address(bHermesToken).balanceOf(address(this)) / bHermesRate - totalSupply;
+        return address(bHermesToken).balanceOf(address(this)) * BASE / bHermesRate - totalSupply;
     }
 
     /// @notice Returns the maximum amount of assets that can be withdrawn by a user.
@@ -187,7 +187,7 @@ abstract contract ERC4626PartnerManager is PartnerUtilityManager, Ownable, ERC46
         if (userClaimedGovernance[user] > claimed) claimed = userClaimedGovernance[user];
         if (userClaimedPartnerGovernance[user] > claimed) claimed = userClaimedPartnerGovernance[user];
 
-        return balanceOf[user] - claimed.divUp(bHermesRate);
+        return balanceOf[user] - claimed * BASE / bHermesRate;
     }
 
     /// @notice Returns the maximum amount of assets that can be redeemed by a user.
@@ -200,7 +200,7 @@ abstract contract ERC4626PartnerManager is PartnerUtilityManager, Ownable, ERC46
         if (userClaimedGovernance[user] > claimed) claimed = userClaimedGovernance[user];
         if (userClaimedPartnerGovernance[user] > claimed) claimed = userClaimedPartnerGovernance[user];
 
-        return balanceOf[user] - claimed.divUp(bHermesRate);
+        return balanceOf[user] - claimed * BASE / bHermesRate;
     }
 
     /*///////////////////////////////////////////////////////////////

@@ -121,6 +121,7 @@ contract RootPort is Ownable, IRootPort {
 
         _initializeOwner(msg.sender);
         _setup = true;
+        _setupCore = true;
     }
 
     bool internal _setup;
@@ -135,14 +136,18 @@ contract RootPort is Ownable, IRootPort {
         bridgeAgentFactoriesLenght++;
 
         coreRootRouterAddress = _coreRootRouter;
+
+        _setup = false;
     }
+
+    bool internal _setupCore;
 
     function initializeCore(
         address _coreRootBridgeAgent,
         address _coreLocalBranchBridgeAgent,
         address _localBranchPortAddress
     ) external onlyOwner {
-        require(_setup, "Setup ended.");
+        require(_setupCore, "Core Setup ended.");
         require(isBridgeAgent[_coreRootBridgeAgent], "Core Bridge Agent doesn't exist.");
         require(_coreRootBridgeAgent != address(0), "Core Root Bridge Agent cannot be 0 address.");
         require(_coreLocalBranchBridgeAgent != address(0), "Core Local Branch Bridge Agent cannot be 0 address.");
@@ -152,13 +157,15 @@ contract RootPort is Ownable, IRootPort {
         localBranchPortAddress = _localBranchPortAddress;
         IBridgeAgent(_coreRootBridgeAgent).syncBranchBridgeAgent(_coreLocalBranchBridgeAgent, localChainId);
         getBridgeAgentManager[_coreRootBridgeAgent] = owner();
+
+        _setupCore = false;
     }
 
     /// @notice Function for transfering ownership of the contract to another address.
     function forefeitOwnership(address _owner) external onlyOwner {
+        require(!_setup && !_setupCore, "Setup not ended.");
         require(_owner != address(0), "Owner cannot be 0 address.");
         _setOwner(address(_owner));
-        _setup = false;
     }
 
     /// @notice Function being overrriden to prevent mistakenly renouncing ownership.

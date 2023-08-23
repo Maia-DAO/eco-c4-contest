@@ -27,6 +27,19 @@ contract VirtualAccount is IVirtualAccount {
         localPortAddress = _localPortAddress;
     }
 
+    /*//////////////////////////////////////////////////////////////
+                            EXTERNAL FUNCTIONS
+    //////////////////////////////////////////////////////////////*/
+    
+    fallback() external payable {}
+
+    receive() external payable {}
+
+    /// @inheritdoc IVirtualAccount
+    function withdrawNative(uint256 _amount) external requiresApprovedCaller {
+        msg.sender.safeTransferETH(_amount);
+    }
+
     /// @inheritdoc IVirtualAccount
     function withdrawERC20(address _token, uint256 _amount) external requiresApprovedCaller {
         _token.safeTransfer(msg.sender, _amount);

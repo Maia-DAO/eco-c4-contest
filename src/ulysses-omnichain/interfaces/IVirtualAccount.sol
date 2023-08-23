@@ -28,6 +28,12 @@ interface IVirtualAccount is IERC721Receiver {
     function localPortAddress() external view returns (address);
 
     /**
+     * @notice Withdraws native tokens from the VirtualAccount.
+     * @param _amount The amount of tokens to withdraw.
+     */
+    function withdrawNative(uint256 _amount) external;
+
+    /**
      * @notice Withdraws ERC20 tokens from the VirtualAccount.
      * @param _token The address of the ERC20 token to withdraw.
      * @param _amount The amount of tokens to withdraw.

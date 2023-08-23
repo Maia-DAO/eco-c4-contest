@@ -42,6 +42,10 @@ abstract contract PartnerUtilityManager is UtilityManager, IPartnerUtilityManage
     ) UtilityManager(_gaugeWeight, _gaugeBoost, _governance) {
         partnerGovernance = ERC20Votes(_partnerGovernance);
         partnerVault = _partnerVault;
+
+        address(gaugeWeight).safeApprove(partnerVault, type(uint256).max);
+        address(gaugeBoost).safeApprove(partnerVault, type(uint256).max);
+        address(governance).safeApprove(partnerVault, type(uint256).max);
     }
 
     /*///////////////////////////////////////////////////////////////

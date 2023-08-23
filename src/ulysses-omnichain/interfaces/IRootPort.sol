@@ -335,6 +335,7 @@ interface IRootPort {
     error UnrecognizedBridgeAgent();
 
     error UnrecognizedToken();
+    error UnableToMint();
 
     error AlreadyAddedEcosystemToken();
 

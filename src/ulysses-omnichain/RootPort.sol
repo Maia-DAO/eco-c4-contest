@@ -299,7 +299,7 @@ contract RootPort is Ownable, IRootPort {
      */
     function mint(address _to, address _hToken, uint256 _amount, uint24 _fromChain) internal {
         if (!isGlobalAddress[_hToken]) revert UnrecognizedToken();
-        ERC20hTokenRoot(_hToken).mint(_to, _amount, _fromChain);
+        if (!ERC20hTokenRoot(_hToken).mint(_to, _amount, _fromChain)) revert UnableToMint();
     }
 
     /// @inheritdoc IRootPort

@@ -36,8 +36,8 @@ import {ERC20hTokenRoot} from "./token/ERC20hTokenRoot.sol";
  *
  */
 contract CoreRootRouter is IRootRouter, Ownable {
-    /// @notice Local Wrapped Native Token
-    WETH9 public immutable wrappedNativeToken;
+    /// @notice Boolean to indicate if the contract is in set up mode.
+    bool internal _setup;
 
     /// @notice Address for Local Port Address where funds deposited from this chain are kept, managed and supplied to different Port Strategies.
     uint24 public immutable rootChainId;
@@ -53,14 +53,21 @@ contract CoreRootRouter is IRootRouter, Ownable {
     /// @notice Uni V3 Factory Address
     address public hTokenFactoryAddress;
 
+    /// @notice Local Wrapped Native Token
+    WETH9 public immutable wrappedNativeToken;
+
     constructor(uint24 _rootChainId, address _wrappedNativeToken, address _rootPortAddress) {
         rootChainId = _rootChainId;
         wrappedNativeToken = WETH9(_wrappedNativeToken);
         rootPortAddress = _rootPortAddress;
+
         _initializeOwner(msg.sender);
+        _setup = true;
     }
 
     function initialize(address _bridgeAgentAddress, address _hTokenFactory) external onlyOwner {
+        require(_setup, "Contract is already initialized");
+        _setup = false;
         bridgeAgentAddress = payable(_bridgeAgentAddress);
         bridgeAgentExecutorAddress = IBridgeAgent(_bridgeAgentAddress).bridgeAgentExecutorAddress();
         hTokenFactoryAddress = _hTokenFactory;

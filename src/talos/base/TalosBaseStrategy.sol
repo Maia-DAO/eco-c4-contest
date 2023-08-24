@@ -235,6 +235,7 @@ abstract contract TalosBaseStrategy is Ownable, ERC20, ReentrancyGuard, ITalosBa
 
         _mint(receiver, shares);
         if (totalSupply > optimizer.maxTotalSupply()) revert ExceedingMaxTotalSupply();
+        if (shares == 0) revert NoSharesMinted();
 
         emit Deposit(msg.sender, receiver, amount0, amount1, shares);
 

@@ -103,9 +103,14 @@ interface ITalosBaseStrategy is IERC721Receiver {
 
     /// @notice Initializes the Optimizer with the given parameters.
     /// @dev Makes first deposit and mints tokenId.
-    function init(uint256 amount0Desired, uint256 amount1Desired, address receiver, uint256 amount0Min, uint256 amount1Min, uint256 deadline)
-        external
-        returns (uint256 shares, uint256 amount0, uint256 amount1);
+    function init(
+        uint256 amount0Desired,
+        uint256 amount1Desired,
+        address receiver,
+        uint256 amount0Min,
+        uint256 amount1Min,
+        uint256 deadline
+    ) external returns (uint256 shares, uint256 amount0, uint256 amount1);
 
     /*//////////////////////////////////////////////////////////////
                         DEPOSIT/WITHDRAWAL LOGIC
@@ -120,9 +125,14 @@ interface ITalosBaseStrategy is IERC721Receiver {
      * @return amount0 Amount of token0 deposited
      * @return amount1 Amount of token1 deposited
      */
-    function deposit(uint256 amount0Desired, uint256 amount1Desired, address receiver, uint256 amount0Min, uint256 amount1Min, uint256 deadline)
-        external
-        returns (uint256 shares, uint256 amount0, uint256 amount1);
+    function deposit(
+        uint256 amount0Desired,
+        uint256 amount1Desired,
+        address receiver,
+        uint256 amount0Min,
+        uint256 amount1Min,
+        uint256 deadline
+    ) external returns (uint256 shares, uint256 amount0, uint256 amount1);
 
     /**
      * @notice Withdraws tokens in proportion to the Optimizer's holdings.
@@ -135,9 +145,14 @@ interface ITalosBaseStrategy is IERC721Receiver {
      * @return amount0 Amount of token0 sent to recipient
      * @return amount1 Amount of token1 sent to recipient
      */
-    function redeem(uint256 shares, uint256 amount0Min, uint256 amount1Min, address receiver, address owner, uint256 deadline)
-        external
-        returns (uint256 amount0, uint256 amount1);
+    function redeem(
+        uint256 shares,
+        uint256 amount0Min,
+        uint256 amount1Min,
+        address receiver,
+        address owner,
+        uint256 deadline
+    ) external returns (uint256 amount0, uint256 amount1);
 
     /*//////////////////////////////////////////////////////////////
                         RERANGE/REBALANCE LOGIC
@@ -251,6 +266,9 @@ interface ITalosBaseStrategy is IERC721Receiver {
 
     /// @notice Error emitted when trying to add more liquidity than maxTotalSupply
     error ExceedingMaxTotalSupply();
+
+    /// @notice Error emitted when zero shares are minted
+    error NoSharesMinted();
 
     /// @notice Error emitted when caller is not the Uniswap V3 Pool
     error CallerIsNotPool();

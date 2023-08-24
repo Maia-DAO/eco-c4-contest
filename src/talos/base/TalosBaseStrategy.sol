@@ -261,7 +261,7 @@ abstract contract TalosBaseStrategy is Ownable, ERC20, ReentrancyGuard, ITalosBa
         address receiver,
         address _owner,
         uint256 deadline
-    ) public virtual override nonReentrant checkDeviation returns (uint256 amount0, uint256 amount1) {
+    ) public virtual override nonReentrant returns (uint256 amount0, uint256 amount1) {
         if (msg.sender != _owner) {
             uint256 allowed = allowance[_owner][msg.sender]; // Saves gas for limited approvals.
 

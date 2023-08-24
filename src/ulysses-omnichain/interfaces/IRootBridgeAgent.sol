@@ -400,6 +400,7 @@ interface IRootBridgeAgent is IApp {
     error UnrecognizedGlobalAddress();
     error UnrecognizedAddressInDestination();
 
+    error SettlementRetryUnavailable();
     error SettlementRedeemUnavailable();
     error NotSettlementOwner();
 

@@ -550,12 +550,12 @@ contract RootBridgeAgent is IRootBridgeAgent {
      *    @param _settlementNonce Identifier for token settlement.
      *
      */
-    function _retrySettlement(uint32 _settlementNonce) internal returns (bool) {
+    function _retrySettlement(uint32 _settlementNonce) internal {
         //Get Settlement
         Settlement memory settlement = getSettlement[_settlementNonce];
 
         //Check if Settlement hasn't been redeemed.
-        if (settlement.owner == address(0)) return false;
+        if (settlement.owner == address(0)) revert SettlementRetryUnavailable();
 
         //abi encodePacked
         bytes memory newGas = abi.encodePacked(_manageGasOut(settlement.toChain));
@@ -581,9 +581,6 @@ contract RootBridgeAgent is IRootBridgeAgent {
 
         //Retry call with additional gas
         _performCall(settlement.callData, settlement.toChain);
-
-        //Retry Success
-        return true;
     }
 
     /**

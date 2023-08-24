@@ -57,6 +57,7 @@ contract PartnerManagerFactory is Ownable, IPartnerManagerFactory {
 
     /// @inheritdoc IPartnerManagerFactory
     function addPartner(PartnerManager newPartnerManager) external onlyOwner {
+        if (partners[partnerIds[partnerManager]] == newPartnerManager) revert InvalidPartnerManager();
         uint256 id = partners.length;
         partners.push(newPartnerManager);
         partnerIds[newPartnerManager] == id;
@@ -66,6 +67,7 @@ contract PartnerManagerFactory is Ownable, IPartnerManagerFactory {
 
     /// @inheritdoc IPartnerManagerFactory
     function addVault(IBaseVault newVault) external onlyOwner {
+        if (vaults[vaultIds[vault]] == newVault) revert InvalidVault();
         uint256 id = vaults.length;
         vaults.push(newVault);
         vaultIds[newVault] == id;

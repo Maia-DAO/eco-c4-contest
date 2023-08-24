@@ -128,8 +128,10 @@ abstract contract ERC20Boost is ERC20, Ownable, IERC20Boost {
             emit UpdateUserBoost(user, userGaugeBoost);
         }
 
-        getUserGaugeBoost[user][msg.sender] =
-            GaugeState({userGaugeBoost: userGaugeBoost, totalGaugeBoost: totalSupply.toUint128()});
+        if (totalSupply > 0) {
+            getUserGaugeBoost[user][msg.sender] =
+                GaugeState({userGaugeBoost: userGaugeBoost, totalGaugeBoost: totalSupply.toUint128()});
+        }
 
         emit Attach(user, msg.sender, userGaugeBoost);
     }

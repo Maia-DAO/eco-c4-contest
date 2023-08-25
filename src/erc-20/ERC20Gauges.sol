@@ -515,9 +515,8 @@ abstract contract ERC20Gauges is ERC20MultiVotes, ReentrancyGuard, IERC20Gauges 
         _decrementWeightUntilFree(from, amount);
         if (from != msg.sender) {
             return super.transferFrom(from, to, amount);
-        } else {
-            return super.transfer(to, amount);
         }
+        return super.transfer(to, amount);
     }
 
     /**

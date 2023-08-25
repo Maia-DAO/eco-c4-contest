@@ -304,9 +304,9 @@ abstract contract ERC20MultiVotes is ERC20, Ownable, IERC20MultiVotes {
         _decrementVotesUntilFree(from, amount);
         if (from != msg.sender) {
             return super.transferFrom(from, to, amount);
-        } else {
-            return super.transfer(to, amount);
         }
+            return super.transfer(to, amount);
+        
     }
 
     /**

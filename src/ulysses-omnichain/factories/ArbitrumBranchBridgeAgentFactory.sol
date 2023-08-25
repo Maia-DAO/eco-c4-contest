@@ -52,6 +52,8 @@ contract ArbitrumBranchBridgeAgentFactory is BranchBridgeAgentFactory {
     {}
 
     function initialize(address _coreRootBridgeAgent) external override onlyOwner {
+        require(_coreRootBridgeAgent != address(0), "Core Root Bridge Agent Address cannot be 0");
+
         address newCoreBridgeAgent = address(
             DeployArbitrumBranchBridgeAgent.deploy(
                 wrappedNativeToken,

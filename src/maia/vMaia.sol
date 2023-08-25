@@ -36,7 +36,7 @@ contract vMaia is ERC4626PartnerManager {
 
     /**
      * @notice Initializes the vMaia token.
-     * @param _factory The factory that created this contract.
+     * @param _factory The factory that keeps the registry for all partner tokens and vaults.
      * @param _bHermesRate The rate at which bHermes can be claimed.
      * @param _partnerAsset The asset that will be used to deposit to get vMaia.
      * @param _name The name of the token.

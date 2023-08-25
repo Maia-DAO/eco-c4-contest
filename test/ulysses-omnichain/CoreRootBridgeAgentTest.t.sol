@@ -489,7 +489,7 @@ contract CoreRootBridgeAgentTest is Test {
 
         arbitrumCoreRouter.addLocalToken(address(arbAssetToken));
 
-        newGlobalAddress = RootPort(rootPort).getLocalTokenFromUnder(address(arbAssetToken), rootChainId);
+        newGlobalAddress = RootPort(rootPort).getLocalTokenFromUnderlying(address(arbAssetToken), rootChainId);
 
         console2.log("New Global Token Address: ", newGlobalAddress);
 

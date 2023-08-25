@@ -61,7 +61,7 @@ interface IERC4626PartnerManager {
      * @param newRate new bHermes to pbHermes conversion rate. represents
      *                   the value that correlates partnerToken with bHermes voting power.
      * @dev Maximum increase of conversion rate up to:
-     *         `bHermes.balanceOf(address(partnerVault)) / totalSupply()`.
+     *         `bHermesToken.balanceOf(address(this)) * BASE / bHermesRate - totalSupply`.
      */
     function increaseConversionRate(uint256 newRate) external;
 

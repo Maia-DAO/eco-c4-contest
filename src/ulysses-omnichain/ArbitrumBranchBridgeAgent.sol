@@ -41,8 +41,8 @@ library DeployArbitrumBranchBridgeAgent {
         address _daoAddress,
         address _localAnyCallAddress,
         address _localAnyCallExecutorAddress,
-        address _localPortAddress,
-        address _localRouterAddress
+        address _localRouterAddress,
+        address _localPortAddress
     ) external returns (ArbitrumBranchBridgeAgent) {
         return new ArbitrumBranchBridgeAgent(
             _wrappedNativeToken,
@@ -50,8 +50,8 @@ library DeployArbitrumBranchBridgeAgent {
             _daoAddress,
             _localAnyCallAddress,
             _localAnyCallExecutorAddress,
-            _localPortAddress,
-            _localRouterAddress
+            _localRouterAddress,
+            _localPortAddress
         );
     }
 }

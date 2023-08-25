@@ -23,7 +23,7 @@ contract ERC20hTokenRootFactory is Ownable, IERC20hTokenRootFactory {
 
     ERC20hTokenRoot[] public hTokens;
 
-    uint256 public hTokensLenght;
+    uint256 public hTokensLength;
 
     /**
      * @notice Constructor for ERC20 hToken Contract
@@ -53,7 +53,7 @@ contract ERC20hTokenRootFactory is Ownable, IERC20hTokenRootFactory {
      */
     function createToken(string memory _name, string memory _symbol)
         external
-        requiresCoreRouter
+        requiresCoreRouterOrPort
         returns (ERC20hTokenRoot newToken)
     {
         newToken = new ERC20hTokenRoot(
@@ -64,16 +64,16 @@ contract ERC20hTokenRootFactory is Ownable, IERC20hTokenRootFactory {
             _symbol
         );
         hTokens.push(newToken);
-        hTokensLenght++;
+        hTokensLength++;
     }
 
     /*///////////////////////////////////////////////////////////////
                                 MODIFIERS
     //////////////////////////////////////////////////////////////*/
     /// @notice Modifier that verifies msg sender is the RootInterface Contract from Root Chain.
-    modifier requiresCoreRouter() {
+    modifier requiresCoreRouterOrPort() {
         if (msg.sender != coreRootRouterAddress && msg.sender != rootPortAddress) {
-            revert UnrecognizedCoreRouter();
+            revert UnrecognizedCoreRouterOrPort();
         }
         _;
     }

@@ -311,7 +311,7 @@ interface IUniswapV3Staker is IERC721Receiver {
 
     error NotCalledByOwner();
 
-    error IncentiveRewardMustBePositive();
+    error IncentiveRewardMustBeGreaterThanZero();
     error IncentiveStartTimeMustBeNowOrInTheFuture();
     error IncentiveStartTimeNotAtEndOfAnEpoch();
     error IncentiveStartTimeTooFarIntoFuture();

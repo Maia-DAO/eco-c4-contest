@@ -30,7 +30,7 @@ contract BranchPort is Ownable, IBranchPort {
     address[] public bridgeAgents;
 
     /// @notice Number of Branch Routers deployed in current chain.
-    uint256 public bridgeAgentsLenght;
+    uint256 public bridgeAgentsLength;
 
     /*///////////////////////////////////////////////////////////////
                     BRIDGE AGENT FACTORIES STATE
@@ -43,7 +43,7 @@ contract BranchPort is Ownable, IBranchPort {
     address[] public bridgeAgentFactories;
 
     /// @notice Number of Branch Routers deployed in current chain.
-    uint256 public bridgeAgentFactoriesLenght;
+    uint256 public bridgeAgentFactoriesLength;
 
     /*///////////////////////////////////////////////////////////////
                         PORT STRATEGY STATE
@@ -57,7 +57,7 @@ contract BranchPort is Ownable, IBranchPort {
     address[] public strategyTokens;
 
     /// @notice Number of Port Strategies deployed in current branch chain.
-    uint256 public strategyTokensLenght;
+    uint256 public strategyTokensLength;
 
     /// @notice Mapping returns a given token's total debt incurred by Port Strategies.
     mapping(address => uint256) public getStrategyTokenDebt;
@@ -74,7 +74,7 @@ contract BranchPort is Ownable, IBranchPort {
     address[] public portStrategies;
 
     /// @notice Number of Port Strategies deployed in current branch chain.
-    uint256 public portStrategiesLenght;
+    uint256 public portStrategiesLength;
 
     /// @notice Mapping returns the amount of Strategy Token debt a given Port Startegy has.  Strategy => Token => uint256.
     mapping(address => mapping(address => uint256)) public getPortStrategyTokenDebt;
@@ -106,7 +106,7 @@ contract BranchPort is Ownable, IBranchPort {
         coreBranchRouterAddress = _coreBranchRouter;
         isBridgeAgentFactory[_bridgeAgentFactory] = true;
         bridgeAgentFactories.push(_bridgeAgentFactory);
-        bridgeAgentFactoriesLenght++;
+        bridgeAgentFactoriesLength++;
     }
 
     /// @notice Function being overrriden to prevent mistakenly renouncing ownership.
@@ -265,6 +265,11 @@ contract BranchPort is Ownable, IBranchPort {
         uint256[] memory _deposits
     ) external virtual requiresBridgeAgent {
         for (uint256 i = 0; i < _localAddresses.length;) {
+            if (_amounts[i] - _deposits[i] > 0) {
+                _localAddresses[i].safeTransferFrom(_depositor, address(this), _amounts[i] - _deposits[i]);
+                ERC20hTokenBranch(_localAddresses[i]).burn(_amounts[i] - _deposits[i]);
+            }
+
             if (_deposits[i] > 0) {
                 _underlyingAddresses[i].safeTransferFrom(
                     _depositor,
@@ -272,10 +277,7 @@ contract BranchPort is Ownable, IBranchPort {
                     _denormalizeDecimals(_deposits[i], ERC20(_underlyingAddresses[i]).decimals())
                 );
             }
-            if (_amounts[i] - _deposits[i] > 0) {
-                _localAddresses[i].safeTransferFrom(_depositor, address(this), _amounts[i] - _deposits[i]);
-                ERC20hTokenBranch(_localAddresses[i]).burn(_amounts[i] - _deposits[i]);
-            }
+
             unchecked {
                 i++;
             }
@@ -290,7 +292,7 @@ contract BranchPort is Ownable, IBranchPort {
     function addBridgeAgent(address _bridgeAgent) external requiresBridgeAgentFactory {
         isBridgeAgent[_bridgeAgent] = true;
         bridgeAgents.push(_bridgeAgent);
-        bridgeAgentsLenght++;
+        bridgeAgentsLength++;
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -308,7 +310,7 @@ contract BranchPort is Ownable, IBranchPort {
     function addBridgeAgentFactory(address _newBridgeAgentFactory) external requiresCoreRouter {
         isBridgeAgentFactory[_newBridgeAgentFactory] = true;
         bridgeAgentFactories.push(_newBridgeAgentFactory);
-        bridgeAgentFactoriesLenght++;
+        bridgeAgentFactoriesLength++;
 
         emit BridgeAgentFactoryAdded(_newBridgeAgentFactory);
     }
@@ -329,9 +331,12 @@ contract BranchPort is Ownable, IBranchPort {
 
     /// @inheritdoc IBranchPort
     function addStrategyToken(address _token, uint256 _minimumReservesRatio) external requiresCoreRouter {
-        if (_minimumReservesRatio >= DIVISIONER) revert InvalidMinimumReservesRatio();
+        if (_minimumReservesRatio >= DIVISIONER || _minimumReservesRatio < MIN_RESERVE_RATIO) {
+            revert InvalidMinimumReservesRatio();
+        }
+
         strategyTokens.push(_token);
-        strategyTokensLenght++;
+        strategyTokensLength++;
         getMinimumTokenReserveRatio[_token] = _minimumReservesRatio;
         isStrategyToken[_token] = true;
 
@@ -352,7 +357,7 @@ contract BranchPort is Ownable, IBranchPort {
     {
         if (!isStrategyToken[_token]) revert UnrecognizedStrategyToken();
         portStrategies.push(_portStrategy);
-        portStrategiesLenght++;
+        portStrategiesLength++;
         strategyDailyLimitAmount[_portStrategy][_token] = _dailyManagementLimit;
         isPortStrategy[_portStrategy][_token] = true;
 

@@ -2,7 +2,6 @@
 
 pragma solidity >=0.8.0 <0.8.20;
 
-import {Ownable} from "solady/auth/Ownable.sol";
 import {SafeTransferLib} from "solady/utils/SafeTransferLib.sol";
 
 import {ERC20} from "solmate/tokens/ERC20.sol";
@@ -46,7 +45,7 @@ contract ArbitrumBranchPort is BranchPort, IArbitrumBranchPort {
         external
         requiresBridgeAgent
     {
-        address globalToken = IRootPort(rootPortAddress).getLocalTokenFromUnder(_underlyingAddress, localChainId);
+        address globalToken = IRootPort(rootPortAddress).getLocalTokenFromUnderlying(_underlyingAddress, localChainId);
         if (globalToken == address(0)) revert UnknownUnderlyingToken();
 
         _underlyingAddress.safeTransferFrom(_depositor, address(this), _deposit);

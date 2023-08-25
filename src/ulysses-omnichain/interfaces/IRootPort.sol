@@ -66,7 +66,7 @@ interface IRootPort {
      *  @param _underlyingAddress The address of the underlying token.
      *  @param _fromChain The chainId of the chain where the token is deployed.
      */
-    function getLocalTokenFromUnder(address _underlyingAddress, uint256 _fromChain) external view returns (address);
+    function getLocalTokenFromUnderlying(address _underlyingAddress, uint256 _fromChain) external view returns (address);
 
     /**
      * @notice Function that returns Local Token's Local Address on another chain.

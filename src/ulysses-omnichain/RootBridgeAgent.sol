@@ -57,7 +57,7 @@ library CheckParamsLib {
                 || (_dParams.amount > 0 && !IPort(_localPortAddress).isLocalToken(_dParams.hToken, _fromChain)) //Check local exists.
                 || (
                     _dParams.deposit > 0
-                        && IPort(_localPortAddress).getLocalTokenFromUnder(_dParams.token, _fromChain) != _dParams.hToken
+                        && IPort(_localPortAddress).getLocalTokenFromUnderlying(_dParams.token, _fromChain) != _dParams.hToken
                 ) //Check underlying exists.
         ) {
             return false;
@@ -531,7 +531,7 @@ contract RootBridgeAgent is IRootBridgeAgent {
         uint24 _toChain
     ) internal {
         // Update State
-        getSettlement[_getAndIncrementSettlementNonce()] = Settlement({
+        getSettlement[settlementNonce++] = Settlement({
             owner: _owner,
             recipient: _recipient,
             hTokens: _hTokens,
@@ -623,14 +623,6 @@ contract RootBridgeAgent is IRootBridgeAgent {
     function _reopenSettlemment(uint32 _settlementNonce) internal {
         //Update Deposit
         getSettlement[_settlementNonce].status = SettlementStatus.Failed;
-    }
-
-    /**
-     * @notice Function that returns Deposit nonce and increments nonce counter.
-     *
-     */
-    function _getAndIncrementSettlementNonce() internal returns (uint32) {
-        return settlementNonce++;
     }
 
     /*///////////////////////////////////////////////////////////////

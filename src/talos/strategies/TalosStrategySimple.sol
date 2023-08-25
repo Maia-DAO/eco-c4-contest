@@ -23,9 +23,9 @@ abstract contract TalosStrategySimple is TalosBaseStrategy {
         address _owner
     ) TalosBaseStrategy(_pool, _strategy, _nonfungiblePositionManager, _strategyManager, _owner) {}
 
-    // /*//////////////////////////////////////////////////////////////
-    //                     RERANGE/REBALANCE LOGIC
-    // //////////////////////////////////////////////////////////////*/
+    /*///////////////////////////////////////////////////////////////
+                            RERANGE/REBALANCE LOGIC
+    //////////////////////////////////////////////////////////////*/
 
     function doRerange() internal override returns (uint256 amount0, uint256 amount1) {
         (tickLower, tickUpper, amount0, amount1, tokenId, liquidity) = nonfungiblePositionManager.rerange(

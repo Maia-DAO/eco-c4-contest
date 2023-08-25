@@ -855,7 +855,7 @@ contract RootTest is DSTestPlus {
         //Get some gas
         hevm.deal(address(this), 1 ether);
 
-        rootCoreRouter.manageStrategyToken{value: 0.05 ether}(address(102), 300, address(this), ftmChainId);
+        rootCoreRouter.manageStrategyToken{value: 0.05 ether}(address(102), 3_000, address(this), ftmChainId);
 
         require(ftmPort.isStrategyToken(address(102)), "Should be added");
     }
@@ -865,7 +865,16 @@ contract RootTest is DSTestPlus {
         hevm.deal(address(this), 1 ether);
 
         // hevm.expectRevert(abi.encodeWithSignature("InvalidMinimumReservesRatio()"));
-        rootCoreRouter.manageStrategyToken{value: 0.05 ether}(address(102), 30000, address(this), ftmChainId);
+        rootCoreRouter.manageStrategyToken{value: 0.05 ether}(address(102), 2_999, address(this), ftmChainId);
+        require(!ftmPort.isStrategyToken(address(102)), "Should note be added");
+    }
+
+    function testAddStrategyTokenInvalidMinReserveTooHigh() public {
+        //Get some gas
+        hevm.deal(address(this), 1 ether);
+
+        // hevm.expectRevert(abi.encodeWithSignature("InvalidMinimumReservesRatio()"));
+        rootCoreRouter.manageStrategyToken{value: 0.05 ether}(address(102), 10_000, address(this), ftmChainId);
         require(!ftmPort.isStrategyToken(address(102)), "Should note be added");
     }
 
@@ -918,7 +927,7 @@ contract RootTest is DSTestPlus {
 
         avaxCoreRouter.addLocalToken{value: 0.00005 ether}(address(avaxMockAssetToken));
 
-        avaxMockAssethToken = RootPort(rootPort).getLocalTokenFromUnder(address(avaxMockAssetToken), avaxChainId);
+        avaxMockAssethToken = RootPort(rootPort).getLocalTokenFromUnderlying(address(avaxMockAssetToken), avaxChainId);
 
         newAvaxAssetGlobalAddress = RootPort(rootPort).getGlobalTokenFromLocal(avaxMockAssethToken, avaxChainId);
 
@@ -982,7 +991,7 @@ contract RootTest is DSTestPlus {
         arbitrumCoreRouter.addLocalToken{value: 0.0005 ether}(address(arbitrumMockToken));
 
         newArbitrumAssetGlobalAddress =
-            RootPort(rootPort).getLocalTokenFromUnder(address(arbitrumMockToken), rootChainId);
+            RootPort(rootPort).getLocalTokenFromUnderlying(address(arbitrumMockToken), rootChainId);
 
         console2.log("New: ", newArbitrumAssetGlobalAddress);
 

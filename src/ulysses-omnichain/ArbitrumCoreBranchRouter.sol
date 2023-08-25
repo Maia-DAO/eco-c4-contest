@@ -18,9 +18,11 @@ import {ERC20hTokenBranch as ERC20hToken} from "./token/ERC20hTokenBranch.sol";
  *         This contract is responsible for permissionlessly adding new
  *         tokens or Bridge Agents to the system as well as key governance
  *         enabled system functions (i.e. `addBridgeAgentFactory`).
- * @dev    The function `addGlobalToken` is used to add a global token to a
- *         given Branch Chain is not available since the Arbitrum Branch is
- *         in the same network as the Root Environment.
+ * @dev    The function `addGlobalToken` is is not available since it's used
+ *         to add a global token to a given Branch Chain and the Arbitrum Branch
+ *         is already in the same network as the Root Environment and all the global
+ *         tokens.
+ *
  *         Func IDs for calling these functions through messaging layer:
  *
  *         CROSS-CHAIN MESSAGING FUNCIDs

@@ -109,6 +109,7 @@ contract UniswapV3Staker is IUniswapV3Staker, Multicallable {
     /// @inheritdoc IUniswapV3Staker
     bHermesBoost public immutable hermesGaugeBoost;
 
+    /// @notice Uniswap V3 Staker constructor arguments
     /// @param _factory the Uniswap V3 factory
     /// @param _nonfungiblePositionManager the NFT position manager contract address
     /// @param _maxIncentiveStartLeadTime the max duration of an incentive in seconds
@@ -136,7 +137,7 @@ contract UniswapV3Staker is IUniswapV3Staker, Multicallable {
 
     /// @inheritdoc IUniswapV3Staker
     function createIncentiveFromGauge(uint256 reward) external {
-        if (reward <= 0) revert IncentiveRewardMustBePositive();
+        if (reward == 0) revert IncentiveRewardMustBeGreaterThanZero();
 
         uint96 startTime = IncentiveTime.computeEnd(block.timestamp);
 
@@ -156,7 +157,7 @@ contract UniswapV3Staker is IUniswapV3Staker, Multicallable {
 
     /// @inheritdoc IUniswapV3Staker
     function createIncentive(IncentiveKey memory key, uint256 reward) external {
-        if (reward <= 0) revert IncentiveRewardMustBePositive();
+        if (reward == 0) revert IncentiveRewardMustBeGreaterThanZero();
 
         uint96 startTime = IncentiveTime.computeStart(key.startTime);
 

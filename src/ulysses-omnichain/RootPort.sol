@@ -64,7 +64,7 @@ contract RootPort is Ownable, IRootPort {
     address[] public bridgeAgents;
 
     /// @notice Number of bridgeAgents deployed in current chain.
-    uint256 public bridgeAgentsLenght;
+    uint256 public bridgeAgentsLength;
 
     /// @notice Mapping address Bridge Agent => address Bridge Agent Manager
     mapping(address => address) public getBridgeAgentManager;
@@ -80,7 +80,7 @@ contract RootPort is Ownable, IRootPort {
     address[] public bridgeAgentFactories;
 
     /// @notice Number of Bridge Agents deployed in current chain.
-    uint256 public bridgeAgentFactoriesLenght;
+    uint256 public bridgeAgentFactoriesLength;
 
     /*///////////////////////////////////////////////////////////////
                             hTOKENS
@@ -96,7 +96,7 @@ contract RootPort is Ownable, IRootPort {
     mapping(address => mapping(uint256 => address)) public getLocalTokenFromGlobal;
 
     /// @notice ChainId -> Underlying Address -> Local Address
-    mapping(address => mapping(uint256 => address)) public getLocalTokenFromUnder;
+    mapping(address => mapping(uint256 => address)) public getLocalTokenFromUnderlying;
 
     /// @notice Mapping from Local Address to Underlying Address.
     mapping(address => mapping(uint256 => address)) public getUnderlyingTokenFromLocal;
@@ -133,7 +133,7 @@ contract RootPort is Ownable, IRootPort {
 
         isBridgeAgentFactory[_bridgeAgentFactory] = true;
         bridgeAgentFactories.push(_bridgeAgentFactory);
-        bridgeAgentFactoriesLenght++;
+        bridgeAgentFactoriesLength++;
 
         coreRootRouterAddress = _coreRootRouter;
 
@@ -243,7 +243,7 @@ contract RootPort is Ownable, IRootPort {
 
     /// @inheritdoc IRootPort
     function isUnderlyingToken(address _underlyingToken, uint24 _fromChain) external view returns (bool) {
-        return getLocalTokenFromUnder[_underlyingToken][_fromChain] != address(0);
+        return getLocalTokenFromUnderlying[_underlyingToken][_fromChain] != address(0);
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -258,7 +258,7 @@ contract RootPort is Ownable, IRootPort {
         isGlobalAddress[_globalAddress] = true;
         getGlobalTokenFromLocal[_localAddress][_fromChain] = _globalAddress;
         getLocalTokenFromGlobal[_globalAddress][_fromChain] = _localAddress;
-        getLocalTokenFromUnder[_underlyingAddress][_fromChain] = _localAddress;
+        getLocalTokenFromUnderlying[_underlyingAddress][_fromChain] = _localAddress;
         getUnderlyingTokenFromLocal[_localAddress][_fromChain] = _underlyingAddress;
 
         emit LocalTokenAdded(_underlyingAddress, _localAddress, _globalAddress, _fromChain);
@@ -374,7 +374,7 @@ contract RootPort is Ownable, IRootPort {
         if (isBridgeAgent[_bridgeAgent]) revert AlreadyAddedBridgeAgent();
 
         bridgeAgents.push(_bridgeAgent);
-        bridgeAgentsLenght++;
+        bridgeAgentsLength++;
         getBridgeAgentManager[_bridgeAgent] = _manager;
         isBridgeAgent[_bridgeAgent] = !isBridgeAgent[_bridgeAgent];
 
@@ -414,7 +414,7 @@ contract RootPort is Ownable, IRootPort {
         if (isBridgeAgentFactory[_bridgeAgentFactory]) revert AlreadyAddedBridgeAgentFactory();
 
         bridgeAgentFactories.push(_bridgeAgentFactory);
-        bridgeAgentFactoriesLenght++;
+        bridgeAgentFactoriesLength++;
         isBridgeAgentFactory[_bridgeAgentFactory] = true;
 
         emit BridgeAgentFactoryAdded(_bridgeAgentFactory);
@@ -459,7 +459,7 @@ contract RootPort is Ownable, IRootPort {
         isGlobalAddress[newGlobalToken] = true;
         getGlobalTokenFromLocal[_newLocalBranchWrappedNativeTokenAddress][_chainId] = newGlobalToken;
         getLocalTokenFromGlobal[newGlobalToken][_chainId] = _newLocalBranchWrappedNativeTokenAddress;
-        getLocalTokenFromUnder[_newUnderlyingBranchWrappedNativeTokenAddress][_chainId] =
+        getLocalTokenFromUnderlying[_newUnderlyingBranchWrappedNativeTokenAddress][_chainId] =
             _newLocalBranchWrappedNativeTokenAddress;
         getUnderlyingTokenFromLocal[_newLocalBranchWrappedNativeTokenAddress][_chainId] =
             _newUnderlyingBranchWrappedNativeTokenAddress;
@@ -503,7 +503,7 @@ contract RootPort is Ownable, IRootPort {
         if (isGlobalAddress[_ecoTokenGlobalAddress]) revert AlreadyAddedEcosystemToken();
         if (
             getUnderlyingTokenFromLocal[_ecoTokenGlobalAddress][localChainId] != address(0)
-                || getLocalTokenFromUnder[_ecoTokenGlobalAddress][localChainId] != address(0)
+                || getLocalTokenFromUnderlying[_ecoTokenGlobalAddress][localChainId] != address(0)
         ) revert AlreadyAddedEcosystemToken();
 
         isGlobalAddress[_ecoTokenGlobalAddress] = true;

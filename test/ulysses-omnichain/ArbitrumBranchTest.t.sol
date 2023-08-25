@@ -549,7 +549,7 @@ contract ArbitrumBranchTest is DSTestPlus {
         uint256 balanceBefore = MockERC20(wrappedNativeToken).balanceOf(address(coreBridgeAgent));
 
         newArbitrumAssetGlobalAddress =
-            RootPort(rootPort).getLocalTokenFromUnder(address(arbitrumNativeToken), rootChainId);
+            RootPort(rootPort).getLocalTokenFromUnderlying(address(arbitrumNativeToken), rootChainId);
 
         console2.log("New: ", newArbitrumAssetGlobalAddress);
 
@@ -583,7 +583,7 @@ contract ArbitrumBranchTest is DSTestPlus {
         arbitrumCoreRouter.addLocalToken(ftmGlobalToken);
 
         // newArbitrumAssetGlobalAddress =
-        //     RootPort(rootPort).getLocalTokenFromUnder(address(arbitrumNativeToken), rootChainId);
+        //     RootPort(rootPort).getLocalTokenFromUnderlying(address(arbitrumNativeToken), rootChainId);
 
         // console2.log("New: ", newArbitrumAssetGlobalAddress);
 

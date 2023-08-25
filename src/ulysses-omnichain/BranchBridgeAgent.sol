@@ -836,7 +836,7 @@ contract BranchBridgeAgent is IBranchBridgeAgent {
         _depositGas(_gasToBridgeOut);
 
         // Update State
-        getDeposit[_getAndIncrementDepositNonce()] = Deposit({
+        getDeposit[depositNonce++] = Deposit({
             owner: _user,
             hTokens: new address[](0),
             tokens: new address[](0),
@@ -882,7 +882,7 @@ contract BranchBridgeAgent is IBranchBridgeAgent {
         deposits[0] = _deposit;
 
         // Update State
-        getDeposit[_getAndIncrementDepositNonce()] = Deposit({
+        getDeposit[depositNonce++] = Deposit({
             owner: _user,
             hTokens: hTokens,
             tokens: tokens,
@@ -918,7 +918,7 @@ contract BranchBridgeAgent is IBranchBridgeAgent {
         _depositGas(_gasToBridgeOut);
 
         // Update State
-        getDeposit[_getAndIncrementDepositNonce()] = Deposit({
+        getDeposit[depositNonce++] = Deposit({
             owner: _user,
             hTokens: _hTokens,
             tokens: _tokens,
@@ -931,14 +931,6 @@ contract BranchBridgeAgent is IBranchBridgeAgent {
 
     function _depositGas(uint128 _gasToBridgeOut) internal virtual {
         address(wrappedNativeToken).safeTransfer(localPortAddress, _gasToBridgeOut);
-    }
-
-    /**
-     * @notice Function that returns Deposit nonce and increments counter.
-     *
-     */
-    function _getAndIncrementDepositNonce() internal returns (uint32) {
-        return depositNonce++;
     }
 
     /**
@@ -1289,9 +1281,8 @@ contract BranchBridgeAgent is IBranchBridgeAgent {
             /// DEPOSIT FLAG: 6
         } else if (flag == 0x06) {
             //Save nonce
-            _depositNonce = uint32(
-                bytes4(data[PARAMS_START_SIGNED + PARAMS_START:PARAMS_START_SIGNED + PARAMS_TKN_START])
-            );
+            _depositNonce =
+                uint32(bytes4(data[PARAMS_START_SIGNED + PARAMS_START:PARAMS_START_SIGNED + PARAMS_TKN_START]));
 
             //Make tokens available to depositor.
             _clearDeposit(_depositNonce);

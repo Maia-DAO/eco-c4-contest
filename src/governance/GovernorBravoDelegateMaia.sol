@@ -248,9 +248,9 @@ contract GovernorBravoDelegate is GovernorBravoDelegateStorageV2, GovernorBravoE
                 require(
                     (
                         govToken.getPriorVotes(proposal.proposer, sub256(block.number, 1))
-                            <= getProposalThresholdAmount(proposal.totalSupply)
-                    ),
-                    "GovernorBravo::cancel: proposer above threshold"
+                            < getProposalThresholdAmount(proposal.totalSupply)
+                    ) && msg.sender == whitelistGuardian,
+                    "GovernorBravo::cancel: whitelisted proposer"
                 );
             } else {
                 require(

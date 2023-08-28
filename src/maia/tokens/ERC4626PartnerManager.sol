@@ -62,7 +62,7 @@ abstract contract ERC4626PartnerManager is PartnerUtilityManager, Ownable, ERC46
             address(bHermes(_bhermes).gaugeBoost()),
             address(bHermes(_bhermes).governance()),
             address(new ERC20MultiVotes(_owner)),
-            partnerVault
+            _partnerVault
         )
         ERC4626(
             _partnerAsset,
@@ -75,10 +75,6 @@ abstract contract ERC4626PartnerManager is PartnerUtilityManager, Ownable, ERC46
         factory = _factory;
         bHermesRate = _bHermesRate;
         bHermesToken = bHermes(_bhermes);
-
-        address(gaugeWeight).safeApprove(_partnerVault, type(uint256).max);
-        address(gaugeBoost).safeApprove(_partnerVault, type(uint256).max);
-        address(governance).safeApprove(_partnerVault, type(uint256).max);
     }
 
     /*///////////////////////////////////////////////////////////////

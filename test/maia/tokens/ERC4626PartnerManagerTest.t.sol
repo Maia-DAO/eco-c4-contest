@@ -44,7 +44,7 @@ contract ERC4626PartnerManagerTest is DSTestPlus {
 
         _bHermes = new bHermes(hermes, address(this), address(this), 1 weeks, 1 days / 2);
 
-        bHermesRate = 1000;
+        bHermesRate = 1 ether;
 
         vault = new MockVault();
 

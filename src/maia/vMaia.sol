@@ -71,7 +71,7 @@ contract vMaia is ERC4626PartnerManager {
     //////////////////////////////////////////////////////////////*/
 
     function claimOutstanding() public override {
-        uint256 balance = balanceOf[msg.sender] * bHermesRate / BASE;
+        uint256 balance = balanceOf[msg.sender].mulWad(bHermesRate);
         /// @dev Never overflows since balandeOf >= userClaimed.
         claimWeight(balance - userClaimedWeight[msg.sender]);
         claimGovernance(balance - userClaimedGovernance[msg.sender]);

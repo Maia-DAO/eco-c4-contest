@@ -36,9 +36,6 @@ abstract contract ERC4626PartnerManager is PartnerUtilityManager, Ownable, ERC46
     /// @inheritdoc IERC4626PartnerManager
     uint256 public override bHermesRate;
 
-    /// @notice Base used for continuous conversion ratio calculation.
-    uint256 internal constant BASE = 1000;
-
     /**
      * @notice Initializes the ERC4626PartnerManager token.
      * @param _factory The partner manager factory.
@@ -96,7 +93,7 @@ abstract contract ERC4626PartnerManager is PartnerUtilityManager, Ownable, ERC46
     /// @inheritdoc IERC4626PartnerManager
     function claimOutstanding() public virtual {
         /// @dev e.g. bHermesRate value 1100 if need to set 1.1X
-        uint256 balance = balanceOf[msg.sender] * bHermesRate / BASE;
+        uint256 balance = balanceOf[msg.sender].mulWad(bHermesRate);
         /// @dev Never overflows since balandeOf >= userClaimed.
         claimWeight(balance - userClaimedWeight[msg.sender]);
         claimBoost(balance - userClaimedBoost[msg.sender]);
@@ -167,13 +164,13 @@ abstract contract ERC4626PartnerManager is PartnerUtilityManager, Ownable, ERC46
     /// @notice Returns the maximum amount of assets that can be deposited by a user.
     /// @dev Returns the remaining balance of the bHermes divided by the bHermesRate.
     function maxDeposit(address) public view virtual override returns (uint256) {
-        return address(bHermesToken).balanceOf(address(this)) * BASE / bHermesRate - totalSupply;
+        return address(bHermesToken).balanceOf(address(this)).divWad(bHermesRate) - totalSupply;
     }
 
     /// @notice Returns the maximum amount of assets that can be deposited by a user.
     /// @dev Returns the remaining balance of the bHermes divided by the bHermesRate.
     function maxMint(address) public view virtual override returns (uint256) {
-        return address(bHermesToken).balanceOf(address(this)) * BASE / bHermesRate - totalSupply;
+        return address(bHermesToken).balanceOf(address(this)).divWad(bHermesRate) - totalSupply;
     }
 
     /// @notice Returns the maximum amount of assets that can be withdrawn by a user.
@@ -186,7 +183,7 @@ abstract contract ERC4626PartnerManager is PartnerUtilityManager, Ownable, ERC46
         if (userClaimedGovernance[user] > claimed) claimed = userClaimedGovernance[user];
         if (userClaimedPartnerGovernance[user] > claimed) claimed = userClaimedPartnerGovernance[user];
 
-        return balanceOf[user] - claimed * BASE / bHermesRate;
+        return balanceOf[user] - claimed.divWadUp(bHermesRate);
     }
 
     /// @notice Returns the maximum amount of assets that can be redeemed by a user.
@@ -199,7 +196,7 @@ abstract contract ERC4626PartnerManager is PartnerUtilityManager, Ownable, ERC46
         if (userClaimedGovernance[user] > claimed) claimed = userClaimedGovernance[user];
         if (userClaimedPartnerGovernance[user] > claimed) claimed = userClaimedPartnerGovernance[user];
 
-        return balanceOf[user] - claimed * BASE / bHermesRate;
+        return balanceOf[user] - claimed.divWadUp(bHermesRate);
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -238,13 +235,13 @@ abstract contract ERC4626PartnerManager is PartnerUtilityManager, Ownable, ERC46
         if (newRate <= _bHermesRate) revert InvalidRate();
 
         uint256 _totalSupply = totalSupply;
-        if (newRate > (address(bHermesToken).balanceOf(address(this)) / _totalSupply) * BASE) {
+        if (newRate > address(bHermesToken).balanceOf(address(this)).divWad(_totalSupply)) {
             revert InsufficientBacking();
         }
 
         bHermesRate = newRate;
 
-        partnerGovernance.mint(address(this), _totalSupply * (newRate - _bHermesRate) / BASE);
+        partnerGovernance.mint(address(this), _totalSupply.mulWad(newRate - _bHermesRate));
 
         bHermesToken.claimOutstanding();
     }
@@ -262,7 +259,7 @@ abstract contract ERC4626PartnerManager is PartnerUtilityManager, Ownable, ERC46
         if (amount > maxMint(to)) revert ExceedsMaxDeposit();
         bHermesToken.claimOutstanding();
 
-        ERC20MultiVotes(partnerGovernance).mint(address(this), amount * bHermesRate / BASE);
+        ERC20MultiVotes(partnerGovernance).mint(address(this), amount.mulWad(bHermesRate));
         super._mint(to, amount);
     }
 
@@ -273,7 +270,7 @@ abstract contract ERC4626PartnerManager is PartnerUtilityManager, Ownable, ERC46
      * @param amount amounts of vMaia to burn
      */
     function _burn(address from, uint256 amount) internal virtual override checkTransfer(from, amount) {
-        ERC20MultiVotes(partnerGovernance).burn(address(this), amount * bHermesRate / BASE);
+        ERC20MultiVotes(partnerGovernance).burn(address(this), amount.mulWad(bHermesRate));
         super._burn(from, amount);
     }
 
@@ -314,7 +311,7 @@ abstract contract ERC4626PartnerManager is PartnerUtilityManager, Ownable, ERC46
 
     /// @dev Checks available weight allows for call.
     modifier checkWeight(uint256 amount) virtual override {
-        if (balanceOf[msg.sender] * bHermesRate / BASE < amount + userClaimedWeight[msg.sender]) {
+        if (balanceOf[msg.sender].mulWad(bHermesRate) < amount + userClaimedWeight[msg.sender]) {
             revert InsufficientShares();
         }
         _;
@@ -322,7 +319,7 @@ abstract contract ERC4626PartnerManager is PartnerUtilityManager, Ownable, ERC46
 
     /// @dev Checks available boost allows for call.
     modifier checkBoost(uint256 amount) virtual override {
-        if (balanceOf[msg.sender] * bHermesRate / BASE < amount + userClaimedBoost[msg.sender]) {
+        if (balanceOf[msg.sender].mulWad(bHermesRate) < amount + userClaimedBoost[msg.sender]) {
             revert InsufficientShares();
         }
         _;
@@ -330,7 +327,7 @@ abstract contract ERC4626PartnerManager is PartnerUtilityManager, Ownable, ERC46
 
     /// @dev Checks available governance allows for call.
     modifier checkGovernance(uint256 amount) virtual override {
-        if (balanceOf[msg.sender] * bHermesRate / BASE < amount + userClaimedGovernance[msg.sender]) {
+        if (balanceOf[msg.sender].mulWad(bHermesRate) < amount + userClaimedGovernance[msg.sender]) {
             revert InsufficientShares();
         }
         _;
@@ -338,14 +335,14 @@ abstract contract ERC4626PartnerManager is PartnerUtilityManager, Ownable, ERC46
 
     /// @dev Checks available partner governance allows for call.
     modifier checkPartnerGovernance(uint256 amount) virtual override {
-        if (balanceOf[msg.sender] * bHermesRate / BASE < amount + userClaimedPartnerGovernance[msg.sender]) {
+        if (balanceOf[msg.sender].mulWad(bHermesRate) < amount + userClaimedPartnerGovernance[msg.sender]) {
             revert InsufficientShares();
         }
         _;
     }
 
     modifier checkTransfer(address from, uint256 amount) virtual {
-        uint256 userBalance = (balanceOf[from] - amount) * bHermesRate / BASE;
+        uint256 userBalance = (balanceOf[from] - amount).mulWad(bHermesRate);
 
         if (
             userBalance < userClaimedWeight[from] || userBalance < userClaimedBoost[from]

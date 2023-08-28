@@ -39,7 +39,7 @@ contract vMaiaTest is DSTestPlus {
 
         bhermes = new bHermes(hermes, address(this), address(this), 1 weeks, 1 days / 2);
 
-        bHermesRate = 1000;
+        bHermesRate = 1 ether;
 
         vmaia = new vMaia(
             PartnerManagerFactory(address(this)),
@@ -159,7 +159,7 @@ contract vMaiaTest is DSTestPlus {
             shouldPass = false;
             hevm.expectRevert(IERC4626PartnerManager.InvalidRate.selector);
         } else if (
-            vmaia.totalSupply() > 0 && newRate > (bhermes.balanceOf(address(vmaia)) / vmaia.totalSupply()) * 1000
+            vmaia.totalSupply() > 0 && newRate > (bhermes.balanceOf(address(vmaia)) / vmaia.totalSupply()) * 1 ether
         ) {
             shouldPass = false;
             hevm.expectRevert(IERC4626PartnerManager.InsufficientBacking.selector);
@@ -179,7 +179,7 @@ contract vMaiaTest is DSTestPlus {
     }
 
     function testClaimAfterIncreaseConversionRate() public {
-        increaseConversionRate(2000, true);
+        increaseConversionRate(1.2 ether, true);
 
         vmaia.totalSupply();
 
@@ -188,7 +188,7 @@ contract vMaiaTest is DSTestPlus {
         vmaia.partnerGovernance().approve(address(vmaia), type(uint256).max);
 
         uint256 amount = 100 ether;
-        uint256 expect = amount * bHermesRate / 1000;
+        uint256 expect = amount * bHermesRate / 1 ether;
 
         // claim Weight
         vmaia.claimWeight(expect);

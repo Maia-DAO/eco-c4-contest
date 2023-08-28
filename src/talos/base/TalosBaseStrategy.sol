@@ -165,6 +165,7 @@ abstract contract TalosBaseStrategy is Ownable, ERC20, ReentrancyGuard, ITalosBa
 
         shares = liquidity * MULTIPLIER;
 
+        if (shares == 0) revert NoSharesMinted();
         if (shares > optimizer.maxTotalSupply()) revert ExceedingMaxTotalSupply();
         _mint(receiver, shares);
 
@@ -233,9 +234,9 @@ abstract contract TalosBaseStrategy is Ownable, ERC20, ReentrancyGuard, ITalosBa
         shares = supply == 0 ? liquidityDifference * MULTIPLIER : (liquidityDifference * supply) / liquidity;
         liquidity += liquidityDifference;
 
+        if (shares == 0) revert NoSharesMinted();
         _mint(receiver, shares);
         if (totalSupply > optimizer.maxTotalSupply()) revert ExceedingMaxTotalSupply();
-        if (shares == 0) revert NoSharesMinted();
 
         emit Deposit(msg.sender, receiver, amount0, amount1, shares);
 

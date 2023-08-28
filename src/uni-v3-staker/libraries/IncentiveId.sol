@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity >=0.8.0 <0.8.20;
+pragma solidity ^0.8.0;
 // Rewards logic inspired by Uniswap V3 Contracts (Uniswap/v3-staker/contracts/libraries/IncentiveId.sol)
 
 import {IUniswapV3Staker} from "@v3-staker/interfaces/IUniswapV3Staker.sol";

@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 // Rewards logic inspired by Uniswap V3 Contracts (Uniswap/v3-staker/contracts/UniswapV3Staker.sol)
-pragma solidity >=0.8.0 <0.8.20;
+pragma solidity ^0.8.0;
 
 import {Ownable} from "solady/auth/Ownable.sol";
 import {SafeTransferLib} from "solady/utils/SafeTransferLib.sol";

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity >=0.8.0 <0.8.20;
+pragma solidity ^0.8.0;
 
 /**
  * @title Uniswap V3 Gauge, implementation of Base V2 Gauge.

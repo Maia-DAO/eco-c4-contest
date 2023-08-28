@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity >=0.8.0 <0.8.20;
+pragma solidity ^0.8.0;
 
 /**
  * @title  An ERC20 with an embedded attachment mechanism to keep track of boost allocations to gauges.

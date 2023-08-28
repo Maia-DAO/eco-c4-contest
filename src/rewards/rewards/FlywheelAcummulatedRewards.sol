@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 // Rewards logic inspired by Tribe DAO Contracts (flywheel-v2/src/rewards/FlywheelDynamicRewards.sol)
-pragma solidity >=0.8.0 <0.8.20;
+pragma solidity ^0.8.0;
 
 import {SafeCastLib} from "solady/utils/SafeCastLib.sol";
 import {SafeTransferLib} from "solady/utils/SafeTransferLib.sol";

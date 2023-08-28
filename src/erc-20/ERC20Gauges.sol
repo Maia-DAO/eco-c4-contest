@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 // Gauge weight logic inspired by Tribe DAO Contracts (flywheel-v2/src/token/ERC20Gauges.sol)
-pragma solidity >=0.8.0 <0.8.20;
+pragma solidity ^0.8.0;
 
 import {SafeCastLib} from "solady/utils/SafeCastLib.sol";
 

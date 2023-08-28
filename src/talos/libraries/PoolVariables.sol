@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 // Logic inspired by Popsicle Finance Contracts (PopsicleV3Optimizer/contracts/libraries/PoolVariables.sol)
-pragma solidity >=0.8.0 <0.8.20;
+pragma solidity ^0.8.0;
 
 import {FixedPointMathLib} from "solady/utils/FixedPointMathLib.sol";
 

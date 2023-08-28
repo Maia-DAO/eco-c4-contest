@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity >=0.8.0 <0.8.20;
+pragma solidity ^0.8.0;
 
 import {bHermesBoost} from "../tokens/bHermesBoost.sol";
 import {bHermesGauges} from "../tokens/bHermesGauges.sol";

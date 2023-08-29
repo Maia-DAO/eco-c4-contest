@@ -352,20 +352,11 @@ contract RootTest is DSTestPlus {
         //  Add new branch chains  //
         /////////////////////////////
 
-        avaxGlobalToken = 0x1Be6aD5DDaE8291e6E308eFdb3C4E5734e3AcB96;
-
-        ftmGlobalToken = 0x7d69C3A5D07A3B1Bf68F4A3a2A889c3B10bF64fd;
-
+        MockPool mockPool1 = new MockPool();
         hevm.mockCall(
             nonFungiblePositionManagerAddress,
-            abi.encodeWithSignature(
-                "createAndInitializePoolIfNecessary(address,address,uint24,uint160)",
-                avaxGlobalToken,
-                arbitrumWrappedNativeToken,
-                uint24(100),
-                uint160(200)
-            ),
-            abi.encode(address(new MockPool(arbitrumWrappedNativeToken,avaxGlobalToken)))
+            abi.encodeWithSignature("createAndInitializePoolIfNecessary(address,address,uint24,uint160)"),
+            abi.encode(mockPool1)
         );
 
         RootPort(rootPort).addNewChain(
@@ -383,17 +374,11 @@ contract RootTest is DSTestPlus {
             avaxWrappedNativeToken
         );
 
-        //Mock calls
+        MockPool mockPool2 = new MockPool();
         hevm.mockCall(
             nonFungiblePositionManagerAddress,
-            abi.encodeWithSignature(
-                "createAndInitializePoolIfNecessary(address,address,uint24,uint160)",
-                arbitrumWrappedNativeToken,
-                ftmGlobalToken,
-                uint24(100),
-                uint160(200)
-            ),
-            abi.encode(address(new MockPool(arbitrumWrappedNativeToken, ftmGlobalToken)))
+            abi.encodeWithSignature("createAndInitializePoolIfNecessary(address,address,uint24,uint160)"),
+            abi.encode(mockPool2)
         );
 
         RootPort(rootPort).addNewChain(
@@ -410,6 +395,13 @@ contract RootTest is DSTestPlus {
             ftmLocalWrappedNativeToken,
             ftmWrappedNativeToken
         );
+
+        avaxGlobalToken = RootPort(rootPort).getGlobalTokenFromLocal(avaxLocalWrappedNativeToken, avaxChainId);
+
+        ftmGlobalToken = RootPort(rootPort).getGlobalTokenFromLocal(ftmLocalWrappedNativeToken, ftmChainId);
+
+        mockPool1.initialize(arbitrumWrappedNativeToken, avaxGlobalToken);
+        mockPool2.initialize(arbitrumWrappedNativeToken, ftmGlobalToken);
 
         //Ensure there are gas tokens from each chain in the system.
         hevm.startPrank(address(arbitrumPort));
@@ -1900,7 +1892,9 @@ contract MockPool is Test {
     address arbitrumWrappedNativeTokenAddress;
     address globalGasToken;
 
-    constructor(address _arbitrumWrappedNativeTokenAddress, address _globalGasToken) {
+    constructor() {}
+
+    function initialize(address _arbitrumWrappedNativeTokenAddress, address _globalGasToken) external {
         arbitrumWrappedNativeTokenAddress = _arbitrumWrappedNativeTokenAddress;
         globalGasToken = _globalGasToken;
     }

@@ -35,7 +35,6 @@ contract BaseV2MinterTest is DSTestPlus {
 
         flywheelGaugeRewards = new FlywheelGaugeRewards(
             address(rewardToken),
-            address(this),
             bHermesToken.gaugeWeight(),
             baseV2Minter
         );

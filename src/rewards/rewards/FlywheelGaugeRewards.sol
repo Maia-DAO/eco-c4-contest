@@ -2,7 +2,6 @@
 // Rewards logic inspired by Tribe DAO Contracts (flywheel-v2/src/rewards/FlywheelGaugeRewards.sol)
 pragma solidity ^0.8.0;
 
-import {Ownable} from "solady/auth/Ownable.sol";
 import {SafeCastLib} from "solady/utils/SafeCastLib.sol";
 import {SafeTransferLib} from "solady/utils/SafeTransferLib.sol";
 
@@ -15,7 +14,7 @@ import {IFlywheelGaugeRewards} from "../interfaces/IFlywheelGaugeRewards.sol";
 import {IBaseV2Minter} from "@hermes/interfaces/IBaseV2Minter.sol";
 
 /// @title Flywheel Gauge Reward Stream
-contract FlywheelGaugeRewards is Ownable, IFlywheelGaugeRewards {
+contract FlywheelGaugeRewards is IFlywheelGaugeRewards {
     using SafeTransferLib for address;
     using SafeCastLib for uint256;
 
@@ -50,8 +49,7 @@ contract FlywheelGaugeRewards is Ownable, IFlywheelGaugeRewards {
     // the offset during pagination of the queue
     uint32 internal paginationOffset;
 
-    constructor(address _rewardToken, address _owner, ERC20Gauges _gaugeToken, IBaseV2Minter _minter) {
-        _initializeOwner(_owner);
+    constructor(address _rewardToken, ERC20Gauges _gaugeToken, IBaseV2Minter _minter) {
         rewardToken = _rewardToken;
 
         gaugeCycleLength = _gaugeToken.gaugeCycleLength();

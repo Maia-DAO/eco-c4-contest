@@ -109,7 +109,6 @@ contract UniswapV3StakerTest is DSTestPlus, IERC721Receiver {
 
         flywheelGaugeRewards = new FlywheelGaugeRewards(
             address(rewardToken),
-            address(this),
             bHermesToken.gaugeWeight(),
             baseV2Minter
         );

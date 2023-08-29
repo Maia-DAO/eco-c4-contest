@@ -2,7 +2,6 @@
 // Logic inspired by Popsicle Finance Contracts (PopsicleV3Optimizer/contracts/popsicle-v3-optimizer/PopsicleV3Optimizer.sol)
 pragma solidity >=0.8.0;
 
-import {Ownable} from "solady/auth/Ownable.sol";
 import {FixedPointMathLib} from "solady/utils/FixedPointMathLib.sol";
 
 import {ERC20} from "solmate/tokens/ERC20.sol";
@@ -41,8 +40,6 @@ library DeployVanilla {
 /// @notice Tokenized Vault implementation for Uniswap V3 Non Fungible Positions.
 /// @author Maia DAO (https://github.com/Maia-DAO)
 contract TalosStrategyVanilla is TalosStrategySimple {
-    using FixedPointMathLib for uint256;
-    using FixedPointMathLib for uint128;
     using PoolVariables for IUniswapV3Pool;
 
     /// @notice The protocol's fee in hundredths of a bip, i.e. 1e-6
@@ -128,7 +125,7 @@ contract TalosStrategyVanilla is TalosStrategySimple {
 
     /// @notice Compounds fees from the pool from a user prespective
     /// @param _tokenId position id that the user wants to compound fees from
-    function _compoundFees(uint256 _tokenId) internal returns (uint256 amount0, uint256 amount1) {
+    function _compoundFees(uint256 _tokenId) internal returns (uint256, uint256) {
         uint256 balance0 = token0.balanceOf(address(this)) - protocolFees0;
         uint256 balance1 = token1.balanceOf(address(this)) - protocolFees1;
 
@@ -137,22 +134,24 @@ contract TalosStrategyVanilla is TalosStrategySimple {
         //Get Liquidity for Optimizer's balances
         uint128 _liquidity = pool.liquidityForAmounts(balance0, balance1, tickLower, tickUpper);
 
+        if (_liquidity == 0) return (0, 0); // no fees to compound when liquidity is zero
+
         // Add liquidity to the pool
-        if (_liquidity > 0) {
-            uint128 liquidityDifference;
-            (liquidityDifference, amount0, amount1) = nonfungiblePositionManager.increaseLiquidity(
-                INonfungiblePositionManager.IncreaseLiquidityParams({
-                    tokenId: _tokenId,
-                    amount0Desired: balance0,
-                    amount1Desired: balance1,
-                    amount0Min: 0,
-                    amount1Min: 0,
-                    deadline: block.timestamp
-                })
-            );
-            liquidity += liquidityDifference;
-            emit CompoundFees(amount0, amount1);
-        }
+        (uint128 liquidityDifference, uint256 amount0, uint256 amount1) = nonfungiblePositionManager.increaseLiquidity(
+            INonfungiblePositionManager.IncreaseLiquidityParams({
+                tokenId: _tokenId,
+                amount0Desired: balance0,
+                amount1Desired: balance1,
+                amount0Min: 0,
+                amount1Min: 0,
+                deadline: block.timestamp
+            })
+        );
+
+        liquidity += liquidityDifference;
+        emit CompoundFees(amount0, amount1);
+
+        return (amount0, amount1);
     }
 
     /*//////////////////////////////////////////////////////////////

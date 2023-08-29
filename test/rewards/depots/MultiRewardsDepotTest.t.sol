@@ -28,11 +28,6 @@ contract MultiRewardsDepotTest is DSTestPlus {
         depot.addAsset(flywheelRewards, asset);
     }
 
-    function testAddAssetAlreadyExists() public {
-        hevm.expectRevert(abi.encodeWithSignature("ErrorAddingAsset()"));
-        depot.addAsset(address(this), address(1));
-    }
-
     function testAddAssetAlreadyExists(address flywheelRewards) public {
         hevm.expectRevert(abi.encodeWithSignature("ErrorAddingAsset()"));
         depot.addAsset(flywheelRewards, address(rewardToken));

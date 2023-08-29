@@ -2,7 +2,6 @@
 pragma solidity ^0.8.0;
 
 import {ERC20} from "solmate/tokens/ERC20.sol";
-import {Ownable} from "solady/auth/Ownable.sol";
 
 import {ERC20MultiVotes} from "@ERC20/ERC20MultiVotes.sol";
 

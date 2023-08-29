@@ -49,10 +49,10 @@ interface IERC20hTokenRoot {
     /**
      * @notice Function to burn hTokens in the Root Chain to match Branch Chain withdrawal.
      * @param from Address of the user that will burn the hTokens.
-     * @param value Amount of hTokens to be burned.
+     * @param amount Amount of hTokens to be burned.
      * @param chainId Identifier of the Branch Chain.
      */
-    function burn(address from, uint256 value, uint256 chainId) external;
+    function burn(address from, uint256 amount, uint256 chainId) external;
 
     /*///////////////////////////////////////////////////////////////
                                 ERRORS 

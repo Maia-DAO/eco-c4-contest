@@ -24,7 +24,7 @@ abstract contract TalosStrategySimple is TalosBaseStrategy {
     ) TalosBaseStrategy(_pool, _strategy, _nonfungiblePositionManager, _strategyManager, _owner) {}
 
     /*///////////////////////////////////////////////////////////////
-                            RERANGE/REBALANCE LOGIC
+                        RERANGE/REBALANCE LOGIC
     //////////////////////////////////////////////////////////////*/
 
     function doRerange() internal override returns (uint256 amount0, uint256 amount1) {

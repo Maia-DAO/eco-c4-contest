@@ -1,11 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import {Ownable} from "solady/auth/Ownable.sol";
 import {SafeTransferLib} from "solady/utils/SafeTransferLib.sol";
 import {SafeCastLib} from "solady/utils/SafeCastLib.sol";
-
-import {ERC20} from "solmate/tokens/ERC20.sol";
 
 import {WETH9} from "./interfaces/IWETH9.sol";
 import {IUniswapV3Pool} from "@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol";
@@ -20,7 +17,6 @@ import {IApp, IRootBridgeAgent} from "./interfaces/IRootBridgeAgent.sol";
 import {IBranchBridgeAgent} from "./interfaces/IBranchBridgeAgent.sol";
 import {IERC20hTokenRoot} from "./interfaces/IERC20hTokenRoot.sol";
 import {IRootPort as IPort} from "./interfaces/IRootPort.sol";
-import {IRootRouter as IRouter} from "./interfaces/IRootRouter.sol";
 
 import {VirtualAccount} from "./VirtualAccount.sol";
 import {
@@ -29,8 +25,6 @@ import {
     DepositMultipleParams,
     Settlement,
     SettlementStatus,
-    SettlementParams,
-    SettlementMultipleParams,
     UserFeeInfo,
     SwapCallbackData
 } from "./interfaces/IRootBridgeAgent.sol";

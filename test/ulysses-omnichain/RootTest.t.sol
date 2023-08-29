@@ -352,16 +352,16 @@ contract RootTest is DSTestPlus {
         //  Add new branch chains  //
         /////////////////////////////
 
-        avaxGlobalToken = 0xC9CF436b7A143028BAd00f0e5AcD27B945f2e195;
+        avaxGlobalToken = 0x1Be6aD5DDaE8291e6E308eFdb3C4E5734e3AcB96;
 
-        ftmGlobalToken = 0x852681BcBd7746A111d7Bf9c2601506E6d320554;
+        ftmGlobalToken = 0x7d69C3A5D07A3B1Bf68F4A3a2A889c3B10bF64fd;
 
         hevm.mockCall(
             nonFungiblePositionManagerAddress,
             abi.encodeWithSignature(
                 "createAndInitializePoolIfNecessary(address,address,uint24,uint160)",
-                arbitrumWrappedNativeToken,
                 avaxGlobalToken,
+                arbitrumWrappedNativeToken,
                 uint24(100),
                 uint160(200)
             ),

@@ -163,7 +163,7 @@ abstract contract ERC4626PartnerManager is PartnerUtilityManager, Ownable, ERC46
         return address(bHermesToken).balanceOf(address(this)).divWad(bHermesRate) - totalSupply;
     }
 
-    /// @notice Returns the maximum amount of assets that can be deposited by a user.
+    /// @notice Returns the maximum amount of shares that can be minted by a user.
     /// @dev Returns the remaining balance of the bHermes divided by the bHermesRate.
     function maxMint(address) public view virtual override returns (uint256) {
         return address(bHermesToken).balanceOf(address(this)).divWad(bHermesRate) - totalSupply;

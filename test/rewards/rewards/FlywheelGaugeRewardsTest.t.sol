@@ -45,7 +45,6 @@ contract FlywheelGaugeRewardsTest is DSTestPlus {
 
         rewards = new FlywheelGaugeRewards(
             address(rewardToken),
-            address(this),
             gaugeToken,
             IBaseV2Minter(address(rewardsStream))
         );

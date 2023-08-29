@@ -3,7 +3,6 @@
 pragma solidity ^0.8.0;
 
 import {FixedPointMathLib} from "solady/utils/FixedPointMathLib.sol";
-import {Ownable} from "solady/auth/Ownable.sol";
 import {SafeTransferLib} from "solady/utils/SafeTransferLib.sol";
 
 import {ERC20} from "solmate/tokens/ERC20.sol";

@@ -318,6 +318,7 @@ contract GovernorBravoDelegate is GovernorBravoDelegateStorageV2, GovernorBravoE
         if (proposal.canceled) {
             return ProposalState.Canceled;
         } else if (block.number <= proposal.startBlock) {
+            // Proposal is pending if block is the same or lower than startBlock to protect against flash loans
             return ProposalState.Pending;
         } else if (block.number <= proposal.endBlock) {
             return ProposalState.Active;
@@ -382,6 +383,7 @@ contract GovernorBravoDelegate is GovernorBravoDelegateStorageV2, GovernorBravoE
         Proposal storage proposal = proposals[proposalId];
         Receipt storage receipt = proposal.receipts[voter];
         require(receipt.hasVoted == false, "GovernorBravo::castVoteInternal: voter already voted");
+        /// @dev GovToken balance of the voter at the end of startBlock
         uint96 votes = govToken.getPriorVotes(voter, proposal.startBlock);
 
         if (support == 0) {

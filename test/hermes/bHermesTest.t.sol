@@ -39,7 +39,6 @@ contract bHermesTest is DSTestPlus {
 
         rewards = new FlywheelGaugeRewards(
             address(hermes),
-            address(this),
             bHermes.gaugeWeight(),
             IBaseV2Minter(address(stream))
         );

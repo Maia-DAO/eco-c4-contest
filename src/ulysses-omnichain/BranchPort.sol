@@ -214,38 +214,17 @@ contract BranchPort is Ownable, IBranchPort {
         );
     }
 
-    /// @inheritdoc IBranchPort
-    function bridgeIn(address _recipient, address _localAddress, uint256 _amount)
-        external
-        virtual
-        requiresBridgeAgent
-    {
+    function _bridgeIn(address _recipient, address _localAddress, uint256 _amount) internal virtual {
         ERC20hTokenBranch(_localAddress).mint(_recipient, _amount);
     }
 
-    /// @inheritdoc IBranchPort
-    function bridgeInMultiple(address _recipient, address[] memory _localAddresses, uint256[] memory _amounts)
-        external
-        virtual
-        requiresBridgeAgent
-    {
-        for (uint256 i = 0; i < _localAddresses.length;) {
-            ERC20hTokenBranch(_localAddresses[i]).mint(_recipient, _amounts[i]);
-
-            unchecked {
-                ++i;
-            }
-        }
-    }
-
-    /// @inheritdoc IBranchPort
-    function bridgeOut(
+    function _bridgeOut(
         address _depositor,
         address _localAddress,
         address _underlyingAddress,
         uint256 _amount,
         uint256 _deposit
-    ) external virtual lock requiresBridgeAgent {
+    ) internal virtual {
         if (_amount - _deposit > 0) {
             _localAddress.safeTransferFrom(_depositor, address(this), _amount - _deposit);
             ERC20hTokenBranch(_localAddress).burn(_amount - _deposit);
@@ -258,26 +237,45 @@ contract BranchPort is Ownable, IBranchPort {
     }
 
     /// @inheritdoc IBranchPort
+    function bridgeIn(address _recipient, address _localAddress, uint256 _amount) external requiresBridgeAgent {
+        _bridgeIn(_recipient, _localAddress, _amount);
+    }
+
+    /// @inheritdoc IBranchPort
+    function bridgeInMultiple(address _recipient, address[] memory _localAddresses, uint256[] memory _amounts)
+        external
+        requiresBridgeAgent
+    {
+        for (uint256 i = 0; i < _localAddresses.length;) {
+            _bridgeIn(_recipient, _localAddresses[i], _amounts[i]);
+
+            unchecked {
+                ++i;
+            }
+        }
+    }
+    /// @inheritdoc IBranchPort
+
+    function bridgeOut(
+        address _depositor,
+        address _localAddress,
+        address _underlyingAddress,
+        uint256 _amount,
+        uint256 _deposit
+    ) external lock requiresBridgeAgent {
+        _bridgeOut(_depositor, _localAddress, _underlyingAddress, _amount, _deposit);
+    }
+    /// @inheritdoc IBranchPort
+
     function bridgeOutMultiple(
         address _depositor,
         address[] memory _localAddresses,
         address[] memory _underlyingAddresses,
         uint256[] memory _amounts,
         uint256[] memory _deposits
-    ) external virtual lock requiresBridgeAgent {
+    ) external lock requiresBridgeAgent {
         for (uint256 i = 0; i < _localAddresses.length;) {
-            if (_amounts[i] - _deposits[i] > 0) {
-                _localAddresses[i].safeTransferFrom(_depositor, address(this), _amounts[i] - _deposits[i]);
-                ERC20hTokenBranch(_localAddresses[i]).burn(_amounts[i] - _deposits[i]);
-            }
-
-            if (_deposits[i] > 0) {
-                _underlyingAddresses[i].safeTransferFrom(
-                    _depositor,
-                    address(this),
-                    _denormalizeDecimals(_deposits[i], ERC20(_underlyingAddresses[i]).decimals())
-                );
-            }
+            _bridgeOut(_depositor, _localAddresses[i], _underlyingAddresses[i], _amounts[i], _deposits[i]);
 
             unchecked {
                 i++;
@@ -291,6 +289,8 @@ contract BranchPort is Ownable, IBranchPort {
 
     /// @inheritdoc IBranchPort
     function addBridgeAgent(address _bridgeAgent) external requiresBridgeAgentFactory {
+        if (isBridgeAgent[_bridgeAgent]) revert AlreadyAddedBridgeAgent();
+
         isBridgeAgent[_bridgeAgent] = true;
         bridgeAgents.push(_bridgeAgent);
         bridgeAgentsLength++;
@@ -309,6 +309,8 @@ contract BranchPort is Ownable, IBranchPort {
 
     /// @inheritdoc IBranchPort
     function addBridgeAgentFactory(address _newBridgeAgentFactory) external requiresCoreRouter {
+        if (isBridgeAgentFactory[_newBridgeAgentFactory]) revert AlreadyAddedBridgeAgentFactory();
+
         isBridgeAgentFactory[_newBridgeAgentFactory] = true;
         bridgeAgentFactories.push(_newBridgeAgentFactory);
         bridgeAgentFactoriesLength++;

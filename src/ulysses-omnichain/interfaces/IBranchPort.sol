@@ -214,6 +214,8 @@ interface IBranchPort {
                             ERRORS
     //////////////////////////////////////////////////////////////*/
 
+    error AlreadyAddedBridgeAgent();
+    error AlreadyAddedBridgeAgentFactory();
     error InvalidMinimumReservesRatio();
     error InsufficientReserves();
     error NoDebtToRepay();

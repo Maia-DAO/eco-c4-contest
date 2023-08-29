@@ -2,7 +2,6 @@
 pragma solidity ^0.8.0;
 
 import {ERC20} from "solmate/tokens/ERC20.sol";
-import {Ownable} from "solady/auth/Ownable.sol";
 
 import {ERC20Gauges} from "@ERC20/ERC20Gauges.sol";
 

@@ -26,7 +26,7 @@ contract ERC20hTokenBranch is ERC20, Ownable, IERC20hTokenBranch {
     }
 
     /// @inheritdoc IERC20hTokenBranch
-    function burn(uint256 value) public override onlyOwner {
-        _burn(msg.sender, value);
+    function burn(uint256 amount) public override onlyOwner {
+        _burn(msg.sender, amount);
     }
 }

@@ -23,7 +23,7 @@ interface IERC20hTokenBranch {
 
     /**
      * @notice Function to burn tokens in the Branch Chain.
-     * @param value Amount of tokens to be burned.
+     * @param amount Amount of tokens to be burned.
      */
-    function burn(uint256 value) external;
+    function burn(uint256 amount) external;
 }

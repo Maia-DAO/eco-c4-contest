@@ -421,17 +421,13 @@ abstract contract TalosBaseStrategy is Ownable, ERC20, ReentrancyGuard, ITalosBa
         if (amount1 > _protocolFees1) {
             revert Token1AmountIsBiggerThanProtocolFees();
         }
-        ERC20 _token0 = token0;
-        ERC20 _token1 = token1;
-        uint256 balance0 = _token0.balanceOf(address(this));
-        uint256 balance1 = _token1.balanceOf(address(this));
-        require(balance0 >= amount0 && balance1 >= amount1);
-        if (amount0 > 0) address(_token0).safeTransfer(msg.sender, amount0);
-        if (amount1 > 0) address(_token1).safeTransfer(msg.sender, amount1);
 
         protocolFees0 = _protocolFees0 - amount0;
         protocolFees1 = _protocolFees1 - amount1;
         emit RewardPaid(msg.sender, amount0, amount1);
+
+        if (amount0 > 0) address(token0).safeTransfer(msg.sender, amount0);
+        if (amount1 > 0) address(token1).safeTransfer(msg.sender, amount1);
     }
 
     /*//////////////////////////////////////////////////////////////

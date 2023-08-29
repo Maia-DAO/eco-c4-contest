@@ -113,6 +113,7 @@ contract BoostAggregator is Ownable, IBoostAggregator {
     function unstakeAndWithdraw(uint256 tokenId) external {
         address user = tokenIdToUser[tokenId];
         if (user != msg.sender) revert NotTokenIdOwner();
+        tokenIdToUser[tokenId] = address(0);
 
         // unstake NFT from Uniswap V3 Staker
         uniswapV3Staker.unstakeToken(tokenId);

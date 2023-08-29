@@ -40,7 +40,7 @@ interface IUniswapV3SwapCallback {
 }
 
 contract ArbitrumBranchTest is DSTestPlus {
-    fallback() external payable {}
+    receive() external payable {}
 
     uint32 nonce;
 

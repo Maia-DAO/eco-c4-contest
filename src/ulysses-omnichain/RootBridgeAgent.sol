@@ -231,6 +231,12 @@ contract RootBridgeAgent is IRootBridgeAgent {
     }
 
     /*///////////////////////////////////////////////////////////////
+                        FALLBACK FUNCTIONS
+    //////////////////////////////////////////////////////////////*/
+
+    receive() external payable {}
+
+    /*///////////////////////////////////////////////////////////////
                         VIEW EXTERNAL FUNCTIONS
     //////////////////////////////////////////////////////////////*/
 
@@ -1322,6 +1328,4 @@ contract RootBridgeAgent is IRootBridgeAgent {
         }
         _;
     }
-
-    fallback() external payable {}
 }

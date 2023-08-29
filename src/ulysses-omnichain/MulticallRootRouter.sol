@@ -9,7 +9,6 @@ import {IRootBridgeAgent as IBridgeAgent} from "./interfaces/IRootBridgeAgent.so
 import {IRootRouter} from "./interfaces/IRootRouter.sol";
 import {IVirtualAccount, Call} from "./interfaces/IVirtualAccount.sol";
 
-import {ERC20hTokenRoot} from "./token/ERC20hTokenRoot.sol";
 import {DepositParams, DepositMultipleParams, Settlement} from "./interfaces/IRootBridgeAgent.sol";
 
 struct OutputParams {
@@ -117,7 +116,7 @@ contract MulticallRootRouter is IRootRouter, Ownable {
         uint24 toChain
     ) internal virtual {
         //Approve Root Port to spend/send output hTokens.
-        ERC20hTokenRoot(outputToken).approve(bridgeAgentAddress, amountOut);
+        outputToken.safeApprove(bridgeAgentAddress, amountOut);
 
         //Move output hTokens from Root to Branch and call 'clearToken'.
         IBridgeAgent(bridgeAgentAddress).callOutAndBridge{value: msg.value}(
@@ -145,7 +144,7 @@ contract MulticallRootRouter is IRootRouter, Ownable {
         //For each output token
         for (uint256 i = 0; i < outputTokens.length;) {
             //Approve Root Port to spend output hTokens.
-            ERC20hTokenRoot(outputTokens[i]).approve(bridgeAgentAddress, amountsOut[i]);
+            outputTokens[i].safeApprove(bridgeAgentAddress, amountsOut[i]);
             unchecked {
                 ++i;
             }

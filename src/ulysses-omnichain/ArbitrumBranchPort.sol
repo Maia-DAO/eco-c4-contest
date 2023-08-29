@@ -43,6 +43,7 @@ contract ArbitrumBranchPort is BranchPort, IArbitrumBranchPort {
     ///@inheritdoc IArbitrumBranchPort
     function depositToPort(address _depositor, address _recipient, address _underlyingAddress, uint256 _deposit)
         external
+        lock
         requiresBridgeAgent
     {
         address globalToken = IRootPort(rootPortAddress).getLocalTokenFromUnderlying(_underlyingAddress, localChainId);
@@ -56,6 +57,7 @@ contract ArbitrumBranchPort is BranchPort, IArbitrumBranchPort {
     ///@inheritdoc IArbitrumBranchPort
     function withdrawFromPort(address _depositor, address _recipient, address _globalAddress, uint256 _deposit)
         external
+        lock
         requiresBridgeAgent
     {
         if (!IRootPort(rootPortAddress).isGlobalToken(_globalAddress, localChainId)) {
@@ -75,6 +77,7 @@ contract ArbitrumBranchPort is BranchPort, IArbitrumBranchPort {
     function withdraw(address _recipient, address _underlyingAddress, uint256 _deposit)
         external
         override(IBranchPort, BranchPort)
+        lock
         requiresBridgeAgent
     {
         _underlyingAddress.safeTransfer(
@@ -113,7 +116,7 @@ contract ArbitrumBranchPort is BranchPort, IArbitrumBranchPort {
         address _underlyingAddress,
         uint256 _amount,
         uint256 _deposit
-    ) external override(IBranchPort, BranchPort) requiresBridgeAgent {
+    ) external override(IBranchPort, BranchPort) lock requiresBridgeAgent {
         if (_deposit > 0) {
             _underlyingAddress.safeTransferFrom(
                 _depositor, address(this), _denormalizeDecimals(_deposit, ERC20(_underlyingAddress).decimals())
@@ -131,7 +134,7 @@ contract ArbitrumBranchPort is BranchPort, IArbitrumBranchPort {
         address[] memory _underlyingAddresses,
         uint256[] memory _amounts,
         uint256[] memory _deposits
-    ) external override(IBranchPort, BranchPort) requiresBridgeAgent {
+    ) external override(IBranchPort, BranchPort) lock requiresBridgeAgent {
         for (uint256 i = 0; i < _localAddresses.length;) {
             if (_deposits[i] > 0) {
                 _underlyingAddresses[i].safeTransferFrom(

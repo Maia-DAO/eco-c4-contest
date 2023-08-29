@@ -206,6 +206,7 @@ contract BranchPort is Ownable, IBranchPort {
     function withdraw(address _recipient, address _underlyingAddress, uint256 _deposit)
         external
         virtual
+        lock
         requiresBridgeAgent
     {
         _underlyingAddress.safeTransfer(
@@ -244,7 +245,7 @@ contract BranchPort is Ownable, IBranchPort {
         address _underlyingAddress,
         uint256 _amount,
         uint256 _deposit
-    ) external virtual requiresBridgeAgent {
+    ) external virtual lock requiresBridgeAgent {
         if (_amount - _deposit > 0) {
             _localAddress.safeTransferFrom(_depositor, address(this), _amount - _deposit);
             ERC20hTokenBranch(_localAddress).burn(_amount - _deposit);
@@ -263,7 +264,7 @@ contract BranchPort is Ownable, IBranchPort {
         address[] memory _underlyingAddresses,
         uint256[] memory _amounts,
         uint256[] memory _deposits
-    ) external virtual requiresBridgeAgent {
+    ) external virtual lock requiresBridgeAgent {
         for (uint256 i = 0; i < _localAddresses.length;) {
             if (_amounts[i] - _deposits[i] > 0) {
                 _localAddresses[i].safeTransferFrom(_depositor, address(this), _amounts[i] - _deposits[i]);

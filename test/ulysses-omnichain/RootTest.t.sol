@@ -495,7 +495,7 @@ contract RootTest is DSTestPlus {
             address(multicallBridgeAgent),
             address(avaxBranchBridgeAgentFactory),
             address(avaxMulticallRouter),
-            address(avaxCoreRouter),
+            address(this),
             avaxChainId,
             0.01 ether
         );
@@ -504,7 +504,7 @@ contract RootTest is DSTestPlus {
             address(multicallBridgeAgent),
             address(ftmBranchBridgeAgentFactory),
             address(ftmMulticallRouter),
-            address(ftmCoreRouter),
+            address(this),
             ftmChainId,
             0.5 ether
         );
@@ -513,7 +513,7 @@ contract RootTest is DSTestPlus {
             address(multicallBridgeAgent),
             address(arbitrumBranchBridgeAgentFactory),
             address(arbitrumMulticallRouter),
-            address(arbitrumCoreRouter),
+            address(this),
             rootChainId,
             0
         );
@@ -544,7 +544,7 @@ contract RootTest is DSTestPlus {
         arbitrumMockToken = new MockERC20("underlying token", "UNDER", 18);
     }
 
-    fallback() external payable {}
+    receive() external payable {}
 
     struct OutputParams {
         address recipient;
@@ -597,7 +597,7 @@ contract RootTest is DSTestPlus {
             address(testRootBridgeAgent),
             address(ftmBranchBridgeAgentFactory),
             address(testMulticallRouter),
-            address(ftmCoreRouter),
+            address(this),
             ftmChainId,
             0.01 ether
         );
@@ -647,7 +647,7 @@ contract RootTest is DSTestPlus {
             address(testRootBridgeAgent),
             address(ftmBranchBridgeAgentFactory),
             address(testMulticallRouter),
-            address(ftmCoreRouter),
+            address(this),
             ftmChainId,
             0.01 ether
         );
@@ -679,7 +679,7 @@ contract RootTest is DSTestPlus {
             address(testRootBridgeAgent),
             address(ftmBranchBridgeAgentFactory),
             address(testMulticallRouter),
-            address(ftmCoreRouter),
+            address(this),
             ftmChainId,
             0.01 ether
         );
@@ -712,7 +712,7 @@ contract RootTest is DSTestPlus {
             address(testRootBridgeAgent),
             address(ftmBranchBridgeAgentFactory),
             address(testMulticallRouter),
-            address(ftmCoreRouter),
+            address(this),
             ftmChainId,
             0.01 ether
         );
@@ -745,7 +745,7 @@ contract RootTest is DSTestPlus {
             address(testRootBridgeAgent),
             address(32),
             address(testMulticallRouter),
-            address(ftmCoreRouter),
+            address(this),
             ftmChainId,
             0.01 ether
         );
@@ -822,7 +822,7 @@ contract RootTest is DSTestPlus {
             address(testRootBridgeAgent),
             ftmPort.bridgeAgentFactories(1),
             address(testMulticallRouter),
-            address(ftmCoreRouter),
+            address(this),
             ftmChainId,
             0.01 ether
         );

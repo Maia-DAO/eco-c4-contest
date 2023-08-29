@@ -167,6 +167,12 @@ contract BranchBridgeAgent is IBranchBridgeAgent {
     }
 
     /*///////////////////////////////////////////////////////////////
+                        FALLBACK FUNCTIONS
+    //////////////////////////////////////////////////////////////*/
+
+    receive() external payable {}
+
+    /*///////////////////////////////////////////////////////////////
                         VIEW FUNCTIONS
     //////////////////////////////////////////////////////////////*/
 
@@ -1409,6 +1415,4 @@ contract BranchBridgeAgent is IBranchBridgeAgent {
     function _requiresFallbackGas(uint256 _depositedGas) internal view virtual {
         if (_depositedGas <= MIN_FALLBACK_RESERVE * tx.gasprice) revert InsufficientGas();
     }
-
-    fallback() external payable {}
 }

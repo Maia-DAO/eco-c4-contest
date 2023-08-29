@@ -57,9 +57,9 @@ interface IBaseV2Minter is IRewardsStream {
 
     /**
      * @notice Changes the current tail emissions.
-     * @param _tail_emission amount to set as the tail emission
+     * @param _tailEmission amount to set as the tail emission
      */
-    function setTailEmission(uint256 _tail_emission) external;
+    function setTailEmission(uint256 _tailEmission) external;
 
     /**
      * @notice Sets the address of the DAO.
@@ -69,9 +69,9 @@ interface IBaseV2Minter is IRewardsStream {
 
     /**
      * @notice Sets the share of the DAO rewards.
-     * @param _dao_share share of the DAO rewards.
+     * @param _daoShare share of the DAO rewards.
      */
-    function setDaoShare(uint256 _dao_share) external;
+    function setDaoShare(uint256 _daoShare) external;
 
     /*//////////////////////////////////////////////////////////////
                          EMISSION LOGIC
@@ -106,7 +106,13 @@ interface IBaseV2Minter is IRewardsStream {
                                 EVENTS
     //////////////////////////////////////////////////////////////*/
 
-    event Mint(address indexed sender, uint256 weekly, uint256 circulatingSupply, uint256 growth, uint256 dao_share);
+    event Mint(address indexed sender, uint256 weekly, uint256 circulatingSupply, uint256 growth, uint256 daoShare);
+
+    event ChangedDao(address indexed dao);
+
+    event ChangedDaoShare(uint256 indexed daoShare);
+
+    event ChangedTailEmission(uint256 indexed tailEmission);
 
     /*///////////////////////////////////////////////////////////////
                                 ERRORS

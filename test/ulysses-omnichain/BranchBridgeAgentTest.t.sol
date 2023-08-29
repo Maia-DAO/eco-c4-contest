@@ -84,7 +84,7 @@ contract BranchBridgeAgentTest is Test {
         BranchPort(localPortAddress).addBridgeAgent(address(bAgent));
     }
 
-    fallback() external payable {}
+    receive() external payable {}
 
     function testCallOutNoDeposit() public {
         //Get some gas.

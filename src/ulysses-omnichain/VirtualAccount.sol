@@ -28,12 +28,14 @@ contract VirtualAccount is IVirtualAccount {
     }
 
     /*//////////////////////////////////////////////////////////////
-                            EXTERNAL FUNCTIONS
+                            FALLBACK FUNCTIONS
     //////////////////////////////////////////////////////////////*/
-    
-    fallback() external payable {}
 
     receive() external payable {}
+
+    /*//////////////////////////////////////////////////////////////
+                            EXTERNAL FUNCTIONS
+    //////////////////////////////////////////////////////////////*/
 
     /// @inheritdoc IVirtualAccount
     function withdrawNative(uint256 _amount) external requiresApprovedCaller {
@@ -60,12 +62,10 @@ contract VirtualAccount is IVirtualAccount {
         returnData = new bytes[](calls.length);
         for (uint256 i = 0; i < calls.length; i++) {
             bool success;
-            bytes memory data;
             if (isContract(calls[i].target)) {
-                (success, data) = calls[i].target.call(calls[i].callData);
+                (success, returnData[i]) = calls[i].target.call(calls[i].callData);
             }
             if (!success) revert CallFailed();
-            returnData[i] = data;
         }
     }
 

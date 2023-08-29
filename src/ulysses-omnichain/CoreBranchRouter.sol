@@ -16,7 +16,7 @@ import {BaseBranchRouter} from "./BaseBranchRouter.sol";
 import {ERC20hTokenBranch as ERC20hToken} from "./token/ERC20hTokenBranch.sol";
 
 /// @title Core Branch Router Contract
-contract CoreBranchRouter is BaseBranchRouter {
+contract CoreBranchRouter is ICoreBranchRouter, BaseBranchRouter {
     /// @notice hToken Factory Address.
     address public hTokenFactoryAddress;
 
@@ -280,9 +280,4 @@ contract CoreBranchRouter is BaseBranchRouter {
         }
         return (true, "");
     }
-
-    fallback() external payable {}
-
-    error UnrecognizedBridgeAgent();
-    error UnrecognizedBridgeAgentFactory();
 }

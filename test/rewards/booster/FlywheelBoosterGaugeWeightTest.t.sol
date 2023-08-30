@@ -148,11 +148,15 @@ contract InvariantFlywheelBoosterGaugeWeight is Test {
 
         token.mint(address(BaseV2Gauge(address(gauge)).multiRewardsDepot()), amount);
 
-        gaugeToken.mint(address(this), 1 ether);
-        gaugeToken.delegate(address(this));
-        gaugeToken.incrementGauge(address(gauge), 1 ether);
+        mintAndIncrementWeight(address(gauge), 1 ether);
 
         assertEq(token.balanceOf(address(bribeRewards)), 0);
+    }
+
+    function mintAndIncrementWeight(address gauge, uint112 amount) private {
+        gaugeToken.mint(address(this), amount);
+        gaugeToken.delegate(address(this));
+        gaugeToken.incrementGauge(gauge, amount);
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -267,6 +271,31 @@ contract InvariantFlywheelBoosterGaugeWeight is Test {
         test_OptIn_Claim(100 ether);
     }
 
+    function test_OptIn_Increment(uint112 amount) public {
+        if (amount == 0) amount = 1;
+
+        ERC20 gauge = ERC20(boosterHandler.gauges()[0]);
+        FlywheelCore flywheel = FlywheelCore(boosterHandler.flywheels()[0]);
+
+        mintAndIncrementWeight(address(gauge), amount);
+
+        vm.startPrank(address(flywheel));
+        assertEq(booster.boostedTotalSupply(gauge), 0);
+        assertEq(booster.boostedBalanceOf(gauge, address(this)), 0);
+        vm.stopPrank();
+        assertEq(gaugeToken.getGaugeWeight(address(gauge)), amount);
+        assertEq(gaugeToken.getUserGaugeWeight(address(this), address(gauge)), amount);
+
+        test_OptIn();
+
+        vm.startPrank(address(flywheel));
+        assertEq(booster.boostedTotalSupply(gauge), amount);
+        assertEq(booster.boostedBalanceOf(gauge, address(this)), amount);
+        vm.stopPrank();
+        assertEq(gaugeToken.getGaugeWeight(address(gauge)), amount);
+        assertEq(gaugeToken.getUserGaugeWeight(address(this), address(gauge)), amount);
+    }
+
     function test_OptIn_Claim(uint256 amount) public {
         amount %= type(uint128).max;
         (ERC20 gauge, FlywheelCore flywheel, address bribeRewards, MockERC20 token) =
@@ -334,6 +363,45 @@ contract InvariantFlywheelBoosterGaugeWeight is Test {
     function test_OptOut_NotOptedIn(ERC20 gauge, FlywheelCore flywheel) public {
         vm.expectRevert(IFlywheelBooster.NotOptedIn.selector);
         booster.optOut(gauge, flywheel);
+    }
+
+    function test_OptOut_NotOptedInToStrategy(ERC20 newGauge) public {
+        (ERC20 gauge, FlywheelCore flywheel) = test_OptIn();
+
+        if (gauge != newGauge) vm.expectRevert(IFlywheelBooster.NotOptedIn.selector);
+        booster.optOut(newGauge, flywheel);
+    }
+
+
+    function test_OptOut_NotOptedInToFlywheel(FlywheelCore newFlywheel) public {
+        (ERC20 gauge, FlywheelCore flywheel) = test_OptIn();
+
+        if (flywheel != newFlywheel) vm.expectRevert(IFlywheelBooster.NotOptedIn.selector);
+        booster.optOut(gauge, newFlywheel);
+    }
+
+    function test_OptIn_OptOut_Increment(uint112 amount) public {
+        if (amount == 0) amount = 1;
+
+        (ERC20 gauge, FlywheelCore flywheel) = test_OptIn();
+
+        mintAndIncrementWeight(address(gauge), amount);
+
+        vm.startPrank(address(flywheel));
+        assertEq(booster.boostedTotalSupply(gauge), amount);
+        assertEq(booster.boostedBalanceOf(gauge, address(this)), amount);
+        vm.stopPrank();
+        assertEq(gaugeToken.getGaugeWeight(address(gauge)), amount);
+        assertEq(gaugeToken.getUserGaugeWeight(address(this), address(gauge)), amount);
+
+        booster.optOut(gauge, flywheel);
+
+        vm.startPrank(address(flywheel));
+        assertEq(booster.boostedTotalSupply(gauge), 0);
+        assertEq(booster.boostedBalanceOf(gauge, address(this)), 0);
+        vm.stopPrank();
+        assertEq(gaugeToken.getGaugeWeight(address(gauge)), amount);
+        assertEq(gaugeToken.getUserGaugeWeight(address(this), address(gauge)), amount);
     }
 
     /*///////////////////////////////////////////////////////////////

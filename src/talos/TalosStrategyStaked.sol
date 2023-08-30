@@ -17,7 +17,7 @@ import {ITalosOptimizer} from "./interfaces/ITalosOptimizer.sol";
 import {ITalosStrategyStaked} from "./interfaces/ITalosStrategyStaked.sol";
 
 library DeployStaked {
-    function createTalosV3Strategy(
+    function createTalosV3Staked(
         IUniswapV3Pool pool,
         ITalosOptimizer optimizer,
         BoostAggregator boostAggregator,
@@ -25,7 +25,7 @@ library DeployStaked {
         FlywheelCoreInstant flywheel,
         address owner,
         bytes32 _salt
-    ) public returns (TalosBaseStrategy) {
+    ) external returns (TalosBaseStrategy) {
         bytes32 salt = keccak256(abi.encodePacked(pool, optimizer, strategyManager, flywheel, owner, _salt));
         return new TalosStrategyStaked{salt: salt}(
                 pool,

@@ -70,14 +70,14 @@ abstract contract BaseV2Gauge is IBaseV2Gauge {
 
             uint256 accruedRewards = flywheelGaugeRewards.getAccruedRewards();
 
-            distribute(accruedRewards);
+            _distribute(accruedRewards);
 
             emit Distribute(accruedRewards, _newEpoch);
         }
     }
 
     /// @notice Distributes weekly emissions to the strategy.
-    function distribute(uint256 amount) internal virtual;
+    function _distribute(uint256 amount) internal virtual;
 
     /// @inheritdoc IBaseV2Gauge
     function attachUser(address user) external onlyStrategy {

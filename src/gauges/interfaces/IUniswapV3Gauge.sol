@@ -13,7 +13,7 @@ pragma solidity ^0.8.0;
  *          The minimum width represents the minimum range a UniV3 NFT
  *          must have to be illegible for staking.
  *
- *  @dev    `distribute()` must be called during the 12-hour offset after
+ *  @dev    `_distribute()` must be called during the 12-hour offset after
  *           an epoch ends or rewards will be queued for the next epoch.
  * ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⡤⠒⠈⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠐⢤⣀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠉⠑⠦⣄⠀⠀⢀⣠⠖⢶⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀
  * ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣠⠞⠉⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⠑⢤⡈⠳⣦⡀⠀⠀⠀⠀⠀⠀⠒⢦⣀⠀⠀⠈⢱⠖⠉⠀⠀⠀⠳⡄⠀⠀⠀⠀⠀⠀⠀
@@ -65,7 +65,7 @@ interface IUniswapV3Gauge {
     //////////////////////////////////////////////////////////////*/
 
     /// @notice Emitted when the minimum width is updated
-    event NewMinimumWidth(uint24 minimumWidth);
+    event NewMinimumWidth(uint24 indexed minimumWidth);
 
     /*//////////////////////////////////////////////////////////////
                          ADMIN LOGIC

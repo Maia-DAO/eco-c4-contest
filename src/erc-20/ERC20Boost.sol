@@ -150,7 +150,7 @@ abstract contract ERC20Boost is ERC20, Ownable, IERC20Boost {
 
     /// @inheritdoc IERC20Boost
     function updateUserBoost(address user) external {
-        uint256 userBoost = 0;
+        uint256 userBoost;
 
         address[] memory gaugeList = _userGauges[user].values();
 

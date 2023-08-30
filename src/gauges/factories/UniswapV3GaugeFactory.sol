@@ -74,7 +74,7 @@ contract UniswapV3GaugeFactory is BaseV2GaugeFactory, IUniswapV3GaugeFactory {
     //////////////////////////////////////////////////////////////*/
 
     /// @notice Creates a new Uniswap V3 Gauge
-    function newGauge(address strategy, bytes memory data) internal override returns (BaseV2Gauge) {
+    function _newGauge(address strategy, bytes memory data) internal override returns (BaseV2Gauge) {
         uint24 minimumWidth = abi.decode(data, (uint24));
         return new UniswapV3Gauge{salt: keccak256(abi.encodePacked(strategy, strategyNonces[strategy]++))}(
                 flywheelGaugeRewards,
@@ -87,7 +87,7 @@ contract UniswapV3GaugeFactory is BaseV2GaugeFactory, IUniswapV3GaugeFactory {
 
     /// @notice Adds Gauge to UniswapV3Staker
     /// @dev Updates the UniswapV3 staker with bribe and minimum width information
-    function afterCreateGauge(address strategy, bytes memory) internal override {
+    function _afterCreateGauge(address strategy, bytes memory) internal override {
         uniswapV3Staker.updateGauges(IUniswapV3Pool(strategy));
     }
 

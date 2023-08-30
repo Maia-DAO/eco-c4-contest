@@ -109,7 +109,7 @@ abstract contract BaseV2GaugeFactory is Ownable, IBaseV2GaugeFactory {
     function createGauge(address strategy, bytes memory data) external onlyOwner returns (BaseV2Gauge gauge) {
         if (address(strategyGauges[strategy]) != address(0)) revert GaugeAlreadyExists();
 
-        gauge = newGauge(strategy, data);
+        gauge = _newGauge(strategy, data);
         strategyGauges[strategy] = gauge;
 
         uint256 id = gauges.length;
@@ -119,12 +119,12 @@ abstract contract BaseV2GaugeFactory is Ownable, IBaseV2GaugeFactory {
 
         gaugeManager.addGauge(address(gauge));
 
-        afterCreateGauge(strategy, data);
+        _afterCreateGauge(strategy, data);
     }
 
-    function afterCreateGauge(address strategy, bytes memory data) internal virtual;
+    function _afterCreateGauge(address strategy, bytes memory data) internal virtual;
 
-    function newGauge(address strategy, bytes memory data) internal virtual returns (BaseV2Gauge gauge);
+    function _newGauge(address strategy, bytes memory data) internal virtual returns (BaseV2Gauge gauge);
 
     /// @inheritdoc IBaseV2GaugeFactory
     function removeGauge(BaseV2Gauge gauge) external onlyOwner {

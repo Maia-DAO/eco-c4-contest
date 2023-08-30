@@ -52,6 +52,12 @@ contract TalosOptimizer is Ownable, ITalosOptimizer {
         tickRangeMultiplier = _tickRangeMultiplier;
         priceImpactPercentage = _priceImpactPercentage;
         maxTotalSupply = _maxTotalSupply;
+
+        emit ChangedMaxTotalSupply(_maxTotalSupply);
+        emit ChangedTwapDuration(_twapDuration);
+        emit ChangedMaxTwapDeviation(_maxTwapDeviation);
+        emit ChangedTickRangeMultiplier(_tickRangeMultiplier);
+        emit ChangedPriceImpactPercentage(_priceImpactPercentage);
     }
 
     /*//////////////////////////////////////////////////////////////
@@ -62,23 +68,31 @@ contract TalosOptimizer is Ownable, ITalosOptimizer {
     function setMaxTotalSupply(uint256 _maxTotalSupply) external onlyOwner {
         if (_maxTotalSupply == 0) revert MaxTotalSupplyIsZero();
         maxTotalSupply = _maxTotalSupply;
+
+        emit ChangedMaxTotalSupply(_maxTotalSupply);
     }
 
     /// @inheritdoc ITalosOptimizer
     function setTwapDuration(uint32 _twapDuration) external onlyOwner {
         if (_twapDuration < 100) revert TwapDurationTooLow();
         twapDuration = _twapDuration;
+
+        emit ChangedTwapDuration(_twapDuration);
     }
 
     /// @inheritdoc ITalosOptimizer
     function setMaxTwapDeviation(int24 _maxTwapDeviation) external onlyOwner {
         if (_maxTwapDeviation < 20) revert MaxTwapDeviationTooLow();
         maxTwapDeviation = _maxTwapDeviation;
+
+        emit ChangedMaxTwapDeviation(_maxTwapDeviation);
     }
 
     /// @inheritdoc ITalosOptimizer
     function setTickRange(int24 _tickRangeMultiplier) external onlyOwner {
         tickRangeMultiplier = _tickRangeMultiplier;
+
+        emit ChangedTickRangeMultiplier(_tickRangeMultiplier);
     }
 
     /// @inheritdoc ITalosOptimizer
@@ -87,5 +101,7 @@ contract TalosOptimizer is Ownable, ITalosOptimizer {
             revert PriceImpactPercentageInvalid();
         }
         priceImpactPercentage = _priceImpactPercentage;
+
+        emit ChangedPriceImpactPercentage(_priceImpactPercentage);
     }
 }

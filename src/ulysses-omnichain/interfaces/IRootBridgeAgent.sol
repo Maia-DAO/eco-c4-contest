@@ -397,8 +397,6 @@ interface IRootBridgeAgent is IApp {
 
     error UnrecognizedUnderlyingAddress();
     error UnrecognizedLocalAddress();
-    error UnrecognizedGlobalAddress();
-    error UnrecognizedAddressInDestination();
 
     error SettlementRetryUnavailable();
     error SettlementRedeemUnavailable();

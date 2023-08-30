@@ -63,14 +63,14 @@ abstract contract TalosBaseStrategyFactory is Ownable, ITalosBaseStrategyFactory
             revert UnrecognizedOptimizer();
         }
 
-        TalosBaseStrategy strategy = createTalosV3Strategy(pool, optimizer, strategyManager, salt, data);
+        TalosBaseStrategy strategy = _createTalosV3Strategy(pool, optimizer, strategyManager, salt, data);
 
         strategyIds[strategy] = strategies.length;
         strategies.push(strategy);
     }
 
     /// @notice Internal function responsible for creating a new Talos Strategy
-    function createTalosV3Strategy(
+    function _createTalosV3Strategy(
         IUniswapV3Pool pool,
         ITalosOptimizer optimizer,
         address strategyManager,

@@ -386,10 +386,8 @@ interface IBranchBridgeAgent is IApp {
     //////////////////////////////////////////////////////////////*/
 
     error AnycallUnauthorizedCaller();
-    error AlreadyExecutedTransaction();
 
     error InvalidInput();
-    error InvalidChain();
     error InsufficientGas();
 
     error NotDepositOwner();

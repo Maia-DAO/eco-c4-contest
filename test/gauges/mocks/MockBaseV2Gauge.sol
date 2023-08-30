@@ -8,5 +8,5 @@ contract MockBaseV2Gauge is BaseV2Gauge {
         BaseV2Gauge(_flywheelGaugeRewards, _strategy)
     {}
 
-    function distribute(uint256 amount) internal override {}
+    function _distribute(uint256 amount) internal override {}
 }

@@ -103,6 +103,8 @@ contract BoostAggregator is Ownable, IBoostAggregator {
     /// @inheritdoc IBoostAggregator
     function setOwnRewardsDepot(address rewardsDepot) external {
         userToRewardsDepot[msg.sender] = rewardsDepot;
+
+        emit ChangedRewardsDepot(msg.sender, rewardsDepot);
     }
 
     /*//////////////////////////////////////////////////////////////
@@ -161,6 +163,8 @@ contract BoostAggregator is Ownable, IBoostAggregator {
     function setProtocolFee(uint256 _protocolFee) external onlyOwner {
         if (_protocolFee > maxFee) revert FeeTooHigh();
         protocolFee = _protocolFee;
+
+        emit ChangedProtocolFee(_protocolFee);
     }
 
     /// @inheritdoc IBoostAggregator

@@ -64,9 +64,9 @@ abstract contract ERC20MultiVotes is ERC20, Ownable, IERC20MultiVotes {
     function _checkpointsLookup(Checkpoint[] storage ckpts, uint256 blockNumber) private view returns (uint256) {
         // We run a binary search to look for the earliest checkpoint taken after `blockNumber`.
         uint256 high = ckpts.length;
-        uint256 low = 0;
+        uint256 low;
         while (low < high) {
-            uint256 mid = average(low, high);
+            uint256 mid = _average(low, high);
             if (ckpts[mid].fromBlock > blockNumber) {
                 high = mid;
             } else {
@@ -77,7 +77,7 @@ abstract contract ERC20MultiVotes is ERC20, Ownable, IERC20MultiVotes {
         return high == 0 ? 0 : ckpts[high - 1].votes;
     }
 
-    function average(uint256 a, uint256 b) internal pure returns (uint256) {
+    function _average(uint256 a, uint256 b) internal pure returns (uint256) {
         // (a + b) / 2 can overflow.
         return (a & b) + (a ^ b) / 2;
     }

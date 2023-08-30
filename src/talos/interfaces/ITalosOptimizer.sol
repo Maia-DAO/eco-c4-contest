@@ -60,8 +60,33 @@ interface ITalosOptimizer {
     function setPriceImpact(uint24 _priceImpactPercentage) external;
 
     /*///////////////////////////////////////////////////////////////
-                            ERRORS
-    //////////////////////////////////////////////////////////////*/
+                                EVENTS
+    ///////////////////////////////////////////////////////////////*/
+
+    /// @notice Emitted when the maxTotalSupply is changed
+    /// @param _maxTotalSupply The new maxTotalSupply
+    event ChangedMaxTotalSupply(uint256 indexed _maxTotalSupply);
+
+    /// @notice Emitted when the twapDuration is changed
+    /// @param _twapDuration The new twapDuration
+    event ChangedTwapDuration(uint32 indexed _twapDuration);
+
+    /// @notice Emitted when the maxTwapDeviation is changed
+    /// @param _maxTwapDeviation The new maxTwapDeviation
+    event ChangedMaxTwapDeviation(int24 indexed _maxTwapDeviation);
+
+    /// @notice Emitted when the tickRangeMultiplier is changed
+    /// @param _tickRangeMultiplier The new tickRangeMultiplier
+    event ChangedTickRangeMultiplier(int24 indexed _tickRangeMultiplier);
+
+    /// @notice Emitted when the priceImpactPercentage is changed
+    /// @param _priceImpactPercentage The new priceImpactPercentage
+    event ChangedPriceImpactPercentage(uint24 indexed _priceImpactPercentage);
+
+    /*///////////////////////////////////////////////////////////////
+                                ERRORS
+    ///////////////////////////////////////////////////////////////*/
+
     /// @notice Thrown when the maxTotalSupply is zero
     error MaxTotalSupplyIsZero();
 

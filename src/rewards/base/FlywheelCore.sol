@@ -97,7 +97,7 @@ abstract contract FlywheelCore is Ownable, IFlywheelCore {
         if (accrued != 0) {
             delete rewardsAccrued[user];
 
-            rewardToken.safeTransferFrom(address(flywheelRewards), user, accrued);
+            rewardToken.safeTransferFrom(flywheelRewards, user, accrued);
 
             emit ClaimRewards(user, accrued);
         }
@@ -123,14 +123,14 @@ abstract contract FlywheelCore is Ownable, IFlywheelCore {
 
     /// @inheritdoc IFlywheelCore
     function setFlywheelRewards(address newFlywheelRewards) external onlyOwner {
-        uint256 oldRewardBalance = rewardToken.balanceOf(address(flywheelRewards));
+        uint256 oldRewardBalance = rewardToken.balanceOf(flywheelRewards);
         if (oldRewardBalance > 0 && flywheelRewards != address(0)) {
-            rewardToken.safeTransferFrom(address(flywheelRewards), address(newFlywheelRewards), oldRewardBalance);
+            rewardToken.safeTransferFrom(flywheelRewards, newFlywheelRewards, oldRewardBalance);
         }
 
         flywheelRewards = newFlywheelRewards;
 
-        emit FlywheelRewardsUpdate(address(newFlywheelRewards));
+        emit FlywheelRewardsUpdate(newFlywheelRewards);
     }
 
     /// @inheritdoc IFlywheelCore

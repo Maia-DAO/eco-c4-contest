@@ -197,9 +197,6 @@ interface IUlyssesPool {
     /// @notice Throw when trying to add a destination that is not a Ulysses LP
     error NotUlyssesLP();
 
-    /// @notice Throw when fee would overflow
-    error FeeError();
-
     /// @notice Throw when input amount is too small
     error AmountTooSmall();
 

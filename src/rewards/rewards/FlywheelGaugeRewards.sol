@@ -95,8 +95,8 @@ contract FlywheelGaugeRewards is IFlywheelGaugeRewards {
 
         _queueRewards(gauges, currentCycle, lastCycle, totalQueuedForCycle);
 
-        nextCycleQueuedRewards = 0;
-        paginationOffset = 0;
+        delete nextCycleQueuedRewards;
+        delete paginationOffset;
 
         emit CycleStart(currentCycle, totalQueuedForCycle);
     }

@@ -123,6 +123,23 @@ interface IBoostAggregator is IERC721Receiver {
     function decrementGaugesBoostIndexed(uint256 boost, uint256 offset, uint256 num) external;
 
     /*//////////////////////////////////////////////////////////////
+                                EVENTS
+    //////////////////////////////////////////////////////////////*/
+
+    /**
+     * @dev emitted when a user sets their rewards depot
+     * @param user address of user
+     * @param rewardsDepot address of rewards depot
+     */
+    event ChangedRewardsDepot(address indexed user, address indexed rewardsDepot);
+
+    /**
+     * @dev emitted when the booster's protocol fee is changed
+     * @param protocolFee new protocol fee is set
+     */
+    event ChangedProtocolFee(uint256 indexed protocolFee);
+
+    /*//////////////////////////////////////////////////////////////
                                 ERRORS
     //////////////////////////////////////////////////////////////*/
 

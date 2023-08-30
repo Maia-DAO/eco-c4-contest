@@ -99,7 +99,7 @@ contract bHermes is UtilityManager, ERC4626DepositOnly {
                             UTILITY MANAGER LOGIC
     //////////////////////////////////////////////////////////////*/
 
-    function claimOutstanding() public virtual {
+    function claimOutstanding() external virtual {
         uint256 balance = balanceOf[msg.sender];
         /// @dev Never overflows since balandeOf >= userClaimed.
         claimWeight(balance - userClaimedWeight[msg.sender]);

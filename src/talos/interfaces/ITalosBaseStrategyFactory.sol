@@ -69,7 +69,4 @@ interface ITalosBaseStrategyFactory {
     //////////////////////////////////////////////////////////////*/
     /// @notice Error emitted when the optimizer is not recognized.
     error UnrecognizedOptimizer();
-
-    /// @notice Error emitted when the strategy manager is not recognized.
-    error UnrecognizedStrategyManager();
 }

@@ -11,11 +11,11 @@ contract MockBaseV2GaugeFactory is BaseV2GaugeFactory {
         address _owner
     ) BaseV2GaugeFactory(_gaugeManager, _bHermesBoost, _bribesFactory, _owner) {}
 
-    function newGauge(address strategy, bytes memory) internal pure override returns (BaseV2Gauge) {
+    function _newGauge(address strategy, bytes memory) internal pure override returns (BaseV2Gauge) {
         return BaseV2Gauge(strategy);
     }
 
-    function afterCreateGauge(address strategy, bytes memory) internal override {}
+    function _afterCreateGauge(address strategy, bytes memory) internal override {}
 
     function changeActiveGauge(BaseV2Gauge gauge, bool state) external {
         activeGauges[gauge] = state;

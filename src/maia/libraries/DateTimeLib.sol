@@ -39,8 +39,7 @@ library DateTimeLib {
     function getMonth(uint256 timestamp) internal pure returns (uint256 month) {
         uint256 epochDay = timestamp / 1 days;
 
-        /// @solidity memory-safe-assembly
-        assembly {
+        assembly ("memory-safe") {
             epochDay := add(epochDay, 719468)
             let doe := mod(epochDay, 146097)
             let yoe := div(sub(sub(add(doe, div(doe, 36524)), div(doe, 1460)), eq(doe, 146096)), 365)

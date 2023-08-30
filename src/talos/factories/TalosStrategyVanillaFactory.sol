@@ -30,7 +30,7 @@ contract TalosStrategyVanillaFactory is TalosBaseStrategyFactory {
     //////////////////////////////////////////////////////////////*/
 
     /// @notice Internal function responsible for creating a new Talos Strategy
-    function createTalosV3Strategy(
+    function _createTalosV3Strategy(
         IUniswapV3Pool pool,
         ITalosOptimizer optimizer,
         address strategyManager,

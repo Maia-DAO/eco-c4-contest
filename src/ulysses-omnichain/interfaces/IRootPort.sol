@@ -344,5 +344,4 @@ interface IRootPort {
     error BridgeAgentNotAllowed();
     error UnrecognizedCoreRootRouter();
     error UnrecognizedLocalBranchPort();
-    error UnknowHTokenFactory();
 }

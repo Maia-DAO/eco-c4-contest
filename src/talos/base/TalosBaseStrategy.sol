@@ -379,7 +379,7 @@ abstract contract TalosBaseStrategy is Ownable, ERC20, ReentrancyGuard, ITalosBa
                 deadline: block.timestamp
             })
         );
-        liquidity = 0;
+        delete liquidity;
         _nonfungiblePositionManager.collect(
             INonfungiblePositionManager.CollectParams({
                 tokenId: _tokenId,

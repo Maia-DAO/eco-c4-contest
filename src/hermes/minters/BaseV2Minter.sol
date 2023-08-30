@@ -168,7 +168,7 @@ contract BaseV2Minter is Ownable, IBaseV2Minter {
     function getRewards() external returns (uint256 totalQueuedForCycle) {
         if (address(flywheelGaugeRewards) != msg.sender) revert NotFlywheelGaugeRewards();
         totalQueuedForCycle = weekly;
-        weekly = 0;
+        delete weekly;
         underlying.safeTransfer(msg.sender, totalQueuedForCycle);
     }
 }

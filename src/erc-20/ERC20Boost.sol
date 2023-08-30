@@ -244,7 +244,7 @@ abstract contract ERC20Boost is ERC20, Ownable, IERC20Boost {
             }
         }
 
-        getUserBoost[msg.sender] = 0;
+        delete getUserBoost[msg.sender];
 
         emit UpdateUserBoost(msg.sender, 0);
     }

@@ -205,7 +205,7 @@ contract UniswapV3Staker is IUniswapV3Staker, Multicallable {
         if (incentive.numberOfStakes > 0) revert EndIncentiveWhileStakesArePresent();
 
         // issue the refund
-        incentive.totalRewardUnclaimed = 0;
+        delete incentive.totalRewardUnclaimed;
 
         hermes.safeTransfer(minter, refund);
 
@@ -271,7 +271,7 @@ contract UniswapV3Staker is IUniswapV3Staker, Multicallable {
             reward = amountRequested;
             rewards[msg.sender] -= reward;
         } else {
-            rewards[msg.sender] = 0;
+            delete rewards[msg.sender];
         }
 
         if (reward > 0) hermes.safeTransfer(to, reward);
@@ -282,7 +282,7 @@ contract UniswapV3Staker is IUniswapV3Staker, Multicallable {
     /// @inheritdoc IUniswapV3Staker
     function claimAllRewards(address to) external returns (uint256 reward) {
         reward = rewards[msg.sender];
-        rewards[msg.sender] = 0;
+        delete rewards[msg.sender];
 
         if (reward > 0) hermes.safeTransfer(to, reward);
 
@@ -409,7 +409,7 @@ contract UniswapV3Staker is IUniswapV3Staker, Multicallable {
                 // get boost amount and total supply
                 (boostAmount, boostTotalSupply) = hermesGaugeBoost.getUserGaugeBoost(owner, address(gauge));
                 gauge.detachUser(owner);
-                _userAttachements[owner][key.pool] = 0;
+                delete _userAttachements[owner][key.pool];
             }
 
             uint160 secondsPerLiquidityInsideInitialX128;

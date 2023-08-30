@@ -5,11 +5,14 @@ import {Ownable} from "solady/auth/Ownable.sol";
 import {SafeTransferLib} from "solady/utils/SafeTransferLib.sol";
 
 import {IMulticall2 as IMulticall} from "./interfaces/IMulticall2.sol";
-import {IRootBridgeAgent as IBridgeAgent} from "./interfaces/IRootBridgeAgent.sol";
+import {
+    DepositParams,
+    DepositMultipleParams,
+    IRootBridgeAgent as IBridgeAgent,
+    Settlement
+} from "./interfaces/IRootBridgeAgent.sol";
 import {IRootRouter} from "./interfaces/IRootRouter.sol";
 import {IVirtualAccount, Call} from "./interfaces/IVirtualAccount.sol";
-
-import {DepositParams, DepositMultipleParams, Settlement} from "./interfaces/IRootBridgeAgent.sol";
 
 struct OutputParams {
     address recipient; // Address to receive the output assets.

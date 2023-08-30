@@ -68,9 +68,9 @@ interface IFlywheelCore {
      * @notice accrue rewards for a two users on a strategy
      *   @param strategy the strategy to accrue a user's rewards on
      *   @param user the first user to be accrued
-     *   @param user the second user to be accrued
-     *   @return the cumulative amount of rewards accrued to the first user (including prior)
-     *   @return the cumulative amount of rewards accrued to the second user (including prior)
+     *   @param secondUser the second user to be accrued
+     *   @return first cumulative amount of rewards accrued to the first user (including prior)
+     *   @return second cumulative amount of rewards accrued to the second user (including prior)
      */
     function accrue(ERC20 strategy, address user, address secondUser) external returns (uint256, uint256);
 

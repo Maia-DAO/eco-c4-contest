@@ -37,7 +37,7 @@ library DateTimeLib {
     /// Note: Inputs outside the supported ranges result in undefined behavior.
     /// Use {isSupportedDays} to check if the inputs is supported.
     function getMonth(uint256 timestamp) internal pure returns (uint256 month) {
-        uint256 epochDay = timestamp / 86400;
+        uint256 epochDay = timestamp / 1 days;
 
         /// @solidity memory-safe-assembly
         assembly {
@@ -54,8 +54,8 @@ library DateTimeLib {
     /// Monday: 1, Tuesday: 2, ....., Sunday: 7.
     function isTuesday(uint256 timestamp) internal pure returns (bool result, uint256 startOfDay) {
         unchecked {
-            uint256 day = timestamp / 86400;
-            startOfDay = day * 86400;
+            uint256 day = timestamp / 1 days;
+            startOfDay = day * 1 days;
             result = ((day + 3) % 7) + 1 == 2;
         }
     }

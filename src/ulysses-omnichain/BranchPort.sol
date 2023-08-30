@@ -53,7 +53,7 @@ contract BranchPort is Ownable, IBranchPort {
     /// @notice Mapping returns true if Strategy Token Address is active for usage in Port Strategies.
     mapping(address => bool) public isStrategyToken;
 
-    /// @notice List of Tokens whitelisted for usage in Port Strategies.
+    /// @notice List of Tokens allowlisted for usage in Port Strategies.
     address[] public strategyTokens;
 
     /// @notice Number of Port Strategies deployed in current branch chain.

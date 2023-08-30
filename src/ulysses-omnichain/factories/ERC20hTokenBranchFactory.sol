@@ -13,10 +13,10 @@ contract ERC20hTokenBranchFactory is Ownable, IERC20hTokenBranchFactory {
     uint24 public immutable localChainId;
 
     /// @notice Local Port Address
-    address immutable localPortAddress;
+    address public immutable localPortAddress;
 
     /// @notice Local Branch Core Router Address responsible for the addition of new tokens to the system.
-    address localCoreRouterAddress;
+    address public localCoreRouterAddress;
 
     /// @notice Local hTokens deployed in current chain.
     ERC20hTokenBranch[] public hTokens;

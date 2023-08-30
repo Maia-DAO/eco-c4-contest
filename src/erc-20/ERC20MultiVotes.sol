@@ -305,8 +305,7 @@ abstract contract ERC20MultiVotes is ERC20, Ownable, IERC20MultiVotes {
         if (from != msg.sender) {
             return super.transferFrom(from, to, amount);
         }
-            return super.transfer(to, amount);
-        
+        return super.transfer(to, amount);
     }
 
     /**
@@ -341,7 +340,7 @@ abstract contract ERC20MultiVotes is ERC20, Ownable, IERC20MultiVotes {
                 if (delegateVotes == votesToFree) {
                     // If all votes are freed, remove delegatee from list
                     require(_delegates[user].remove(delegatee)); // Remove from set. Should never fail.
-                    _delegatesVotesCount[user][delegatee] = 0;
+                    delete _delegatesVotesCount[user][delegatee];
                 } else {
                     // If not all votes are freed, update the votes count
                     _delegatesVotesCount[user][delegatee] -= votesToFree;
@@ -361,8 +360,8 @@ abstract contract ERC20MultiVotes is ERC20, Ownable, IERC20MultiVotes {
                              EIP-712 LOGIC
     //////////////////////////////////////////////////////////////*/
 
-    bytes32 public constant DELEGATION_TYPEHASH =
-        keccak256("Delegation(address delegatee,uint256 nonce,uint256 expiry)");
+    // keccak256("Delegation(address delegatee,uint256 nonce,uint256 expiry)");
+    bytes32 public constant DELEGATION_TYPEHASH = 0xe48329057bfd03d55e49b547132e39cffd9c1820ad7b9d4c5307691425d15adf;
 
     function delegateBySig(address delegatee, uint256 nonce, uint256 expiry, uint8 v, bytes32 r, bytes32 s) public {
         require(block.timestamp <= expiry, "ERC20MultiVotes: signature expired");

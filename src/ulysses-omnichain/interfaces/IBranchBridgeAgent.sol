@@ -314,7 +314,6 @@ interface IBranchBridgeAgent is IApp {
      * @notice Internal function performs call to AnycallProxy Contract for cross-chain messaging.
      *   @param depositor address of user depositing assets.
      *   @param params calldata for omnichain execution.
-     *   @param depositor address of user depositing assets.
      *   @param gasToBridgeOut gas allocated for the cross-chain call.
      *   @param remoteExecutionGas gas allocated for omnichain execution.
      *   @dev DEPOSIT ID: 1 (Call without Deposit)

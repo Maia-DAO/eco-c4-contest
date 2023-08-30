@@ -88,7 +88,7 @@ contract vMaia is ERC4626PartnerManager {
     //////////////////////////////////////////////////////////////*/
 
     /// @dev Boost can't be claimed; does not fail. It is all used by the partner vault.
-    function claimBoost(uint256 amount) public override {}
+    function claimBoost(uint256) public override {}
 
     /*//////////////////////////////////////////////////////////////
                     ER4626 WITHDRAWAL LIMIT LOGIC

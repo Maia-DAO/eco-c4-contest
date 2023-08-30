@@ -1,7 +1,8 @@
 ///SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import {BranchBridgeAgent, Deposit, DepositParams, DepositMultipleParams} from "@omni/BranchBridgeAgent.sol";
+import {BranchBridgeAgent} from "@omni/BranchBridgeAgent.sol";
+import {Deposit, DepositParams, DepositMultipleParams} from "@omni/interfaces/IBranchBridgeAgent.sol";
 import {IBranchRouter} from "@omni/interfaces/IBranchRouter.sol";
 import {IBranchPort as IPort} from "@omni/interfaces/IBranchPort.sol";
 import {ERC20hTokenBranch as ERC20hToken} from "@omni/token/ERC20hTokenBranch.sol";

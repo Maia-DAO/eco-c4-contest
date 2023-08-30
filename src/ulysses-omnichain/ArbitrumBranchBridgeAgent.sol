@@ -147,7 +147,7 @@ contract ArbitrumBranchBridgeAgent is BranchBridgeAgent {
     /**
      * @notice Internal that clears gas allocated for usage with remote request
      */
-    function _gasSwapIn(bytes memory gasData) internal override returns (uint256 gasAmount) {
+    function _gasSwapIn(bytes memory) internal override returns (uint256) {
         //Gas already provided by Root Bridge Agent
     }
 

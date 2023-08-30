@@ -13,22 +13,22 @@ import {IAnycallProxy} from "./interfaces/IAnycallProxy.sol";
 import {IAnycallConfig} from "./interfaces/IAnycallConfig.sol";
 import {IAnycallExecutor} from "./interfaces/IAnycallExecutor.sol";
 
-import {IApp, IRootBridgeAgent} from "./interfaces/IRootBridgeAgent.sol";
 import {IBranchBridgeAgent} from "./interfaces/IBranchBridgeAgent.sol";
 import {IERC20hTokenRoot} from "./interfaces/IERC20hTokenRoot.sol";
+
+import {
+    DepositParams,
+    DepositMultipleParams,
+    IApp,
+    IRootBridgeAgent,
+    Settlement,
+    SettlementStatus,
+    SwapCallbackData,
+    UserFeeInfo
+} from "./interfaces/IRootBridgeAgent.sol";
 import {IRootPort as IPort} from "./interfaces/IRootPort.sol";
 
 import {VirtualAccount} from "./VirtualAccount.sol";
-import {
-    IRootBridgeAgent,
-    DepositParams,
-    DepositMultipleParams,
-    Settlement,
-    SettlementStatus,
-    UserFeeInfo,
-    SwapCallbackData
-} from "./interfaces/IRootBridgeAgent.sol";
-
 import {DeployRootBridgeAgentExecutor, RootBridgeAgentExecutor} from "./RootBridgeAgentExecutor.sol";
 
 /// @title Library for Cross Chain Deposit Parameters Validation.
@@ -46,17 +46,17 @@ library CheckParamsLib {
         view
         returns (bool)
     {
-        if (
-            (_dParams.amount < _dParams.deposit) //Deposit can't be greater than amount.
-                || (_dParams.amount > 0 && !IPort(_localPortAddress).isLocalToken(_dParams.hToken, _fromChain)) //Check local exists.
+        //Deposit can't be greater than amount.
+        //Check local exists.
+        //Check underlying exists.
+        return !(
+            (_dParams.amount < _dParams.deposit)
+                || (_dParams.amount > 0 && !IPort(_localPortAddress).isLocalToken(_dParams.hToken, _fromChain))
                 || (
                     _dParams.deposit > 0
                         && IPort(_localPortAddress).getLocalTokenFromUnderlying(_dParams.token, _fromChain) != _dParams.hToken
-                ) //Check underlying exists.
-        ) {
-            return false;
-        }
-        return true;
+                )
+        );
     }
 }
 

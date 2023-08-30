@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity >=0.8.0;
+pragma solidity ^0.8.0;
 
 import {Ownable} from "solady/auth/Ownable.sol";
 import {SafeTransferLib} from "solady/utils/SafeTransferLib.sol";
@@ -45,7 +45,7 @@ contract BoostAggregator is Ownable, IBoostAggregator {
     mapping(uint256 => uint256) public tokenIdRewards;
 
     /// @inheritdoc IBoostAggregator
-    mapping(address => bool) public whitelistedAddresses;
+    mapping(address => bool) public allowlistedAddresses;
 
     /// @inheritdoc IBoostAggregator
     uint256 public protocolRewards;
@@ -79,11 +79,11 @@ contract BoostAggregator is Ownable, IBoostAggregator {
 
     /// @inheritdoc IERC721Receiver
     /// @dev msg.sender not validated to be nonfungiblePositionManager in order to allow
-    ///      whitelisted addresses to retrieve NFTs incorrectly sent to this contract
+    ///      allowlisted addresses to retrieve NFTs incorrectly sent to this contract
     function onERC721Received(address, address from, uint256 tokenId, bytes calldata)
         external
         override
-        onlyWhitelisted(from)
+        onlyAllowlisted(from)
         returns (bytes4)
     {
         // update tokenIdRewards prior to staking
@@ -148,13 +148,13 @@ contract BoostAggregator is Ownable, IBoostAggregator {
     //////////////////////////////////////////////////////////////*/
 
     /// @inheritdoc IBoostAggregator
-    function addWhitelistedAddress(address user) external onlyOwner {
-        whitelistedAddresses[user] = true;
+    function addAllowlistedAddress(address user) external onlyOwner {
+        allowlistedAddresses[user] = true;
     }
 
     /// @inheritdoc IBoostAggregator
-    function removeWhitelistedAddress(address user) external onlyOwner {
-        delete whitelistedAddresses[user];
+    function removeAllowlistedAddress(address user) external onlyOwner {
+        delete allowlistedAddresses[user];
     }
 
     /// @inheritdoc IBoostAggregator
@@ -196,10 +196,10 @@ contract BoostAggregator is Ownable, IBoostAggregator {
                                 MODIFIERS
     //////////////////////////////////////////////////////////////*/
 
-    /// @dev Only whitelisted addresses
+    /// @dev Only allowlisted addresses
     /// @param from The address who the NFT is being transferred from
-    modifier onlyWhitelisted(address from) {
-        if (!whitelistedAddresses[from]) revert Unauthorized();
+    modifier onlyAllowlisted(address from) {
+        if (!allowlistedAddresses[from]) revert Unauthorized();
         _;
     }
 }

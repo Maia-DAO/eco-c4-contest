@@ -9,11 +9,12 @@ import {WETH9} from "./interfaces/IWETH9.sol";
 
 import {IERC20hTokenRootFactory as IFactory} from "./interfaces/IERC20hTokenRootFactory.sol";
 import {IRootRouter} from "./interfaces/IRootRouter.sol";
-import {IRootBridgeAgent as IBridgeAgent} from "./interfaces/IRootBridgeAgent.sol";
+import {
+    DepositParams, DepositMultipleParams, IRootBridgeAgent as IBridgeAgent
+} from "./interfaces/IRootBridgeAgent.sol";
 import {IRootPort as IPort} from "./interfaces/IRootPort.sol";
 import {IVirtualAccount, Call} from "./interfaces/IVirtualAccount.sol";
 
-import {DepositParams, DepositMultipleParams} from "./interfaces/IRootBridgeAgent.sol";
 import {ERC20hTokenRoot} from "./token/ERC20hTokenRoot.sol";
 
 /**

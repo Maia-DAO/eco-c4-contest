@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 // Logic inspired by Popsicle Finance Contracts (PopsicleV3Optimizer/contracts/popsicle-v3-optimizer/PopsicleV3Optimizer.sol)
-pragma solidity >=0.8.0;
+pragma solidity ^0.8.0;
 
 import {FixedPointMathLib} from "solady/utils/FixedPointMathLib.sol";
 
@@ -74,8 +74,7 @@ contract TalosStrategyVanilla is TalosStrategySimple {
     }
 
     /// @notice Performs the necessary actions after a withdraw takes place
-    /// @param _tokenId position id that the user is trying to withdraw from
-    function afterRedeem(uint256 _tokenId) internal override {}
+    function afterRedeem(uint256) internal override {}
 
     /// @notice Performs the necessary actions before a deposit can take place
     /// @param _tokenId position id that the user wants to deposit in
@@ -85,8 +84,7 @@ contract TalosStrategyVanilla is TalosStrategySimple {
     }
 
     /// @notice Performs the necessary actions after a deposit takes place
-    /// @param _tokenId position id that the user wants to deposit in
-    function afterDeposit(uint256 _tokenId) internal override {}
+    function afterDeposit(uint256) internal override {}
 
     /// @notice Performs the necessary actions before a re-range can take place
     /// @param _tokenId position id that the user wants to re-range
@@ -95,8 +93,7 @@ contract TalosStrategyVanilla is TalosStrategySimple {
     }
 
     /// @notice Performs the necessary actions after a re-range takes place
-    /// @param _tokenId position id that the user wants to deposit in
-    function afterRerange(uint256 _tokenId) internal override {}
+    function afterRerange(uint256) internal override {}
 
     /// @notice Collects fees from the pool to the protocol.
     /// @param _tokenId position id that the user wants to collect fees from

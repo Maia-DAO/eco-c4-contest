@@ -6,11 +6,9 @@ import {Ownable} from "solady/auth/Ownable.sol";
 import {IUniswapV3Pool} from "@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol";
 
 import {ITalosBaseStrategy} from "./interfaces/ITalosBaseStrategy.sol";
-import {ITalosManager} from "./interfaces/ITalosManager.sol";
+import {ITalosManager, AutomationCompatibleInterface} from "./interfaces/ITalosManager.sol";
 import {ITalosOptimizer} from "./interfaces/ITalosOptimizer.sol";
 import {PoolVariables} from "./libraries/PoolVariables.sol";
-
-import {ITalosManager, AutomationCompatibleInterface} from "./interfaces/ITalosManager.sol";
 
 /// @title Talos Strategy Manager - Manages rebalancing and reranging of Talos Positions
 contract TalosManager is Ownable, AutomationCompatibleInterface, ITalosManager {

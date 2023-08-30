@@ -95,7 +95,7 @@ abstract contract FlywheelCore is Ownable, IFlywheelCore {
         uint256 accrued = rewardsAccrued[user];
 
         if (accrued != 0) {
-            rewardsAccrued[user] = 0;
+            delete rewardsAccrued[user];
 
             rewardToken.safeTransferFrom(address(flywheelRewards), user, accrued);
 

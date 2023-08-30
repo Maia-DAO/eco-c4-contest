@@ -4,9 +4,8 @@ pragma solidity ^0.8.0;
 import {Ownable} from "solady/auth/Ownable.sol";
 
 import {IRootRouter as IRouter} from "./interfaces/IRootRouter.sol";
-import {IRootBridgeAgent} from "./interfaces/IRootBridgeAgent.sol";
+import {DepositParams, DepositMultipleParams, IRootBridgeAgent} from "./interfaces/IRootBridgeAgent.sol";
 
-import {DepositParams, DepositMultipleParams} from "./interfaces/IRootBridgeAgent.sol";
 import {RootBridgeAgent} from "./RootBridgeAgent.sol";
 
 /// @title Library for Root Bridge Agent Executor Deployment

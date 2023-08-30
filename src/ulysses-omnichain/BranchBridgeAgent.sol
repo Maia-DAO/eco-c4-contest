@@ -6,28 +6,26 @@ import {SafeTransferLib} from "solady/utils/SafeTransferLib.sol";
 
 import {ERC20} from "solmate/tokens/ERC20.sol";
 
-import {WETH9} from "./interfaces/IWETH9.sol";
-
 import {AnycallFlags} from "./lib/AnycallFlags.sol";
-import {IAnycallProxy} from "./interfaces/IAnycallProxy.sol";
-import {IAnycallConfig} from "./interfaces/IAnycallConfig.sol";
-import {IAnycallExecutor} from "./interfaces/IAnycallExecutor.sol";
-import {IApp, IBranchBridgeAgent} from "./interfaces/IBranchBridgeAgent.sol";
-import {IBranchRouter as IRouter} from "./interfaces/IBranchRouter.sol";
-import {IBranchPort as IPort} from "./interfaces/IBranchPort.sol";
 
-import {ERC20hTokenBranch as ERC20hToken} from "./token/ERC20hTokenBranch.sol";
-import {BranchBridgeAgentExecutor, DeployBranchBridgeAgentExecutor} from "./BranchBridgeAgentExecutor.sol";
 import {
     Deposit,
     DepositStatus,
     DepositInput,
     DepositMultipleInput,
-    DepositParams,
-    DepositMultipleParams,
-    SettlementParams,
+    IApp,
+    IBranchBridgeAgent,
     SettlementMultipleParams
 } from "./interfaces/IBranchBridgeAgent.sol";
+import {IAnycallProxy} from "./interfaces/IAnycallProxy.sol";
+import {IAnycallConfig} from "./interfaces/IAnycallConfig.sol";
+import {IAnycallExecutor} from "./interfaces/IAnycallExecutor.sol";
+import {IBranchRouter as IRouter} from "./interfaces/IBranchRouter.sol";
+import {IBranchPort as IPort} from "./interfaces/IBranchPort.sol";
+import {WETH9} from "./interfaces/IWETH9.sol";
+
+import {ERC20hTokenBranch as ERC20hToken} from "./token/ERC20hTokenBranch.sol";
+import {BranchBridgeAgentExecutor, DeployBranchBridgeAgentExecutor} from "./BranchBridgeAgentExecutor.sol";
 
 /// @title Library for Branch Bridge Agent Deployment
 library DeployBranchBridgeAgent {
@@ -1102,13 +1100,6 @@ contract BranchBridgeAgent is IBranchBridgeAgent {
         gasAmount = uint256(uint128(bytes16(gasData)));
         //Move Gas hTokens from Branch to Root / Mint Sufficient hTokens to match new port deposit
         IPort(localPortAddress).withdraw(address(this), address(wrappedNativeToken), gasAmount);
-    }
-
-    /**
-     * @notice Internal function that returns 'from' address and 'fromChain' Id by performing an external call to AnycallExecutor Context.
-     */
-    function _getContext() internal view returns (address from, uint256 fromChainId) {
-        (from, fromChainId,) = IAnycallExecutor(localAnyCallExecutorAddress).context();
     }
 
     /*///////////////////////////////////////////////////////////////

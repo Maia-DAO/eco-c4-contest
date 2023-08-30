@@ -41,6 +41,11 @@ contract PartnerManagerFactory is Ownable, IPartnerManagerFactory {
         vaults.push(IBaseVault(address(0)));
     }
 
+    /// @notice Function being overrriden to prevent mistakenly renouncing ownership.
+    function renounceOwnership() public payable override onlyOwner {
+        revert("Cannot renounce ownership");
+    }
+
     /// @inheritdoc IPartnerManagerFactory
     function getPartners() external view returns (PartnerManager[] memory) {
         return partners;

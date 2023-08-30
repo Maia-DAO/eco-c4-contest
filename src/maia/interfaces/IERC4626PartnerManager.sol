@@ -98,6 +98,9 @@ interface IERC4626PartnerManager {
     /// @dev throws when trying to migrate to an invalid partner vault.
     error UnrecognizedVault();
 
+    /// @dev throws when trying to migrate to a new vault with funds still in the old vault.
+    error UserFundsExistInOldVault();
+
     /// @dev throws when trying to new bHermesRate is smaller than the last one.
     error InvalidRate();
 

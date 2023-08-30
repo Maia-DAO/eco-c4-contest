@@ -7,7 +7,6 @@ import {INonfungiblePositionManager} from "@uniswap/v3-periphery/contracts/inter
 
 import {TalosBaseStrategy} from "../base/TalosBaseStrategy.sol";
 import {DeployVanilla, TalosStrategyVanilla} from "../TalosStrategyVanilla.sol";
-import {TalosManager} from "../TalosManager.sol";
 
 import {OptimizerFactory} from "./OptimizerFactory.sol";
 import {TalosBaseStrategyFactory} from "./TalosBaseStrategyFactory.sol";

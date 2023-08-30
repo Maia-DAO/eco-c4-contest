@@ -128,14 +128,26 @@ interface IBoostAggregator is IERC721Receiver {
 
     /**
      * @dev emitted when a user sets their rewards depot
-     * @param user address of user
+     * @param user address of user, the msg.sender
      * @param rewardsDepot address of rewards depot
      */
     event ChangedRewardsDepot(address indexed user, address indexed rewardsDepot);
 
     /**
+     * @dev emitted when a user is added to the staking allowlist
+     * @param user address of user to add
+     */
+    event AddedAllowlistedAddress(address indexed user);
+
+    /**
+     * @dev emitted when a user is removed from the staking allowlist
+     * @param user address of user to remove
+     */
+    event RemovedAllowlistedAddress(address indexed user);
+
+    /**
      * @dev emitted when the booster's protocol fee is changed
-     * @param protocolFee new protocol fee is set
+     * @param protocolFee new protocol fee to set
      */
     event ChangedProtocolFee(uint256 indexed protocolFee);
 

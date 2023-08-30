@@ -9,9 +9,6 @@ import {ERC20} from "solmate/tokens/ERC20.sol";
 
 import {EnumerableSet} from "@lib/EnumerableSet.sol";
 
-import {IBaseV2Gauge} from "@gauges/interfaces/IBaseV2Gauge.sol";
-
-import {Errors} from "./interfaces/Errors.sol";
 import {IERC20Boost} from "./interfaces/IERC20Boost.sol";
 
 /// @title An ERC20 with an embedded attachment mechanism to keep track of boost

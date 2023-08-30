@@ -152,11 +152,15 @@ contract BoostAggregator is Ownable, IBoostAggregator {
     /// @inheritdoc IBoostAggregator
     function addAllowlistedAddress(address user) external onlyOwner {
         allowlistedAddresses[user] = true;
+
+        emit AddedAllowlistedAddress(user);
     }
 
     /// @inheritdoc IBoostAggregator
     function removeAllowlistedAddress(address user) external onlyOwner {
         delete allowlistedAddresses[user];
+
+        emit RemovedAllowlistedAddress(user);
     }
 
     /// @inheritdoc IBoostAggregator

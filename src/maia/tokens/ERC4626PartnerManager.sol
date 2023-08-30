@@ -207,6 +207,15 @@ abstract contract ERC4626PartnerManager is PartnerUtilityManager, Ownable, ERC46
         if (oldPartnerVault != address(0)) IBaseVault(oldPartnerVault).clearAll();
         bHermesToken.claimOutstanding();
 
+        uint256 bHermesBalance = address(bHermesToken).balanceOf(address(this));
+        if (
+            address(gaugeWeight).balanceOf(address(this)) >= bHermesBalance
+                || address(gaugeBoost).balanceOf(address(this)) >= bHermesBalance
+                || address(governance).balanceOf(address(this)) >= bHermesBalance
+        ) {
+            revert UserFundsExistInOldVault();
+        }
+
         address(gaugeWeight).safeApprove(oldPartnerVault, 0);
         address(gaugeBoost).safeApprove(oldPartnerVault, 0);
         address(governance).safeApprove(oldPartnerVault, 0);

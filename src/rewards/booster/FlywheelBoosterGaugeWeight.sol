@@ -123,7 +123,12 @@ contract FlywheelBoosterGaugeWeight is Ownable, IFlywheelBooster {
             - bHermesGauges(owner()).getUserGaugeWeight(msg.sender, address(strategy));
 
         uint256 length = bribeFlywheels.length;
-        if (length != userFlywheelId) bribeFlywheels[userFlywheelId - 1] = bribeFlywheels[bribeFlywheels.length - 1];
+        if (length != userFlywheelId) {
+            FlywheelCore lastFlywheel = bribeFlywheels[length - 1];
+
+            bribeFlywheels[userFlywheelId - 1] = lastFlywheel;
+            userGaugeflywheelId[msg.sender][strategy][lastFlywheel] = userFlywheelId;
+        }
 
         bribeFlywheels.pop();
         userGaugeflywheelId[msg.sender][strategy][flywheel] = 0;

@@ -79,7 +79,7 @@ contract InvariantFlywheelBoosterGaugeWeight is Test {
 
         // Setup Gauges and Flywheels
         address[] memory gauges = createGauges(2);
-        address[] memory flywheels = createFlywheels(2);
+        address[] memory flywheels = createFlywheels(3);
         addGaugesToFlywheels(gauges, flywheels);
     }
 
@@ -223,15 +223,19 @@ contract InvariantFlywheelBoosterGaugeWeight is Test {
                             USER BRIBE OPT-IN
     ///////////////////////////////////////////////////////////////*/
 
-    function test_OptIn() public returns (ERC20 gauge, FlywheelCore flywheel) {
-        gauge = ERC20(boosterHandler.gauges()[0]);
-        flywheel = FlywheelCore(boosterHandler.flywheels()[0]);
+    function _optIn(uint256 gaugeIndex, uint256 flywheelIndex) internal returns (ERC20 gauge, FlywheelCore flywheel) {
+        gauge = ERC20(boosterHandler.gauges()[gaugeIndex]);
+        flywheel = FlywheelCore(boosterHandler.flywheels()[flywheelIndex]);
 
         booster.optIn(gauge, flywheel);
 
         uint256 id = booster.userGaugeflywheelId(address(this), gauge, flywheel);
         assertGt(id, 0);
         assertEq(address(booster.userGaugeFlywheels(address(this), gauge, id - 1)), address(flywheel));
+    }
+
+    function test_OptIn() public returns (ERC20, FlywheelCore) {
+        return _optIn(0, 0);
     }
 
     function test_OptIn_AlreadyOptedIn() public {
@@ -314,6 +318,17 @@ contract InvariantFlywheelBoosterGaugeWeight is Test {
 
         booster.optOut(gauge, flywheel);
         assertEq(booster.userGaugeflywheelId(address(this), gauge, flywheel), 0);
+    }
+
+    function test_OptIn_OptIn_OptOut() public {
+        (ERC20 gauge1, FlywheelCore flywheel1) = _optIn(0, 0);
+        (ERC20 gauge2, FlywheelCore flywheel2) = _optIn(0, 1);
+        assertEq(booster.userGaugeflywheelId(address(this), gauge1, flywheel1), 1);
+        assertEq(booster.userGaugeflywheelId(address(this), gauge2, flywheel2), 2);
+
+        booster.optOut(gauge1, flywheel1);
+        assertEq(booster.userGaugeflywheelId(address(this), gauge1, flywheel1), 0);
+        assertEq(booster.userGaugeflywheelId(address(this), gauge2, flywheel2), 1);
     }
 
     function test_OptOut_NotOptedIn(ERC20 gauge, FlywheelCore flywheel) public {

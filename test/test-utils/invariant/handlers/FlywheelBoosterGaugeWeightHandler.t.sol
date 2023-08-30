@@ -50,26 +50,34 @@ contract FlywheelBoosterGaugeWeightHandler is CommonBase, StdCheats, StdUtils {
     mapping(bytes32 => uint256) public calls;
 
     AddressSet internal _actors;
-    address internal currentActor;
-
     AddressSet internal _gauges;
     AddressSet internal _flywheels;
 
     FlywheelBoosterGaugeWeight public booster;
 
+    address internal currentActor;
     address internal currentGauge;
     address internal currentFlywheel;
 
     uint256 constant MAX_DEPOSIT = type(uint96).max;
 
-    uint256 constant MAX_ADDRESS_SET = 11;
+    uint256 constant MAX_ADDRESS_SET = 3;
 
     InvariantFlywheelBoosterGaugeWeight internal invariantBoosterTest;
     bHermesGauges internal gaugeToken;
 
-    modifier createActor() {
-        currentActor = msg.sender;
-        _actors.add(msg.sender);
+    modifier advanceOneEpoch(bool skip) {
+        if (skip) vm.warp(block.timestamp + 1 weeks);
+        _;
+    }
+
+    modifier createActor(uint256 actorIndexSeed) {
+        if (_actors.addrs.length < MAX_ADDRESS_SET) {
+            currentActor = msg.sender;
+            _actors.add(msg.sender);
+        } else {
+            currentActor = _actors.rand(actorIndexSeed);
+        }
         vm.startPrank(currentActor);
         _;
         vm.stopPrank();
@@ -201,10 +209,11 @@ contract FlywheelBoosterGaugeWeightHandler is CommonBase, StdCheats, StdUtils {
         ghost_gaugeFlyWheelBoostedTotalSuply[currentGauge][currentFlywheel] -= userGaugeWeight;
     }
 
-    function optIn(uint256 gaugeSeed, uint256 flywheelSeed)
+    function optIn(uint256 actorSeed, uint256 gaugeSeed, uint256 flywheelSeed, bool advanceEpoch)
         public
         virtual
-        createActor
+        advanceOneEpoch(advanceEpoch)
+        createActor(actorSeed)
         useGauge(gaugeSeed)
         useFlywheel(flywheelSeed)
         countCall("optIn")
@@ -212,9 +221,10 @@ contract FlywheelBoosterGaugeWeightHandler is CommonBase, StdCheats, StdUtils {
         optIn();
     }
 
-    function optOut(uint256 actorSeed, uint256 gaugeSeed, uint256 flywheelSeed)
+    function optOut(uint256 actorSeed, uint256 gaugeSeed, uint256 flywheelSeed, bool advanceEpoch)
         public
         virtual
+        advanceOneEpoch(advanceEpoch)
         useActor(actorSeed)
         useGauge(gaugeSeed)
         useFlywheel(flywheelSeed)
@@ -223,19 +233,21 @@ contract FlywheelBoosterGaugeWeightHandler is CommonBase, StdCheats, StdUtils {
         optOut();
     }
 
-    function incrementWeight(uint256 gaugeSeed, uint96 amount)
+    function incrementWeight(uint256 actorSeed, uint256 gaugeSeed, uint96 amount, bool advanceEpoch)
         public
         virtual
-        createActor
+        advanceOneEpoch(advanceEpoch)
+        createActor(actorSeed)
         useGauge(gaugeSeed)
         countCall("incrementWeight")
     {
         incrementGauge(amount);
     }
 
-    function decrementWeight(uint256 actorSeed, uint256 gaugeSeed, uint96 amount)
+    function decrementWeight(uint256 actorSeed, uint256 gaugeSeed, uint96 amount, bool advanceEpoch)
         public
         virtual
+        advanceOneEpoch(advanceEpoch)
         useActor(actorSeed)
         useGauge(gaugeSeed)
         countCall("decrementWeight")

@@ -126,7 +126,10 @@ contract BranchPort is Ownable, IBranchPort {
     function _excessReserves(address _token) internal view returns (uint256) {
         uint256 currBalance = ERC20(_token).balanceOf(address(this));
         uint256 minReserves = _minimumReserves(currBalance, _token);
-        return currBalance > minReserves ? currBalance - minReserves : 0;
+
+        unchecked {
+            return currBalance > minReserves ? currBalance - minReserves : 0;
+        }
     }
 
     /**
@@ -137,7 +140,10 @@ contract BranchPort is Ownable, IBranchPort {
     function _reservesLacking(address _token) internal view returns (uint256) {
         uint256 currBalance = ERC20(_token).balanceOf(address(this));
         uint256 minReserves = _minimumReserves(currBalance, _token);
-        return currBalance < minReserves ? minReserves - currBalance : 0;
+
+        unchecked {
+            return currBalance < minReserves ? minReserves - currBalance : 0;
+        }
     }
 
     /**

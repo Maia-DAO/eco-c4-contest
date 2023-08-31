@@ -39,8 +39,14 @@ contract RootPort is Ownable, IRootPort {
     /// @notice wrapped native token address
     address public immutable wrappedNativeTokenAddress;
 
+    /// @notice Number of bridgeAgents deployed in current chain.
+    uint64 public bridgeAgentsLength;
+
     /// @notice The address of local branch port responsible for handling local transactions.
     address public localBranchPortAddress;
+
+    /// @notice Number of Bridge Agents deployed in current chain.
+    uint64 public bridgeAgentFactoriesLength;
 
     /// @notice The address of the core router in charge of adding new tokens to the system.
     address public coreRootRouterAddress;
@@ -72,9 +78,6 @@ contract RootPort is Ownable, IRootPort {
     /// @notice Bridge Agents deployed in root chain.
     address[] public bridgeAgents;
 
-    /// @notice Number of bridgeAgents deployed in current chain.
-    uint256 public bridgeAgentsLength;
-
     /// @notice Mapping address Bridge Agent => address Bridge Agent Manager
     mapping(address => address) public getBridgeAgentManager;
 
@@ -87,9 +90,6 @@ contract RootPort is Ownable, IRootPort {
 
     /// @notice Bridge Agents deployed in root chain.
     address[] public bridgeAgentFactories;
-
-    /// @notice Number of Bridge Agents deployed in current chain.
-    uint256 public bridgeAgentFactoriesLength;
 
     /*///////////////////////////////////////////////////////////////
                             hTOKENS
@@ -134,9 +134,9 @@ contract RootPort is Ownable, IRootPort {
     }
 
     function initialize(address _bridgeAgentFactory, address _coreRootRouter) external onlyOwner {
-        require(_setup, "Setup ended.");
         require(_bridgeAgentFactory != address(0), "Bridge Agent Factory cannot be 0 address.");
         require(_coreRootRouter != address(0), "Core Root Router cannot be 0 address.");
+        require(_setup, "Setup ended.");
 
         isBridgeAgentFactory[_bridgeAgentFactory] = true;
         bridgeAgentFactories.push(_bridgeAgentFactory);
@@ -152,11 +152,11 @@ contract RootPort is Ownable, IRootPort {
         address _coreLocalBranchBridgeAgent,
         address _localBranchPortAddress
     ) external onlyOwner {
-        require(_setupCore, "Core Setup ended.");
-        require(isBridgeAgent[_coreRootBridgeAgent], "Core Bridge Agent doesn't exist.");
         require(_coreRootBridgeAgent != address(0), "Core Root Bridge Agent cannot be 0 address.");
         require(_coreLocalBranchBridgeAgent != address(0), "Core Local Branch Bridge Agent cannot be 0 address.");
         require(_localBranchPortAddress != address(0), "Local Branch Port Address cannot be 0 address.");
+        require(isBridgeAgent[_coreRootBridgeAgent], "Core Bridge Agent doesn't exist.");
+        require(_setupCore, "Core Setup ended.");
 
         coreRootBridgeAgentAddress = _coreRootBridgeAgent;
         localBranchPortAddress = _localBranchPortAddress;

@@ -13,7 +13,7 @@ contract ERC20hTokenRootFactory is Ownable, IERC20hTokenRootFactory {
     using SafeTransferLib for address;
 
     /// @notice Local Network Identifier.
-    uint256 public immutable localChainId;
+    uint16 public immutable localChainId;
 
     /// @notice Root Port Address.
     address public immutable rootPortAddress;
@@ -21,16 +21,18 @@ contract ERC20hTokenRootFactory is Ownable, IERC20hTokenRootFactory {
     /// @notice Root Core Router Address, in charge of the addition of new tokens to the system.
     address public coreRootRouterAddress;
 
-    ERC20hTokenRoot[] public hTokens;
+    /// @notice Length of the hTokens array.
+    uint96 public hTokensLength;
 
-    uint256 public hTokensLength;
+    /// @notice Array of all hTokens created.
+    ERC20hTokenRoot[] public hTokens;
 
     /**
      * @notice Constructor for ERC20 hToken Contract
      *     @param _localChainId Local Network Identifier.
      *     @param _rootPortAddress Root Port Address
      */
-    constructor(uint256 _localChainId, address _rootPortAddress) {
+    constructor(uint16 _localChainId, address _rootPortAddress) {
         require(_rootPortAddress != address(0), "Root Port Address cannot be 0");
         localChainId = _localChainId;
         rootPortAddress = _rootPortAddress;

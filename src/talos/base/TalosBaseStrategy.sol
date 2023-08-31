@@ -161,7 +161,7 @@ abstract contract TalosBaseStrategy is Ownable, ERC20, ReentrancyGuard, ITalosBa
             amount1 = _amount1;
         }
 
-        if (amount0 == 0 && amount1 == 0) revert AmountsAreZero();
+        if (amount0 == 0) if (amount1 == 0) revert AmountsAreZero();
 
         shares = liquidity * MULTIPLIER;
 
@@ -228,11 +228,11 @@ abstract contract TalosBaseStrategy is Ownable, ERC20, ReentrancyGuard, ITalosBa
             );
         }
 
-        if (amount0 == 0 && amount1 == 0) revert AmountsAreZero();
+        if (amount0 == 0) if (amount1 == 0) revert AmountsAreZero();
 
         uint256 supply = totalSupply; // Saves an extra SLOAD if totalSupply is non-zero.
         shares = supply == 0 ? liquidityDifference * MULTIPLIER : (liquidityDifference * supply) / liquidity;
-        liquidity += liquidityDifference;
+        liquidity = liquidity + liquidityDifference;
 
         if (shares == 0) revert NoSharesMinted();
         _mint(receiver, shares);
@@ -277,7 +277,8 @@ abstract contract TalosBaseStrategy is Ownable, ERC20, ReentrancyGuard, ITalosBa
         beforeRedeem(_tokenId, _owner);
 
         {
-            uint128 liquidityToDecrease = uint128((liquidity * shares) / totalSupply);
+            uint128 _liquidity = liquidity; // Saves an extra SLOAD.
+            uint128 liquidityToDecrease = uint128((_liquidity * shares) / totalSupply);
 
             nonfungiblePositionManager.decreaseLiquidity(
                 INonfungiblePositionManager.DecreaseLiquidityParams({
@@ -291,7 +292,7 @@ abstract contract TalosBaseStrategy is Ownable, ERC20, ReentrancyGuard, ITalosBa
 
             _burn(_owner, shares);
 
-            liquidity -= liquidityToDecrease;
+            liquidity = _liquidity - liquidityToDecrease;
         }
 
         (amount0, amount1) = nonfungiblePositionManager.collect(
@@ -303,7 +304,7 @@ abstract contract TalosBaseStrategy is Ownable, ERC20, ReentrancyGuard, ITalosBa
             })
         );
 
-        if (amount0 == 0 && amount1 == 0) revert AmountsAreZero();
+        if (amount0 == 0) if (amount1 == 0) revert AmountsAreZero();
 
         emit Redeem(msg.sender, receiver, _owner, amount0, amount1, shares);
 
@@ -352,7 +353,7 @@ abstract contract TalosBaseStrategy is Ownable, ERC20, ReentrancyGuard, ITalosBa
     /// @inheritdoc ITalosBaseStrategy
     function uniswapV3SwapCallback(int256 amount0, int256 amount1, bytes calldata _data) external {
         if (msg.sender != address(pool)) revert CallerIsNotPool();
-        if (amount0 == 0 && amount1 == 0) revert AmountsAreZero();
+        if (amount0 == 0) if (amount1 == 0) revert AmountsAreZero();
         SwapCallbackData memory data = abi.decode(_data, (SwapCallbackData));
         bool zeroForOne = data.zeroForOne;
 

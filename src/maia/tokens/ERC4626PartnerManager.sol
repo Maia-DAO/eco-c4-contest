@@ -91,10 +91,12 @@ abstract contract ERC4626PartnerManager is PartnerUtilityManager, Ownable, ERC46
         /// @dev e.g. bHermesRate value 1100 if need to set 1.1X
         uint256 balance = balanceOf[msg.sender].mulWad(bHermesRate);
         /// @dev Never overflows since balandeOf >= userClaimed.
-        claimWeight(balance - userClaimedWeight[msg.sender]);
-        claimBoost(balance - userClaimedBoost[msg.sender]);
-        claimGovernance(balance - userClaimedGovernance[msg.sender]);
-        claimPartnerGovernance(balance - userClaimedPartnerGovernance[msg.sender]);
+        unchecked {
+            claimWeight(balance - userClaimedWeight[msg.sender]);
+            claimBoost(balance - userClaimedBoost[msg.sender]);
+            claimGovernance(balance - userClaimedGovernance[msg.sender]);
+            claimPartnerGovernance(balance - userClaimedPartnerGovernance[msg.sender]);
+        }
     }
 
     /*//////////////////////////////////////////////////////////////

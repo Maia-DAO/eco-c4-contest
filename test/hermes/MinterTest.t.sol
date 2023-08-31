@@ -65,29 +65,29 @@ contract BaseV2MinterTest is DSTestPlus {
         assertEq(address(baseV2Minter.dao()), newDao);
     }
 
-    function testSetDaoShare(uint256 newDaoShare) public {
+    function testSetDaoShare(uint96 newDaoShare) public {
         newDaoShare %= 301;
         assertEq(baseV2Minter.daoShare(), 100);
         baseV2Minter.setDaoShare(newDaoShare);
         assertEq(baseV2Minter.daoShare(), newDaoShare);
     }
 
-    function testSetDaoShareFail(uint256 newDaoShare) public {
-        newDaoShare %= type(uint256).max - 301;
+    function testSetDaoShareFail(uint96 newDaoShare) public {
+        newDaoShare %= type(uint96).max - 301;
         newDaoShare += 301;
         hevm.expectRevert(IBaseV2Minter.DaoShareTooHigh.selector);
         baseV2Minter.setDaoShare(newDaoShare);
     }
 
-    function testSetTailEmission(uint256 newTailEmission) public {
+    function testSetTailEmission(uint96 newTailEmission) public {
         newTailEmission %= 101;
         assertEq(baseV2Minter.tailEmission(), 20);
         baseV2Minter.setTailEmission(newTailEmission);
         assertEq(baseV2Minter.tailEmission(), newTailEmission);
     }
 
-    function testSetTailEmissionFail(uint256 newTailEmission) public {
-        newTailEmission %= type(uint256).max - 101;
+    function testSetTailEmissionFail(uint96 newTailEmission) public {
+        newTailEmission %= type(uint96).max - 101;
         newTailEmission += 101;
         hevm.expectRevert(IBaseV2Minter.TailEmissionTooHigh.selector);
         baseV2Minter.setTailEmission(newTailEmission);

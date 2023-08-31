@@ -115,6 +115,10 @@ contract GovernorBravoDelegateStorageV1 is GovernorBravoDelegatorStorage {
         uint256 id;
         /// @notice Creator of the proposal
         address proposer;
+        /// @notice Flag marking whether the proposal has been canceled
+        bool canceled;
+        /// @notice Flag marking whether the proposal has been executed
+        bool executed;
         /// @notice The timestamp that the proposal will be available for execution, set once the vote succeeds
         uint256 eta;
         /// @notice the ordered list of target addresses for calls to be made
@@ -137,10 +141,6 @@ contract GovernorBravoDelegateStorageV1 is GovernorBravoDelegatorStorage {
         uint256 againstVotes;
         /// @notice Current number of votes for abstaining for this proposal
         uint256 abstainVotes;
-        /// @notice Flag marking whether the proposal has been canceled
-        bool canceled;
-        /// @notice Flag marking whether the proposal has been executed
-        bool executed;
         /// @notice Receipts of ballots for the entire set of voters
         mapping(address => Receipt) receipts;
     }

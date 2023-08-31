@@ -213,9 +213,13 @@ abstract contract ERC20Gauges is ERC20MultiVotes, ReentrancyGuard, IERC20Gauges 
 
         flywheelBooster.accrueBribesPositiveDelta(user, ERC20(gauge), weight);
 
-        bool added = _userGauges[user].add(gauge); // idempotent add
-        if (added && _userGauges[user].length() > maxGauges && !canContractExceedMaxGauges[user]) {
-            revert MaxGaugeError();
+        // idempotent add
+        if (_userGauges[user].add(gauge)) {
+            if (_userGauges[user].length() > maxGauges) {
+                if (!canContractExceedMaxGauges[user]) {
+                    revert MaxGaugeError();
+                }
+            }
         }
 
         getUserGaugeWeight[user][gauge] += weight;
@@ -467,7 +471,7 @@ abstract contract ERC20Gauges is ERC20MultiVotes, ReentrancyGuard, IERC20Gauges 
 
     /// @inheritdoc IERC20Gauges
     function setContractExceedMaxGauges(address account, bool canExceedMax) external onlyOwner {
-        if (canExceedMax && account.code.length == 0) revert Errors.NonContractError(); // can only approve contracts
+        if (canExceedMax) if (account.code.length == 0) revert Errors.NonContractError(); // can only approve contracts
 
         canContractExceedMaxGauges[account] = canExceedMax;
 

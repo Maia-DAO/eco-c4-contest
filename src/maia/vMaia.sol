@@ -3,6 +3,7 @@
 pragma solidity ^0.8.0;
 
 import {FixedPointMathLib} from "solady/utils/FixedPointMathLib.sol";
+import {SafeCastLib} from "solady/utils/SafeCastLib.sol";
 import {SafeTransferLib} from "solady/utils/SafeTransferLib.sol";
 
 import {ERC20} from "solmate/tokens/ERC20.sol";
@@ -23,6 +24,7 @@ import {ERC4626PartnerManager, PartnerManagerFactory} from "./tokens/ERC4626Part
  *               during the 1st Tuesday (UTC+0) of the month.
  */
 contract vMaia is ERC4626PartnerManager {
+    using SafeCastLib for uint256;
     using SafeTransferLib for address;
     using FixedPointMathLib for uint256;
 
@@ -30,8 +32,8 @@ contract vMaia is ERC4626PartnerManager {
                              vMAIA STATE
     //////////////////////////////////////////////////////////////*/
 
-    uint256 private currentMonth;
-    uint256 private unstakePeriodEnd;
+    uint128 private currentMonth;
+    uint128 private unstakePeriodEnd;
 
     /**
      * @notice Initializes the vMaia token.
@@ -55,7 +57,7 @@ contract vMaia is ERC4626PartnerManager {
         address _owner
     ) ERC4626PartnerManager(_factory, _bHermesRate, _partnerAsset, _name, _symbol, _bhermes, _partnerVault, _owner) {
         // Set the current month to the current month.
-        currentMonth = DateTimeLib.getMonth(block.timestamp);
+        currentMonth = DateTimeLib.getMonth(block.timestamp).toUint128();
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -72,9 +74,11 @@ contract vMaia is ERC4626PartnerManager {
     function claimOutstanding() public override {
         uint256 balance = balanceOf[msg.sender].mulWad(bHermesRate);
         /// @dev Never overflows since balandeOf >= userClaimed.
-        claimWeight(balance - userClaimedWeight[msg.sender]);
-        claimGovernance(balance - userClaimedGovernance[msg.sender]);
-        claimPartnerGovernance(balance - userClaimedPartnerGovernance[msg.sender]);
+        unchecked {
+            claimWeight(balance - userClaimedWeight[msg.sender]);
+            claimGovernance(balance - userClaimedGovernance[msg.sender]);
+            claimPartnerGovernance(balance - userClaimedPartnerGovernance[msg.sender]);
+        }
     }
 
     function forfeitOutstanding() public override {
@@ -130,14 +134,14 @@ contract vMaia is ERC4626PartnerManager {
         /// @dev Check if unstake period has not ended yet, continue if it is the case.
         if (unstakePeriodEnd >= block.timestamp) return;
 
-        uint256 _currentMonth = DateTimeLib.getMonth(block.timestamp);
+        uint128 _currentMonth = DateTimeLib.getMonth(block.timestamp).toUint128();
         if (_currentMonth == currentMonth) revert UnstakePeriodNotLive();
 
         (bool isTuesday, uint256 _unstakePeriodStart) = DateTimeLib.isTuesday(block.timestamp);
         if (!isTuesday) revert UnstakePeriodNotLive();
 
         currentMonth = _currentMonth;
-        unstakePeriodEnd = _unstakePeriodStart + 1 days;
+        unstakePeriodEnd = (_unstakePeriodStart + 1 days).toUint128();
     }
 
     /*///////////////////////////////////////////////////////////////

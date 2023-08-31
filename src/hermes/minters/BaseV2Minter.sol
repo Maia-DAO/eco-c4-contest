@@ -37,14 +37,15 @@ contract BaseV2Minter is Ownable, IBaseV2Minter {
     address public override dao;
 
     /// @inheritdoc IBaseV2Minter
-    uint256 public override daoShare = 100;
-    uint256 public override tailEmission = 20;
-    /// @inheritdoc IBaseV2Minter
+    uint96 public override daoShare = 100;
 
     /// @inheritdoc IBaseV2Minter
     uint256 public override weekly;
     /// @inheritdoc IBaseV2Minter
     uint256 public override activePeriod;
+
+    /// @inheritdoc IBaseV2Minter
+    uint96 public override tailEmission = 20;
 
     address internal initializer;
 
@@ -90,7 +91,7 @@ contract BaseV2Minter is Ownable, IBaseV2Minter {
     }
 
     /// @inheritdoc IBaseV2Minter
-    function setDaoShare(uint256 _daoShare) external onlyOwner {
+    function setDaoShare(uint96 _daoShare) external onlyOwner {
         if (_daoShare > MAX_DAO_SHARE) revert DaoShareTooHigh();
         if (dao == address(0)) revert DaoRewardsAreDisabled();
         daoShare = _daoShare;
@@ -99,7 +100,7 @@ contract BaseV2Minter is Ownable, IBaseV2Minter {
     }
 
     /// @inheritdoc IBaseV2Minter
-    function setTailEmission(uint256 _tailEmission) external onlyOwner {
+    function setTailEmission(uint96 _tailEmission) external onlyOwner {
         if (_tailEmission > MAX_TAIL_EMISSION) revert TailEmissionTooHigh();
         tailEmission = _tailEmission;
 
@@ -141,14 +142,18 @@ contract BaseV2Minter is Ownable, IBaseV2Minter {
             uint256 share = (newWeeklyEmission * daoShare) / BASE;
 
             uint256 _required = weekly + _growth + share;
-            uint256 _balanceOf = underlying.balanceOf(address(this));
+            address _underlying = underlying;
+            uint256 _balanceOf = _underlying.balanceOf(address(this));
+
             if (_balanceOf < _required) {
-                HERMES(underlying).mint(address(this), _required - _balanceOf);
+                HERMES(_underlying).mint(address(this), _required - _balanceOf);
             }
 
-            underlying.safeTransfer(address(vault), _growth);
+            _underlying.safeTransfer(address(vault), _growth);
 
-            if (dao != address(0)) underlying.safeTransfer(dao, share);
+            address _dao = dao;
+
+            if (_dao != address(0)) _underlying.safeTransfer(_dao, share);
 
             emit Mint(msg.sender, newWeeklyEmission, _circulatingSupply, _growth, share);
 

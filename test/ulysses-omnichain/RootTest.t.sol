@@ -53,11 +53,11 @@ interface IAnycallApp {
 contract RootTest is DSTestPlus {
     // Consts
 
-    uint24 constant rootChainId = uint24(42161);
+    uint16 constant rootChainId = uint16(42161);
 
-    uint24 constant avaxChainId = uint24(43114);
+    uint16 constant avaxChainId = uint16(43114);
 
-    uint24 constant ftmChainId = uint24(2040);
+    uint16 constant ftmChainId = uint16(2040);
 
     //// System contracts
 

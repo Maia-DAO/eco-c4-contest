@@ -102,9 +102,11 @@ contract bHermes is UtilityManager, ERC4626DepositOnly {
     function claimOutstanding() external virtual {
         uint256 balance = balanceOf[msg.sender];
         /// @dev Never overflows since balandeOf >= userClaimed.
-        claimWeight(balance - userClaimedWeight[msg.sender]);
-        claimBoost(balance - userClaimedBoost[msg.sender]);
-        claimGovernance(balance - userClaimedGovernance[msg.sender]);
+        unchecked {
+            claimWeight(balance - userClaimedWeight[msg.sender]);
+            claimBoost(balance - userClaimedBoost[msg.sender]);
+            claimGovernance(balance - userClaimedGovernance[msg.sender]);
+        }
     }
 
     /*///////////////////////////////////////////////////////////////

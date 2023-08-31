@@ -78,11 +78,11 @@ contract MulticallRootBridgeAgentTest is Test {
 
     ArbitrumBranchBridgeAgentFactory localBranchBridgeAgentFactory;
 
-    uint24 rootChainId = uint24(42161);
+    uint16 rootChainId = uint16(42161);
 
-    uint24 avaxChainId = uint24(1088);
+    uint16 avaxChainId = uint16(1088);
 
-    uint24 ftmChainId = uint24(2040);
+    uint16 ftmChainId = uint16(2040);
 
     address wrappedNativeToken;
 

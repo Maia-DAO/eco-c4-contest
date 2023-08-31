@@ -169,15 +169,18 @@ abstract contract ERC20Boost is ERC20, Ownable, IERC20Boost {
     /// @inheritdoc IERC20Boost
     function decrementGaugeBoost(address gauge, uint256 boost) public {
         GaugeState storage gaugeState = getUserGaugeBoost[msg.sender][gauge];
-        if (_deprecatedGauges.contains(gauge) || boost >= gaugeState.userGaugeBoost) {
+        uint256 _userGaugeBoost = gaugeState.userGaugeBoost;
+
+        if (_deprecatedGauges.contains(gauge) || boost >= _userGaugeBoost) {
             require(_userGauges[msg.sender].remove(gauge)); // Remove from set. Should never fail.
             delete getUserGaugeBoost[msg.sender][gauge];
 
             emit Detach(msg.sender, gauge);
         } else {
-            gaugeState.userGaugeBoost -= boost.toUint128();
+            _userGaugeBoost = _userGaugeBoost - boost;
+            gaugeState.userGaugeBoost = _userGaugeBoost.toUint128();
 
-            emit DecrementUserGaugeBoost(msg.sender, gauge, gaugeState.userGaugeBoost);
+            emit DecrementUserGaugeBoost(msg.sender, gauge, _userGaugeBoost);
         }
     }
 
@@ -203,16 +206,18 @@ abstract contract ERC20Boost is ERC20, Ownable, IERC20Boost {
             address gauge = gaugeList[offset + i];
 
             GaugeState storage gaugeState = getUserGaugeBoost[msg.sender][gauge];
+            uint256 _userGaugeBoost = gaugeState.userGaugeBoost;
 
-            if (_deprecatedGauges.contains(gauge) || boost >= gaugeState.userGaugeBoost) {
+            if (_deprecatedGauges.contains(gauge) || boost >= _userGaugeBoost) {
                 require(_userGauges[msg.sender].remove(gauge)); // Remove from set. Should never fail.
                 delete getUserGaugeBoost[msg.sender][gauge];
 
                 emit Detach(msg.sender, gauge);
             } else {
-                gaugeState.userGaugeBoost -= boost.toUint128();
+                _userGaugeBoost = _userGaugeBoost - boost;
+                gaugeState.userGaugeBoost = _userGaugeBoost.toUint128();
 
-                emit DecrementUserGaugeBoost(msg.sender, gauge, gaugeState.userGaugeBoost);
+                emit DecrementUserGaugeBoost(msg.sender, gauge, _userGaugeBoost);
             }
 
             unchecked {

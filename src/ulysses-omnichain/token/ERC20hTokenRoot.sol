@@ -10,7 +10,7 @@ import {IERC20hTokenRoot} from "../interfaces/IERC20hTokenRoot.sol";
 /// @title ERC20 hToken Contract
 contract ERC20hTokenRoot is Ownable, ERC20, IERC20hTokenRoot {
     /// @inheritdoc IERC20hTokenRoot
-    uint256 public localChainId;
+    uint16 public localChainId;
 
     /// @inheritdoc IERC20hTokenRoot
     address public rootPortAddress;
@@ -33,7 +33,7 @@ contract ERC20hTokenRoot is Ownable, ERC20, IERC20hTokenRoot {
      *     @param _symbol Symbol of the Token.
      */
     constructor(
-        uint256 _localChainId,
+        uint16 _localChainId,
         address _factoryAddress,
         address _rootPortAddress,
         string memory _name,

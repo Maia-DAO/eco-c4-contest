@@ -594,15 +594,19 @@ contract RootBridgeAgent is IRootBridgeAgent {
 
         //Clear Global hTokens To Recipient on Root Chain cancelling Settlement to Branch
         for (uint256 i = 0; i < settlement.hTokens.length;) {
+            //Save to memory
+            address _hToken = settlement.hTokens[i];
+            uint24 _toChain = settlement.toChain;
+
             //Check if asset
-            if (settlement.hTokens[i] != address(0)) {
+            if (_hToken != address(0)) {
                 //Move hTokens from Branch to Root + Mint Sufficient hTokens to match new port deposit
                 IPort(localPortAddress).bridgeToRoot(
                     msg.sender,
-                    IPort(localPortAddress).getGlobalTokenFromLocal(settlement.hTokens[i], settlement.toChain),
+                    IPort(localPortAddress).getGlobalTokenFromLocal(_hToken, _toChain),
                     settlement.amounts[i],
                     settlement.deposits[i],
-                    settlement.toChain
+                    _toChain
                 );
             }
 
@@ -824,17 +828,20 @@ contract RootBridgeAgent is IRootBridgeAgent {
         //Save gasleft
         uint256 gasLeft = gasleft();
 
+        //Save Gas To Bridge out
+        uint128 _gasToBridgeOut = getSettlement[_settlementNonce].gasToBridgeOut;
+
         //Get Branch Environment Execution Cost
         uint256 minExecCost = tx.gasprice * (MIN_FALLBACK_RESERVE + _initialGas - gasLeft);
 
         //Check if sufficient balance
-        if (minExecCost > getSettlement[_settlementNonce].gasToBridgeOut) {
+        if (minExecCost > _gasToBridgeOut) {
             _forceRevert();
             return;
         }
 
         //Update user deposit reverts if not enough gas
-        getSettlement[_settlementNonce].gasToBridgeOut -= minExecCost.toUint128();
+        getSettlement[_settlementNonce].gasToBridgeOut = _gasToBridgeOut - minExecCost.toUint128();
     }
 
     function _replenishGas(uint256 _executionGasSpent) internal {

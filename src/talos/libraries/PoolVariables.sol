@@ -95,7 +95,8 @@ library PoolVariables {
     /// of `tickSpacing`.
     function floor(int24 tick, int24 tickSpacing) internal pure returns (int24) {
         int24 compressed = tick / tickSpacing;
-        if (tick < 0 && tick % tickSpacing != 0) compressed--;
+        if (tick < 0) if (tick % tickSpacing != 0) compressed--;
+
         return compressed * tickSpacing;
     }
 

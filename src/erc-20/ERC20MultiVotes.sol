@@ -190,8 +190,11 @@ abstract contract ERC20MultiVotes is ERC20, Ownable, IERC20MultiVotes {
         uint256 free = freeVotes(delegator);
         if (delegatee == address(0) || free < amount || amount == 0) revert DelegationError();
 
-        bool newDelegate = _delegates[delegator].add(delegatee); // idempotent add
-        if (newDelegate && delegateCount(delegator) > maxDelegates && !canContractExceedMaxDelegates[delegator]) {
+        // idempotent add
+        if (
+            _delegates[delegator].add(delegatee) && delegateCount(delegator) > maxDelegates
+                && !canContractExceedMaxDelegates[delegator]
+        ) {
             // if is a new delegate, exceeds max and is not approved to exceed, revert
             revert DelegationError();
         }

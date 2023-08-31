@@ -440,16 +440,6 @@ contract CoreRootRouter is IRootRouter, Ownable {
                             MODIFIERS
     ///////////////////////////////////////////////////////////////*/
 
-    uint256 internal _unlocked = 1;
-
-    /// @notice Modifier for a simple re-entrancy check.
-    modifier lock() {
-        require(_unlocked == 1);
-        _unlocked = 2;
-        _;
-        _unlocked = 1;
-    }
-
     /// @notice Modifier verifies the caller is the Bridge Agent Executor.
     modifier requiresExecutor() {
         _requiresExecutor();

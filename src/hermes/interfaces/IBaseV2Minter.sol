@@ -32,11 +32,11 @@ interface IBaseV2Minter is IRewardsStream {
     function dao() external view returns (address);
 
     /// @notice Represents the percentage of the emissions that will be sent to the DAO.
-    function daoShare() external view returns (uint256);
+    function daoShare() external view returns (uint96);
 
     /// @notice Represents the percentage of the circulating supply
     ///         that will be distributed every epoch as rewards
-    function tailEmission() external view returns (uint256);
+    function tailEmission() external view returns (uint96);
 
     /// @notice Represents the weekly emissions.
     function weekly() external view returns (uint256);
@@ -59,7 +59,7 @@ interface IBaseV2Minter is IRewardsStream {
      * @notice Changes the current tail emissions.
      * @param _tailEmission amount to set as the tail emission
      */
-    function setTailEmission(uint256 _tailEmission) external;
+    function setTailEmission(uint96 _tailEmission) external;
 
     /**
      * @notice Sets the address of the DAO.
@@ -71,7 +71,7 @@ interface IBaseV2Minter is IRewardsStream {
      * @notice Sets the share of the DAO rewards.
      * @param _daoShare share of the DAO rewards.
      */
-    function setDaoShare(uint256 _daoShare) external;
+    function setDaoShare(uint96 _daoShare) external;
 
     /*//////////////////////////////////////////////////////////////
                          EMISSION LOGIC

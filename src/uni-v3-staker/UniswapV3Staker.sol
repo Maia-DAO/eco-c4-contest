@@ -232,7 +232,10 @@ contract UniswapV3Staker is IUniswapV3Staker, Multicallable {
         (IUniswapV3Pool pool, int24 tickLower, int24 tickUpper, uint128 liquidity) =
             NFTPositionInfo.getPositionInfo(factory, nonfungiblePositionManager, tokenId);
 
-        deposits[tokenId] = Deposit({owner: from, tickLower: tickLower, tickUpper: tickUpper, stakedTimestamp: 0});
+        Deposit storage _deposit = deposits[tokenId];
+        _deposit.owner = from;
+        _deposit.tickLower = tickLower;
+        _deposit.tickUpper = tickUpper;
         emit DepositTransferred(tokenId, address(0), from);
 
         // stake the token in the current incentive
@@ -509,16 +512,15 @@ contract UniswapV3Staker is IUniswapV3Staker, Multicallable {
 
         (, uint160 secondsPerLiquidityInsideX128,) = pool.snapshotCumulativesInside(tickLower, tickUpper);
 
-        if (liquidity >= type(uint96).max) {
-            _stakes[tokenId][incentiveId] = Stake({
-                secondsPerLiquidityInsideInitialX128: secondsPerLiquidityInsideX128,
-                liquidityNoOverflow: type(uint96).max,
-                liquidityIfOverflow: liquidity
-            });
-        } else {
-            Stake storage stake = _stakes[tokenId][incentiveId];
+        Stake storage stake = _stakes[tokenId][incentiveId];
+
+        if (liquidity < type(uint96).max) {
             stake.secondsPerLiquidityInsideInitialX128 = secondsPerLiquidityInsideX128;
             stake.liquidityNoOverflow = uint96(liquidity);
+        } else {
+            stake.secondsPerLiquidityInsideInitialX128 = secondsPerLiquidityInsideX128;
+            stake.liquidityNoOverflow = type(uint96).max;
+            stake.liquidityIfOverflow = liquidity;
         }
 
         emit TokenStaked(tokenId, incentiveId, liquidity);

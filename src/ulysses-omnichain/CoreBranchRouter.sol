@@ -161,10 +161,10 @@ contract CoreBranchRouter is ICoreBranchRouter, BaseBranchRouter {
      *
      */
     function _toggleBranchBridgeAgentFactory(address _newBridgeAgentFactoryAddress) internal {
-        if (!IPort(localPortAddress).isBridgeAgentFactory(_newBridgeAgentFactoryAddress)) {
-            IPort(localPortAddress).addBridgeAgentFactory(_newBridgeAgentFactoryAddress);
-        } else {
+        if (IPort(localPortAddress).isBridgeAgentFactory(_newBridgeAgentFactoryAddress)) {
             IPort(localPortAddress).toggleBridgeAgentFactory(_newBridgeAgentFactoryAddress);
+        } else {
+            IPort(localPortAddress).addBridgeAgentFactory(_newBridgeAgentFactoryAddress);
         }
     }
 
@@ -187,10 +187,10 @@ contract CoreBranchRouter is ICoreBranchRouter, BaseBranchRouter {
      *
      */
     function _manageStrategyToken(address _underlyingToken, uint256 _minimumReservesRatio) internal {
-        if (!IPort(localPortAddress).isStrategyToken(_underlyingToken)) {
-            IPort(localPortAddress).addStrategyToken(_underlyingToken, _minimumReservesRatio);
-        } else {
+        if (IPort(localPortAddress).isStrategyToken(_underlyingToken)) {
             IPort(localPortAddress).toggleStrategyToken(_underlyingToken);
+        } else {
+            IPort(localPortAddress).addStrategyToken(_underlyingToken, _minimumReservesRatio);
         }
     }
 

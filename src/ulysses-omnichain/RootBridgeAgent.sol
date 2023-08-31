@@ -1142,16 +1142,16 @@ contract RootBridgeAgent is IRootBridgeAgent {
             uint32 nonce = uint32(bytes4(data[1:5]));
 
             //Check if tx has already been executed
-            if (!executionHistory[fromChainId][uint32(bytes4(data[1:5]))]) {
+            if (executionHistory[fromChainId][uint32(bytes4(data[1:5]))]) {
+                _forceRevert();
+                //Return true to avoid triggering anyFallback in case of `_forceRevert()` failure
+                return (true, "already executed tx");
+            } else {
                 //Toggle Nonce as executed
                 executionHistory[fromChainId][nonce] = true;
 
                 //Retry failed fallback
                 (success, result) = (false, "");
-            } else {
-                _forceRevert();
-                //Return true to avoid triggering anyFallback in case of `_forceRevert()` failure
-                return (true, "already executed tx");
             }
 
             //Unrecognized Function Selector

@@ -263,14 +263,14 @@ abstract contract TalosBaseStrategy is Ownable, ERC20, ReentrancyGuard, ITalosBa
         address _owner,
         uint256 deadline
     ) public virtual override nonReentrant returns (uint256 amount0, uint256 amount1) {
+        if (shares == 0) revert RedeemingZeroShares();
+        if (receiver == address(0)) revert ReceiverIsZeroAddress();
+
         if (msg.sender != _owner) {
             uint256 allowed = allowance[_owner][msg.sender]; // Saves gas for limited approvals.
 
             if (allowed != type(uint256).max) allowance[_owner][msg.sender] = allowed - shares;
         }
-
-        if (shares == 0) revert RedeemingZeroShares();
-        if (receiver == address(0)) revert ReceiverIsZeroAddress();
 
         uint256 _tokenId = tokenId;
 
@@ -354,11 +354,12 @@ abstract contract TalosBaseStrategy is Ownable, ERC20, ReentrancyGuard, ITalosBa
     function uniswapV3SwapCallback(int256 amount0, int256 amount1, bytes calldata _data) external {
         if (msg.sender != address(pool)) revert CallerIsNotPool();
         if (amount0 == 0) if (amount1 == 0) revert AmountsAreZero();
-        SwapCallbackData memory data = abi.decode(_data, (SwapCallbackData));
-        bool zeroForOne = data.zeroForOne;
 
-        if (zeroForOne) address(token0).safeTransfer(msg.sender, uint256(amount0));
-        else address(token1).safeTransfer(msg.sender, uint256(amount1));
+        if (abi.decode(_data, (bool))) {
+            address(token0).safeTransfer(msg.sender, uint256(amount0));
+        } else {
+            address(token1).safeTransfer(msg.sender, uint256(amount1));
+        }
     }
 
     /*//////////////////////////////////////////////////////////////

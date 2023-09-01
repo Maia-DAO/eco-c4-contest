@@ -63,8 +63,9 @@ contract VirtualAccount is IVirtualAccount, ERC1155Receiver {
         returnData = new bytes[](calls.length);
         for (uint256 i = 0; i < calls.length; i++) {
             bool success;
-            if (isContract(calls[i].target)) {
-                (success, returnData[i]) = calls[i].target.call(calls[i].callData);
+            Call calldata _call = calls[i];
+            if (isContract(_call.target)) {
+                (success, returnData[i]) = _call.target.call(_call.callData);
             }
             if (!success) revert CallFailed();
         }

@@ -181,9 +181,9 @@ abstract contract ERC20Gauges is ERC20MultiVotes, ReentrancyGuard, IERC20Gauges 
         if (_deprecatedGauges.contains(gauge)) return 0;
         uint32 currentCycle = _getGaugeCycleEnd();
 
-        uint112 total = _getStoredWeight(_totalWeight, currentCycle);
-        uint112 weight = _getStoredWeight(_getGaugeWeight[gauge], currentCycle);
-        return (quantity * weight) / total;
+        // quantity * gauge weight / total weight
+        return (quantity * _getStoredWeight(_getGaugeWeight[gauge], currentCycle))
+            / _getStoredWeight(_totalWeight, currentCycle);
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -415,17 +415,13 @@ abstract contract ERC20Gauges is ERC20MultiVotes, ReentrancyGuard, IERC20Gauges 
      * @return weight the previous weight of the gauge, if it was already added
      */
     function _addGauge(address gauge) internal returns (uint112 weight) {
-        bool newAdd = _gauges.add(gauge);
-        bool previouslyDeprecated = _deprecatedGauges.remove(gauge);
         // add and fail loud if zero address or already present and not deprecated
-        if (gauge == address(0) || !(newAdd || previouslyDeprecated)) revert InvalidGaugeError();
-
-        uint32 currentCycle = _getGaugeCycleEnd();
+        if (gauge == address(0) || !(_gauges.add(gauge) || _deprecatedGauges.remove(gauge))) revert InvalidGaugeError();
 
         // Check if some previous weight exists and re-add to the total. Gauge and user weights are preserved.
         weight = _getGaugeWeight[gauge].currentWeight;
         if (weight > 0) {
-            _writeGaugeWeight(_totalWeight, _add112, weight, currentCycle);
+            _writeGaugeWeight(_totalWeight, _add112, weight, _getGaugeCycleEnd());
         }
 
         emit AddGauge(gauge);

@@ -143,11 +143,11 @@ contract UniswapV3Staker is IUniswapV3Staker, Multicallable {
     function createIncentiveFromGauge(uint256 reward) external {
         if (reward == 0) revert IncentiveRewardMustBeGreaterThanZero();
 
-        uint96 startTime = IncentiveTime.computeEnd(block.timestamp);
-
         IUniswapV3Pool pool = gaugePool[msg.sender];
 
         if (address(pool) == address(0)) revert IncentiveCallerMustBeRegisteredGauge();
+
+        uint96 startTime = IncentiveTime.computeEnd(block.timestamp);
 
         IncentiveKey memory key = IncentiveKey({startTime: startTime, pool: pool});
         bytes32 incentiveId = IncentiveId.compute(key);

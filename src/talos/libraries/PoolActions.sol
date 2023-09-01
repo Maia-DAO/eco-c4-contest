@@ -51,13 +51,7 @@ library PoolActions {
         );
 
         //Swap imbalanced token as long as we haven't used the entire amountSpecified and haven't reached the price limit
-        actionParams.pool.swap(
-            address(this),
-            zeroForOne,
-            amountSpecified,
-            sqrtPriceLimitX96,
-            abi.encode(SwapCallbackData({zeroForOne: zeroForOne}))
-        );
+        actionParams.pool.swap(address(this), zeroForOne, amountSpecified, sqrtPriceLimitX96, abi.encode(zeroForOne));
     }
 
     // Rerange a pool according to ITalosOptimizer's parameters

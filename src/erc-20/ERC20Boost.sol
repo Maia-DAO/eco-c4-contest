@@ -125,9 +125,11 @@ abstract contract ERC20Boost is ERC20, Ownable, IERC20Boost {
             emit UpdateUserBoost(user, userGaugeBoost);
         }
 
-        if (totalSupply > 0) {
-            getUserGaugeBoost[user][msg.sender] =
-                GaugeState({userGaugeBoost: userGaugeBoost, totalGaugeBoost: totalSupply.toUint128()});
+        uint256 _totalSupply = totalSupply;
+        if (_totalSupply > 0) {
+            GaugeState storage userBoost = getUserGaugeBoost[user][msg.sender];
+            userBoost.userGaugeBoost = userGaugeBoost;
+            userBoost.totalGaugeBoost = _totalSupply.toUint128();
         }
 
         emit Attach(user, msg.sender, userGaugeBoost);
@@ -261,10 +263,8 @@ abstract contract ERC20Boost is ERC20, Ownable, IERC20Boost {
     }
 
     function _addGauge(address gauge) internal {
-        bool newAdd = _gauges.add(gauge);
-        bool previouslyDeprecated = _deprecatedGauges.remove(gauge);
         // add and fail loud if zero address or already present and not deprecated
-        if (gauge == address(0) || !(newAdd || previouslyDeprecated)) revert InvalidGauge();
+        if (gauge == address(0) || !(_gauges.add(gauge) || _deprecatedGauges.remove(gauge))) revert InvalidGauge();
 
         emit AddGauge(gauge);
     }

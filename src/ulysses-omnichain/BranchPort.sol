@@ -197,11 +197,12 @@ contract BranchPort is Ownable, IBranchPort {
      *   @param _amount of token being requested.
      */
     function _checkTimeLimit(address _token, uint256 _amount) internal {
+        uint256 dailyLimit = strategyDailyLimitRemaining[msg.sender][_token];
         if (block.timestamp - lastManaged[msg.sender][_token] >= 1 days) {
-            strategyDailyLimitRemaining[msg.sender][_token] = strategyDailyLimitAmount[msg.sender][_token];
+            dailyLimit = strategyDailyLimitAmount[msg.sender][_token];
             lastManaged[msg.sender][_token] = (block.timestamp / 1 days) * 1 days;
         }
-        strategyDailyLimitRemaining[msg.sender][_token] -= _amount;
+        strategyDailyLimitRemaining[msg.sender][_token] = dailyLimit - _amount;
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -260,8 +261,8 @@ contract BranchPort is Ownable, IBranchPort {
             }
         }
     }
-    /// @inheritdoc IBranchPort
 
+    /// @inheritdoc IBranchPort
     function bridgeOut(
         address _depositor,
         address _localAddress,
@@ -271,8 +272,8 @@ contract BranchPort is Ownable, IBranchPort {
     ) external lock requiresBridgeAgent {
         _bridgeOut(_depositor, _localAddress, _underlyingAddress, _amount, _deposit);
     }
-    /// @inheritdoc IBranchPort
 
+    /// @inheritdoc IBranchPort
     function bridgeOutMultiple(
         address _depositor,
         address[] memory _localAddresses,

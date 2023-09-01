@@ -886,15 +886,14 @@ contract BranchBridgeAgent is IBranchBridgeAgent {
         deposits[0] = _deposit;
 
         // Update State
-        getDeposit[depositNonce++] = Deposit({
-            owner: _user,
-            hTokens: hTokens,
-            tokens: tokens,
-            amounts: amounts,
-            deposits: deposits,
-            status: DepositStatus.Success,
-            depositedGas: _gasToBridgeOut
-        });
+        Deposit storage deposit = getDeposit[depositNonce++];
+        deposit.owner = _user;
+        deposit.hTokens = hTokens;
+        deposit.tokens = tokens;
+        deposit.amounts = amounts;
+        deposit.deposits = deposits;
+        deposit.status = DepositStatus.Success;
+        deposit.depositedGas = _gasToBridgeOut;
     }
 
     /**
@@ -922,15 +921,14 @@ contract BranchBridgeAgent is IBranchBridgeAgent {
         _depositGas(_gasToBridgeOut);
 
         // Update State
-        getDeposit[depositNonce++] = Deposit({
-            owner: _user,
-            hTokens: _hTokens,
-            tokens: _tokens,
-            amounts: _amounts,
-            deposits: _deposits,
-            status: DepositStatus.Success,
-            depositedGas: _gasToBridgeOut
-        });
+        Deposit storage deposit = getDeposit[depositNonce++];
+        deposit.owner = _user;
+        deposit.hTokens = _hTokens;
+        deposit.tokens = _tokens;
+        deposit.amounts = _amounts;
+        deposit.deposits = _deposits;
+        deposit.status = DepositStatus.Success;
+        deposit.depositedGas = _gasToBridgeOut;
     }
 
     function _depositGas(uint128 _gasToBridgeOut) internal virtual {

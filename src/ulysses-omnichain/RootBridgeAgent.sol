@@ -531,18 +531,17 @@ contract RootBridgeAgent is IRootBridgeAgent {
         uint24 _toChain
     ) internal {
         // Update State
-        getSettlement[settlementNonce++] = Settlement({
-            owner: _owner,
-            recipient: _recipient,
-            hTokens: _hTokens,
-            tokens: _tokens,
-            amounts: _amounts,
-            deposits: _deposits,
-            callData: _callData,
-            toChain: _toChain,
-            status: SettlementStatus.Success,
-            gasToBridgeOut: userFeeInfo.gasToBridgeOut
-        });
+        Settlement storage settlement = getSettlement[settlementNonce++];
+        settlement.owner = _owner;
+        settlement.recipient = _recipient;
+        settlement.hTokens = _hTokens;
+        settlement.tokens = _tokens;
+        settlement.amounts = _amounts;
+        settlement.deposits = _deposits;
+        settlement.callData = _callData;
+        settlement.toChain = _toChain;
+        settlement.status = SettlementStatus.Success;
+        settlement.gasToBridgeOut = userFeeInfo.gasToBridgeOut;
     }
 
     /**

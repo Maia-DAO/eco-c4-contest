@@ -37,9 +37,6 @@ contract FlywheelGaugeRewards is IFlywheelGaugeRewards {
     /// @inheritdoc IFlywheelGaugeRewards
     uint32 public immutable override gaugeCycleLength;
 
-    /// @inheritdoc IFlywheelGaugeRewards
-    mapping(ERC20 => QueuedRewards) public override gaugeQueuedRewards;
-
     /// @notice the start of the next cycle being partially queued
     uint32 internal nextCycle;
 
@@ -48,6 +45,9 @@ contract FlywheelGaugeRewards is IFlywheelGaugeRewards {
 
     // the offset during pagination of the queue
     uint32 internal paginationOffset;
+
+    /// @inheritdoc IFlywheelGaugeRewards
+    mapping(ERC20 => QueuedRewards) public override gaugeQueuedRewards;
 
     constructor(address _rewardToken, ERC20Gauges _gaugeToken, IBaseV2Minter _minter) {
         rewardToken = _rewardToken;
@@ -115,12 +115,17 @@ contract FlywheelGaugeRewards is IFlywheelGaugeRewards {
         // ensure new cycle has begun
         if (currentCycle <= lastCycle) revert CycleError();
 
+        uint32 offset;
+
         if (currentCycle > nextCycle) {
             nextCycle = currentCycle;
             paginationOffset = 0;
+            offset = 0;
+        } else {
+            offset = paginationOffset;
         }
 
-        uint32 offset = paginationOffset;
+        uint112 queued;
 
         // important to only calculate the reward amount once to prevent each page from having a different reward amount
         if (offset == 0) {
@@ -129,10 +134,11 @@ contract FlywheelGaugeRewards is IFlywheelGaugeRewards {
             uint256 newRewards = minter.getRewards();
             require(rewardToken.balanceOf(address(this)) - balanceBefore >= newRewards);
             require(newRewards <= type(uint112).max); // safe cast
-            nextCycleQueuedRewards += uint112(newRewards); // in case a previous incomplete cycle had rewards, add on
+            queued = nextCycleQueuedRewards + uint112(newRewards); // in case a previous incomplete cycle had rewards, add on
+            nextCycleQueuedRewards = queued;
+        } else {
+            queued = nextCycleQueuedRewards;
         }
-
-        uint112 queued = nextCycleQueuedRewards;
 
         uint256 remaining = gaugeToken.numGauges() - offset;
 
@@ -174,7 +180,7 @@ contract FlywheelGaugeRewards is IFlywheelGaugeRewards {
         for (uint256 i = 0; i < size; i++) {
             ERC20 gauge = ERC20(gauges[i]);
 
-            QueuedRewards memory queuedRewards = gaugeQueuedRewards[gauge];
+            QueuedRewards storage queuedRewards = gaugeQueuedRewards[gauge];
 
             // Cycle queue already started
             require(queuedRewards.storedCycle < currentCycle);
@@ -184,10 +190,9 @@ contract FlywheelGaugeRewards is IFlywheelGaugeRewards {
             uint256 nextRewards = gaugeToken.calculateGaugeAllocation(address(gauge), totalQueuedForCycle);
             require(nextRewards <= type(uint112).max); // safe cast
 
-            QueuedRewards storage _gaugeQueuedRewards = gaugeQueuedRewards[gauge];
-            _gaugeQueuedRewards.priorCycleRewards = queuedRewards.priorCycleRewards + completedRewards;
-            _gaugeQueuedRewards.cycleRewards = uint112(nextRewards);
-            _gaugeQueuedRewards.storedCycle = currentCycle;
+            queuedRewards.priorCycleRewards = queuedRewards.priorCycleRewards + completedRewards;
+            queuedRewards.cycleRewards = uint112(nextRewards);
+            queuedRewards.storedCycle = currentCycle;
 
             emit QueueRewards(address(gauge), currentCycle, nextRewards);
         }
@@ -198,7 +203,7 @@ contract FlywheelGaugeRewards is IFlywheelGaugeRewards {
         /// @dev Update minter cycle and queue rewars if needed.
         minter.updatePeriod();
 
-        QueuedRewards memory queuedRewards = gaugeQueuedRewards[ERC20(msg.sender)];
+        QueuedRewards storage queuedRewards = gaugeQueuedRewards[ERC20(msg.sender)];
 
         uint32 cycle = gaugeCycle;
         bool incompleteCycle = queuedRewards.storedCycle > cycle;
@@ -222,10 +227,9 @@ contract FlywheelGaugeRewards is IFlywheelGaugeRewards {
             cycleRewardsNext = 0;
         }
 
-        QueuedRewards storage _gaugeQueuedRewards = gaugeQueuedRewards[ERC20(msg.sender)];
-        _gaugeQueuedRewards.priorCycleRewards = 0;
-        _gaugeQueuedRewards.cycleRewards = cycleRewardsNext;
-        _gaugeQueuedRewards.storedCycle = queuedRewards.storedCycle;
+        queuedRewards.priorCycleRewards = 0;
+        queuedRewards.cycleRewards = cycleRewardsNext;
+        queuedRewards.storedCycle = queuedRewards.storedCycle;
 
         if (accruedRewards > 0) rewardToken.safeTransfer(msg.sender, accruedRewards);
     }

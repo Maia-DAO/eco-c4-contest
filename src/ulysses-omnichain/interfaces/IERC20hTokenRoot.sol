@@ -20,9 +20,6 @@ interface IERC20hTokenRoot {
     /// @notice View Function returns Root Port Address.
     function rootPortAddress() external view returns (address);
 
-    /// @notice View Function returns Local Branch Port Address.
-    function localBranchPortAddress() external view returns (address);
-
     /// @notice View Function returns the address of the Factory that deployed this token.
     function factoryAddress() external view returns (address);
 

@@ -16,9 +16,6 @@ contract ERC20hTokenRoot is Ownable, ERC20, IERC20hTokenRoot {
     address public rootPortAddress;
 
     /// @inheritdoc IERC20hTokenRoot
-    address public localBranchPortAddress;
-
-    /// @inheritdoc IERC20hTokenRoot
     address public factoryAddress;
 
     /// @inheritdoc IERC20hTokenRoot

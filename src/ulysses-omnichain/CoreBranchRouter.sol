@@ -129,8 +129,11 @@ contract CoreBranchRouter is ICoreBranchRouter, BaseBranchRouter {
         address _rootBridgeAgentFactory,
         uint128 _remoteExecutionGas
     ) internal virtual {
+        //Save Port Address to memory
+        address _localPortAddress = localPortAddress;
+
         //Check if msg.sender is a valid BridgeAgentFactory
-        if (!IPort(localPortAddress).isBridgeAgentFactory(_branchBridgeAgentFactory)) {
+        if (!IPort(_localPortAddress).isBridgeAgentFactory(_branchBridgeAgentFactory)) {
             revert UnrecognizedBridgeAgentFactory();
         }
 
@@ -140,7 +143,7 @@ contract CoreBranchRouter is ICoreBranchRouter, BaseBranchRouter {
         );
 
         //Check BridgeAgent Address
-        if (!IPort(localPortAddress).isBridgeAgent(newBridgeAgent)) {
+        if (!IPort(_localPortAddress).isBridgeAgent(newBridgeAgent)) {
             revert UnrecognizedBridgeAgent();
         }
 
@@ -161,10 +164,16 @@ contract CoreBranchRouter is ICoreBranchRouter, BaseBranchRouter {
      *
      */
     function _toggleBranchBridgeAgentFactory(address _newBridgeAgentFactoryAddress) internal {
-        if (IPort(localPortAddress).isBridgeAgentFactory(_newBridgeAgentFactoryAddress)) {
-            IPort(localPortAddress).toggleBridgeAgentFactory(_newBridgeAgentFactoryAddress);
+        //Save Port Address to memory
+        address _localPortAddress = localPortAddress;
+
+        //Check if msg.sender is an active BridgeAgentFactory
+        if (IPort(_localPortAddress).isBridgeAgentFactory(_newBridgeAgentFactoryAddress)) {
+            // If so, disable it.
+            IPort(_localPortAddress).toggleBridgeAgentFactory(_newBridgeAgentFactoryAddress);
         } else {
-            IPort(localPortAddress).addBridgeAgentFactory(_newBridgeAgentFactoryAddress);
+            // If not, add it.
+            IPort(_localPortAddress).addBridgeAgentFactory(_newBridgeAgentFactoryAddress);
         }
     }
 
@@ -175,8 +184,14 @@ contract CoreBranchRouter is ICoreBranchRouter, BaseBranchRouter {
      *
      */
     function _removeBranchBridgeAgent(address _branchBridgeAgent) internal {
-        if (!IPort(localPortAddress).isBridgeAgent(_branchBridgeAgent)) revert UnrecognizedBridgeAgent();
-        IPort(localPortAddress).toggleBridgeAgent(_branchBridgeAgent);
+        //Save Port Address to memory
+        address _localPortAddress = localPortAddress;
+
+        //Revert if it is not an active BridgeAgent
+        if (!IPort(_localPortAddress).isBridgeAgent(_branchBridgeAgent)) revert UnrecognizedBridgeAgent();
+
+        //Remove BridgeAgent
+        IPort(_localPortAddress).toggleBridgeAgent(_branchBridgeAgent);
     }
 
     /**
@@ -187,10 +202,16 @@ contract CoreBranchRouter is ICoreBranchRouter, BaseBranchRouter {
      *
      */
     function _manageStrategyToken(address _underlyingToken, uint256 _minimumReservesRatio) internal {
-        if (IPort(localPortAddress).isStrategyToken(_underlyingToken)) {
-            IPort(localPortAddress).toggleStrategyToken(_underlyingToken);
+        //Save Port Address to memory
+        address _localPortAddress = localPortAddress;
+
+        //Check if token is an active Strategy Token
+        if (IPort(_localPortAddress).isStrategyToken(_underlyingToken)) {
+            //If so, toggle it off.
+            IPort(_localPortAddress).toggleStrategyToken(_underlyingToken);
         } else {
-            IPort(localPortAddress).addStrategyToken(_underlyingToken, _minimumReservesRatio);
+            //If not, add it.
+            IPort(_localPortAddress).addStrategyToken(_underlyingToken, _minimumReservesRatio);
         }
     }
 
@@ -209,15 +230,19 @@ contract CoreBranchRouter is ICoreBranchRouter, BaseBranchRouter {
         uint256 _dailyManagementLimit,
         bool _isUpdateDailyLimit
     ) internal {
-        if (!IPort(localPortAddress).isPortStrategy(_portStrategy, _underlyingToken)) {
-            //Add new Port Strategy if new.
-            IPort(localPortAddress).addPortStrategy(_portStrategy, _underlyingToken, _dailyManagementLimit);
+        //Save Port Address to memory
+        address _localPortAddress = localPortAddress;
+
+        //Check .
+        if (!IPort(_localPortAddress).isPortStrategy(_portStrategy, _underlyingToken)) {
+            //If Port Strategy is not active, add new Port Strategy.
+            IPort(_localPortAddress).addPortStrategy(_portStrategy, _underlyingToken, _dailyManagementLimit);
         } else if (_isUpdateDailyLimit) {
-            //Or Update daily limit.
-            IPort(localPortAddress).updatePortStrategy(_portStrategy, _underlyingToken, _dailyManagementLimit);
+            //Or update daily limit.
+            IPort(_localPortAddress).updatePortStrategy(_portStrategy, _underlyingToken, _dailyManagementLimit);
         } else {
             //Or Toggle Port Strategy.
-            IPort(localPortAddress).togglePortStrategy(_portStrategy, _underlyingToken);
+            IPort(_localPortAddress).togglePortStrategy(_portStrategy, _underlyingToken);
         }
     }
 

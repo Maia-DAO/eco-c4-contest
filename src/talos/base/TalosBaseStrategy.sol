@@ -36,12 +36,12 @@ abstract contract TalosBaseStrategy is Ownable, ERC20, ReentrancyGuard, ITalosBa
     /// @inheritdoc ITalosBaseStrategy
     uint256 public override tokenId;
     /// @inheritdoc ITalosBaseStrategy
-    uint128 public override liquidity;
-
-    /// @inheritdoc ITalosBaseStrategy
     uint256 public protocolFees0;
     /// @inheritdoc ITalosBaseStrategy
     uint256 public protocolFees1;
+
+    /// @inheritdoc ITalosBaseStrategy
+    uint128 public override liquidity;
 
     /// @notice Current tick lower of Optimizer pool position
     /// @inheritdoc ITalosBaseStrategy

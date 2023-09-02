@@ -213,9 +213,11 @@ abstract contract ERC20Gauges is ERC20MultiVotes, ReentrancyGuard, IERC20Gauges 
 
         flywheelBooster.accrueBribesPositiveDelta(user, ERC20(gauge), weight);
 
+        EnumerableSet.AddressSet storage userGaugeSet = _userGauges[user];
+
         // idempotent add
-        if (_userGauges[user].add(gauge)) {
-            if (_userGauges[user].length() > maxGauges) {
+        if (userGaugeSet.add(gauge)) {
+            if (userGaugeSet.length() > maxGauges) {
                 if (!canContractExceedMaxGauges[user]) {
                     revert MaxGaugeError();
                 }

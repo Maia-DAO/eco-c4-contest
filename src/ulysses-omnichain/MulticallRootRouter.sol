@@ -118,11 +118,14 @@ contract MulticallRootRouter is IRootRouter, Ownable {
         uint256 depositOut,
         uint24 toChain
     ) internal virtual {
+        //Save bridge agent address to memory
+        address _bridgeAgentAddress = bridgeAgentAddress;
+
         //Approve Root Port to spend/send output hTokens.
-        outputToken.safeApprove(bridgeAgentAddress, amountOut);
+        outputToken.safeApprove(_bridgeAgentAddress, amountOut);
 
         //Move output hTokens from Root to Branch and call 'clearToken'.
-        IBridgeAgent(bridgeAgentAddress).callOutAndBridge{value: msg.value}(
+        IBridgeAgent(_bridgeAgentAddress).callOutAndBridge{value: msg.value}(
             owner, recipient, "", outputToken, amountOut, depositOut, toChain
         );
     }
@@ -144,17 +147,20 @@ contract MulticallRootRouter is IRootRouter, Ownable {
         uint256[] memory depositsOut,
         uint24 toChain
     ) internal virtual {
+        //Save bridge agent address to memory
+        address _bridgeAgentAddress = bridgeAgentAddress;
+
         //For each output token
         for (uint256 i = 0; i < outputTokens.length;) {
             //Approve Root Port to spend output hTokens.
-            outputTokens[i].safeApprove(bridgeAgentAddress, amountsOut[i]);
+            outputTokens[i].safeApprove(_bridgeAgentAddress, amountsOut[i]);
             unchecked {
                 ++i;
             }
         }
 
         //Move output hTokens from Root to Branch and call 'clearTokens'.
-        IBridgeAgent(bridgeAgentAddress).callOutAndBridgeMultiple{value: msg.value}(
+        IBridgeAgent(_bridgeAgentAddress).callOutAndBridgeMultiple{value: msg.value}(
             owner, recipient, "", outputTokens, amountsOut, depositsOut, toChain
         );
     }

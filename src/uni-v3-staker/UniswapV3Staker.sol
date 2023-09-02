@@ -489,15 +489,18 @@ contract UniswapV3Staker is IUniswapV3Staker, Multicallable {
 
         bytes32 incentiveId = IncentiveId.compute(key);
 
-        if (incentives[incentiveId].totalRewardUnclaimed == 0) revert NonExistentIncentiveError();
+        Incentive storage incentive = incentives[incentiveId];
 
+        if (incentive.totalRewardUnclaimed == 0) revert NonExistentIncentiveError();
         if (uint24(tickUpper - tickLower) < poolsMinimumWidth[pool]) revert RangeTooSmallError();
         if (liquidity == 0) revert NoLiquidityError();
 
         stakedIncentiveKey[tokenId] = key;
 
+        Deposit storage deposit = deposits[tokenId];
+
         // If user not attached to gauge, attach
-        address tokenOwner = deposits[tokenId].owner;
+        address tokenOwner = deposit.owner;
         if (tokenOwner == address(0)) revert TokenNotDeposited();
 
         UniswapV3Gauge gauge = gauges[pool]; // saves another SLOAD if no tokenId is attached
@@ -507,8 +510,8 @@ contract UniswapV3Staker is IUniswapV3Staker, Multicallable {
             gauge.attachUser(tokenOwner);
         }
 
-        deposits[tokenId].stakedTimestamp = uint40(block.timestamp);
-        incentives[incentiveId].numberOfStakes++;
+        deposit.stakedTimestamp = uint40(block.timestamp);
+        incentive.numberOfStakes++;
 
         (, uint160 secondsPerLiquidityInsideX128,) = pool.snapshotCumulativesInside(tickLower, tickUpper);
 

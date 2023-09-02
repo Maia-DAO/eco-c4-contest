@@ -29,9 +29,6 @@ contract RootBridgeAgentFactory is IRootBridgeAgentFactory {
     /// @notice Local Anyexec Address
     address public immutable localAnyCallExecutorAddress;
 
-    /// @notice Bridge Agent Manager
-    mapping(address => address) public getBridgeAgentManager;
-
     /**
      * @notice Constructor for Bridge Agent.
      *     @param _rootChainId Root Chain Id.

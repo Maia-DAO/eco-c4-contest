@@ -75,9 +75,12 @@ abstract contract PartnerUtilityManager is UtilityManager, IPartnerUtilityManage
     function forfeitWeight(uint256 amount) public virtual override {
         super.forfeitWeight(amount);
 
+        //Save partnerVault to memory
+        address _partnerVault = partnerVault;
+
         /// @dev Vault applies outstanding weight.
-        if (partnerVault != address(0) && address(gaugeWeight).balanceOf(address(this)) > 0) {
-            IBaseVault(partnerVault).applyWeight();
+        if (_partnerVault != address(0)) {
+            IBaseVault(_partnerVault).applyWeight();
         }
     }
 
@@ -85,9 +88,12 @@ abstract contract PartnerUtilityManager is UtilityManager, IPartnerUtilityManage
     function forfeitBoost(uint256 amount) public virtual override {
         super.forfeitBoost(amount);
 
+        //Save partnerVault to memory
+        address _partnerVault = partnerVault;
+
         /// @dev Vault applies outstanding boost.
-        if (partnerVault != address(0) && address(gaugeBoost).balanceOf(address(this)) > 0) {
-            IBaseVault(partnerVault).applyBoost();
+        if (_partnerVault != address(0)) {
+            IBaseVault(_partnerVault).applyBoost();
         }
     }
 
@@ -95,9 +101,12 @@ abstract contract PartnerUtilityManager is UtilityManager, IPartnerUtilityManage
     function forfeitGovernance(uint256 amount) public virtual override {
         super.forfeitGovernance(amount);
 
+        //Save partnerVault to memory
+        address _partnerVault = partnerVault;
+
         /// @dev Vault applies outstanding governance.
-        if (partnerVault != address(0) && address(governance).balanceOf(address(this)) > 0) {
-            IBaseVault(partnerVault).applyGovernance();
+        if (_partnerVault != address(0)) {
+            IBaseVault(_partnerVault).applyGovernance();
         }
     }
 

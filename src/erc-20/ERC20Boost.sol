@@ -201,7 +201,9 @@ abstract contract ERC20Boost is ERC20, Ownable, IERC20Boost {
 
     /// @inheritdoc IERC20Boost
     function decrementGaugesBoostIndexed(uint256 boost, uint256 offset, uint256 num) public {
-        address[] memory gaugeList = _userGauges[msg.sender].values();
+        EnumerableSet.AddressSet storage userGaugesSet = _userGauges[msg.sender];
+
+        address[] memory gaugeList = userGaugesSet.values();
 
         uint256 length = gaugeList.length;
         for (uint256 i = 0; i < num && i < length;) {
@@ -211,7 +213,7 @@ abstract contract ERC20Boost is ERC20, Ownable, IERC20Boost {
             uint256 _userGaugeBoost = gaugeState.userGaugeBoost;
 
             if (_deprecatedGauges.contains(gauge) || boost >= _userGaugeBoost) {
-                require(_userGauges[msg.sender].remove(gauge)); // Remove from set. Should never fail.
+                require(userGaugesSet.remove(gauge)); // Remove from set. Should never fail.
                 delete getUserGaugeBoost[msg.sender][gauge];
 
                 emit Detach(msg.sender, gauge);
@@ -230,15 +232,17 @@ abstract contract ERC20Boost is ERC20, Ownable, IERC20Boost {
 
     /// @inheritdoc IERC20Boost
     function decrementAllGaugesAllBoost() external {
+        EnumerableSet.AddressSet storage userGaugesSet = _userGauges[msg.sender];
+
         // Loop through all user gauges, live and deprecated
-        address[] memory gaugeList = _userGauges[msg.sender].values();
+        address[] memory gaugeList = userGaugesSet.values();
 
         // Free gauges until through the entire list
         uint256 size = gaugeList.length;
         for (uint256 i = 0; i < size;) {
             address gauge = gaugeList[i];
 
-            require(_userGauges[msg.sender].remove(gauge)); // Remove from set. Should never fail.
+            require(userGaugesSet.remove(gauge)); // Remove from set. Should never fail.
             delete getUserGaugeBoost[msg.sender][gauge];
 
             emit Detach(msg.sender, gauge);

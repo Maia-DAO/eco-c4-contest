@@ -325,8 +325,10 @@ abstract contract ERC20MultiVotes is ERC20, Ownable, IERC20MultiVotes {
         // cache total for batch updates
         uint256 totalFreed;
 
+        EnumerableSet.AddressSet storage delegateSet = _delegates[user];
+
         // Loop through all delegates
-        address[] memory delegateList = _delegates[user].values();
+        address[] memory delegateList = delegateSet.values();
 
         // Free gauges through the entire list or until underweight
         uint256 size = delegateList.length;
@@ -341,7 +343,7 @@ abstract contract ERC20MultiVotes is ERC20, Ownable, IERC20MultiVotes {
 
                 if (delegateVotes == votesToFree) {
                     // If all votes are freed, remove delegatee from list
-                    require(_delegates[user].remove(delegatee)); // Remove from set. Should never fail.
+                    require(delegateSet.remove(delegatee)); // Remove from set. Should never fail.
                     delete _delegatesVotesCount[user][delegatee];
                 } else {
                     // If not all votes are freed, update the votes count

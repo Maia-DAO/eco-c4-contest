@@ -256,17 +256,25 @@ contract RootBridgeAgent is IRootBridgeAgent {
 
     /// @inheritdoc IRootBridgeAgent
     function redeemSettlement(uint32 _depositNonce) external lock {
-        //Get deposit owner.
-        address depositOwner = getSettlement[_depositNonce].owner;
+        //Get setttlement storage reference
+        Settlement storage settlement = getSettlement[_depositNonce];
 
-        //Update Deposit
-        if (getSettlement[_depositNonce].status != SettlementStatus.Failed || depositOwner == address(0)) {
+        //Get deposit owner.
+        address settlementOwner = settlement.owner;
+
+        //Check if Settlement is redeemable.
+        if (settlement.status != SettlementStatus.Failed || settlementOwner == address(0)) {
             revert SettlementRedeemUnavailable();
-        } else if (
-            msg.sender != depositOwner && msg.sender != address(IPort(localPortAddress).getUserAccount(depositOwner))
-        ) {
-            revert NotSettlementOwner();
         }
+
+        //Check if Settlement Owner is msg.sender or msg.sender is the virtual account of the settlement owner.
+        if (msg.sender != settlementOwner) {
+            if (msg.sender != address(IPort(localPortAddress).getUserAccount(settlementOwner))) {
+                revert NotSettlementOwner();
+            }
+        }
+        
+        //Execute Settlement Redemption.
         _redeemSettlement(_depositNonce);
     }
 

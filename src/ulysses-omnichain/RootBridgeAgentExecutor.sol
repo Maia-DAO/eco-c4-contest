@@ -237,9 +237,11 @@ contract RootBridgeAgentExecutor is Ownable {
 
         if (_data.length - PARAMS_GAS_IN > 132) {
             //Execute remote request
-            (success, result) = IRouter(_router).anyExecuteSignedDepositSingle(
-                _data[132], _data[133:_data.length - PARAMS_GAS_IN], dParams, _account, _fromChainId
-            );
+            unchecked {
+                (success, result) = IRouter(_router).anyExecuteSignedDepositSingle(
+                    _data[132], _data[133:_data.length - PARAMS_GAS_IN], dParams, _account, _fromChainId
+                );
+            }
         } else {
             success = true;
         }
@@ -279,18 +281,20 @@ contract RootBridgeAgentExecutor is Ownable {
                         + uint16(uint8(bytes1(_data[PARAMS_START_SIGNED]))) * PARAMS_TKN_SET_SIZE_MULTIPLE
             ) {
                 //Execute remote request
-                (success, result) = IRouter(_router).anyExecuteSignedDepositMultiple(
-                    _data[PARAMS_END_SIGNED_OFFSET
-                        + uint16(uint8(bytes1(_data[PARAMS_START_SIGNED]))) * PARAMS_TKN_SET_SIZE_MULTIPLE],
-                    _data[
-                        PARAMS_START + PARAMS_END_SIGNED_OFFSET
-                            + uint16(uint8(bytes1(_data[PARAMS_START_SIGNED]))) * PARAMS_TKN_SET_SIZE_MULTIPLE:
-                            _data.length - PARAMS_GAS_IN
-                    ],
-                    dParams,
-                    _account,
-                    _fromChainId
-                );
+                unchecked {
+                    (success, result) = IRouter(_router).anyExecuteSignedDepositMultiple(
+                        _data[PARAMS_END_SIGNED_OFFSET
+                            + uint16(uint8(bytes1(_data[PARAMS_START_SIGNED]))) * PARAMS_TKN_SET_SIZE_MULTIPLE],
+                        _data[
+                            PARAMS_START + PARAMS_END_SIGNED_OFFSET
+                                + uint16(uint8(bytes1(_data[PARAMS_START_SIGNED]))) * PARAMS_TKN_SET_SIZE_MULTIPLE:
+                                _data.length - PARAMS_GAS_IN
+                        ],
+                        dParams,
+                        _account,
+                        _fromChainId
+                    );
+                }
             } else {
                 success = true;
             }

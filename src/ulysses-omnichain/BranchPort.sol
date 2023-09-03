@@ -234,7 +234,9 @@ contract BranchPort is Ownable, IBranchPort {
     ) internal virtual {
         if (_amount - _deposit > 0) {
             _localAddress.safeTransferFrom(_depositor, address(this), _amount - _deposit);
-            ERC20hTokenBranch(_localAddress).burn(_amount - _deposit);
+            unchecked {
+                ERC20hTokenBranch(_localAddress).burn(_amount - _deposit);
+            }
         }
         if (_deposit > 0) {
             _underlyingAddress.safeTransferFrom(

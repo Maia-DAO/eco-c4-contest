@@ -48,8 +48,10 @@ abstract contract FlywheelAcummulatedRewards is BaseFlywheelRewards, IFlywheelAc
         if (timestamp >= endCycle) {
             if (endCycle != 0) amount = getNextCycleRewards(strategy);
 
+            uint256 _rewardsCycleLength = rewardsCycleLength;
+
             // reset for next cycle
-            uint256 newEndCycle = ((timestamp + rewardsCycleLength) / rewardsCycleLength) * rewardsCycleLength;
+            uint256 newEndCycle = ((timestamp + _rewardsCycleLength) / _rewardsCycleLength) * _rewardsCycleLength;
             endCycles[strategy] = newEndCycle;
 
             emit NewRewardsCycle(timestamp, newEndCycle, amount);

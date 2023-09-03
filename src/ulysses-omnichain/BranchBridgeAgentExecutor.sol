@@ -107,7 +107,10 @@ contract BranchBridgeAgentExecutor is Ownable {
 
         if (_data.length - PARAMS_GAS_OUT > 129) {
             //Execute remote request
-            (success, result) = IRouter(_router).anyExecuteSettlement(_data[129:_data.length - PARAMS_GAS_OUT], sParams);
+            unchecked {
+                (success, result) =
+                    IRouter(_router).anyExecuteSettlement(_data[129:_data.length - PARAMS_GAS_OUT], sParams);
+            }
         } else {
             success = true;
         }
@@ -144,13 +147,15 @@ contract BranchBridgeAgentExecutor is Ownable {
                     + (uint8(bytes1(_data[PARAMS_START_SIGNED])) * uint16(PARAMS_TKN_SET_SIZE))
         ) {
             //Try to execute remote request
-            (success, result) = IRouter(_router).anyExecuteSettlementMultiple(
-                _data[
-                    PARAMS_END_SIGNED_OFFSET + (uint8(bytes1(_data[PARAMS_START_SIGNED])) * PARAMS_TKN_SET_SIZE):
-                        _data.length - PARAMS_GAS_OUT
-                ],
-                sParams
-            );
+            unchecked {
+                (success, result) = IRouter(_router).anyExecuteSettlementMultiple(
+                    _data[
+                        PARAMS_END_SIGNED_OFFSET + (uint8(bytes1(_data[PARAMS_START_SIGNED])) * PARAMS_TKN_SET_SIZE):
+                            _data.length - PARAMS_GAS_OUT
+                    ],
+                    sParams
+                );
+            }
         } else {
             success = true;
         }

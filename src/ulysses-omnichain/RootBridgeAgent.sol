@@ -273,7 +273,7 @@ contract RootBridgeAgent is IRootBridgeAgent {
                 revert NotSettlementOwner();
             }
         }
-        
+
         //Execute Settlement Redemption.
         _redeemSettlement(_depositNonce);
     }
@@ -462,7 +462,9 @@ contract RootBridgeAgent is IRootBridgeAgent {
         if (_amount - _deposit > 0) {
             //Move output hTokens from Root to Branch
             if (_localAddress == address(0)) revert UnrecognizedLocalAddress();
-            _globalAddress.safeTransferFrom(_sender, localPortAddress, _amount - _deposit);
+            unchecked {
+                _globalAddress.safeTransferFrom(_sender, localPortAddress, _amount - _deposit);
+            }
         }
 
         if (_deposit > 0) {

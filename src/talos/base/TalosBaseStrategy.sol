@@ -175,12 +175,18 @@ abstract contract TalosBaseStrategy is Ownable, ERC20, ReentrancyGuard, ITalosBa
 
         // Refund in both assets.
         if (amount0 < amount0Desired) {
-            uint256 refund0 = amount0Desired - amount0;
+            uint256 refund0;
+            unchecked {
+                refund0 = amount0Desired - amount0;
+            }
             address(_token0).safeTransfer(msg.sender, refund0);
         }
 
         if (amount1 < amount1Desired) {
-            uint256 refund1 = amount1Desired - amount1;
+            uint256 refund1;
+            unchecked {
+                refund1 = amount1Desired - amount1;
+            }
             address(_token1).safeTransfer(msg.sender, refund1);
         }
     }
@@ -244,12 +250,18 @@ abstract contract TalosBaseStrategy is Ownable, ERC20, ReentrancyGuard, ITalosBa
 
         // Refund in both assets.
         if (amount0 < _amount0Desired) {
-            uint256 refund0 = _amount0Desired - amount0;
+            uint256 refund0;
+            unchecked {
+                refund0 = _amount0Desired - amount0;
+            }
             address(_token0).safeTransfer(msg.sender, refund0);
         }
 
         if (amount1 < _amount1Desired) {
-            uint256 refund1 = _amount1Desired - amount1;
+            uint256 refund1;
+            unchecked {
+                refund1 = _amount1Desired - amount1;
+            }
             address(_token1).safeTransfer(msg.sender, refund1);
         }
     }
@@ -424,8 +436,11 @@ abstract contract TalosBaseStrategy is Ownable, ERC20, ReentrancyGuard, ITalosBa
             revert Token1AmountIsBiggerThanProtocolFees();
         }
 
-        protocolFees0 = _protocolFees0 - amount0;
-        protocolFees1 = _protocolFees1 - amount1;
+        unchecked {
+            protocolFees0 = _protocolFees0 - amount0;
+            protocolFees1 = _protocolFees1 - amount1;
+        }
+
         emit RewardPaid(msg.sender, amount0, amount1);
 
         if (amount0 > 0) address(token0).safeTransfer(msg.sender, amount0);

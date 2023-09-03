@@ -74,7 +74,8 @@ contract FlywheelGaugeRewards is IFlywheelGaugeRewards {
         minter.updatePeriod();
 
         // next cycle is always the next even divisor of the cycle length above current block timestamp.
-        uint32 currentCycle = (block.timestamp.toUint32() / gaugeCycleLength) * gaugeCycleLength;
+        uint32 _gaugeCycleLength = gaugeCycleLength;
+        uint32 currentCycle = (block.timestamp.toUint32() / _gaugeCycleLength) * _gaugeCycleLength;
         uint32 lastCycle = gaugeCycle;
 
         // ensure new cycle has begun
@@ -109,7 +110,8 @@ contract FlywheelGaugeRewards is IFlywheelGaugeRewards {
         minter.updatePeriod();
 
         // next cycle is always the next even divisor of the cycle length above current block timestamp.
-        uint32 currentCycle = (block.timestamp.toUint32() / gaugeCycleLength) * gaugeCycleLength;
+        uint32 _gaugeCycleLength = gaugeCycleLength;
+        uint32 currentCycle = (block.timestamp.toUint32() / _gaugeCycleLength) * _gaugeCycleLength;
         uint32 lastCycle = gaugeCycle;
 
         // ensure new cycle has begun

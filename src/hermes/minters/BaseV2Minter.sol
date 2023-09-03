@@ -117,8 +117,12 @@ contract BaseV2Minter is Ownable, IBaseV2Minter {
     }
 
     /// @inheritdoc IBaseV2Minter
-    function weeklyEmission() public view returns (uint256) {
-        return (circulatingSupply() * tailEmission) / BASE;
+    function weeklyEmission() external view returns (uint256) {
+        return _weeklyEmission(circulatingSupply());
+    }
+
+    function _weeklyEmission(uint256 _circulatingSupply) private view returns (uint256) {
+        return (_circulatingSupply * tailEmission) / BASE;
     }
 
     /// @inheritdoc IBaseV2Minter
@@ -133,9 +137,9 @@ contract BaseV2Minter is Ownable, IBaseV2Minter {
         if (block.timestamp >= _period + 1 weeks && initializer == address(0)) {
             _period = (block.timestamp / 1 weeks) * 1 weeks;
             activePeriod = _period;
-            uint256 newWeeklyEmission = weeklyEmission();
-            weekly += newWeeklyEmission;
             uint256 _circulatingSupply = circulatingSupply();
+            uint256 newWeeklyEmission = _weeklyEmission(_circulatingSupply);
+            weekly += newWeeklyEmission;
 
             uint256 _growth = calculateGrowth(newWeeklyEmission);
             /// @dev share of newWeeklyEmission emissions sent to DAO.
@@ -146,7 +150,9 @@ contract BaseV2Minter is Ownable, IBaseV2Minter {
             uint256 _balanceOf = _underlying.balanceOf(address(this));
 
             if (_balanceOf < _required) {
-                HERMES(_underlying).mint(address(this), _required - _balanceOf);
+                unchecked {
+                    HERMES(_underlying).mint(address(this), _required - _balanceOf);
+                }
             }
 
             _underlying.safeTransfer(address(vault), _growth);

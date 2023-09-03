@@ -190,7 +190,7 @@ contract CoreRootRouter is IRootRouter, Ownable {
         string memory _symbol,
         uint24 _fromChain
     ) internal {
-        // Verify if underlying address is already known by branch or root chain
+        //Verify if underlying address is already known by branch or root chain
         if (
             IPort(rootPortAddress).isGlobalAddress(_underlyingAddress)
                 || IPort(rootPortAddress).isLocalToken(_underlyingAddress, _fromChain)

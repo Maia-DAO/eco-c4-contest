@@ -92,9 +92,10 @@ abstract contract ERC20Boost is ERC20, Ownable, IERC20Boost {
     /// @inheritdoc IERC20Boost
     function userGauges(address user, uint256 offset, uint256 num) external view returns (address[] memory values) {
         values = new address[](num);
+        EnumerableSet.AddressSet storage userGaugesSet = _userGauges[user];
         for (uint256 i = 0; i < num;) {
             unchecked {
-                values[i] = _userGauges[user].at(offset + i); // will revert if out of bounds
+                values[i] = userGaugesSet.at(offset + i); // will revert if out of bounds
                 i++;
             }
         }

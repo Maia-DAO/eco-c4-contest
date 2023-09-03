@@ -158,9 +158,10 @@ abstract contract ERC20Gauges is ERC20MultiVotes, ReentrancyGuard, IERC20Gauges 
     /// @inheritdoc IERC20Gauges
     function userGauges(address user, uint256 offset, uint256 num) external view returns (address[] memory values) {
         values = new address[](num);
+        EnumerableSet.AddressSet storage userGaugesSet = _userGauges[user];
         for (uint256 i = 0; i < num;) {
             unchecked {
-                values[i] = _userGauges[user].at(offset + i); // will revert if out of bounds
+                values[i] = userGaugesSet.at(offset + i); // will revert if out of bounds
                 i++;
             }
         }
@@ -561,7 +562,7 @@ abstract contract ERC20Gauges is ERC20MultiVotes, ReentrancyGuard, IERC20Gauges 
             }
         }
 
-        getUserWeight[user] -= userFreed;
+        getUserWeight[user] = getUserWeight[user] - userFreed;
         _writeGaugeWeight(_totalWeight, _subtract112, totalFreed, currentCycle);
     }
 }

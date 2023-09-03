@@ -357,7 +357,7 @@ abstract contract ERC20MultiVotes is ERC20, Ownable, IERC20MultiVotes {
 
         if ((userFreeVotes + totalFreed) < votes) revert UndelegationVoteError();
 
-        userDelegatedVotes[user] -= totalFreed;
+        userDelegatedVotes[user] = userDelegatedVotes[user] - totalFreed;
     }
 
     /*///////////////////////////////////////////////////////////////

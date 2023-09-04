@@ -73,6 +73,8 @@ contract BranchBridgeAgent is IBranchBridgeAgent {
 
     /// ClearTokens Decode Consts
 
+    uint8 internal constant ADDRESS_PADDING = 12;
+
     uint8 internal constant PARAMS_TKN_START = 5;
 
     uint8 internal constant PARAMS_AMT_OFFSET = 64;
@@ -135,6 +137,13 @@ contract BranchBridgeAgent is IBranchBridgeAgent {
     uint256 internal constant MIN_FALLBACK_RESERVE = 185_000; // 100_000 for anycall + 85_000 fallback execution overhead
     uint256 internal constant MIN_EXECUTION_OVERHEAD = 160_000; // 100_000 for anycall + 35_000 Pre 1st Gas Checkpoint Execution + 25_000 Post last Gas Checkpoint Executions
     uint256 internal constant TRANSFER_OVERHEAD = 24_000;
+
+    /*///////////////////////////////////////////////////////////////
+                        REENTRANCY STATE
+    //////////////////////////////////////////////////////////////*/
+
+    /// @notice Re-entrancy lock modifier state.
+    uint256 internal _unlocked = 1;
 
     constructor(
         WETH9 _wrappedNativeToken,
@@ -585,14 +594,17 @@ contract BranchBridgeAgent is IBranchBridgeAgent {
 
         //Transfer token to recipient
         for (uint256 i = 0; i < numOfAssets;) {
+            //Cache common offset
+            uint256 currentIterationOffset = PARAMS_START + i;
+
             //Parse Params
             _hTokens[i] = address(
                 uint160(
                     bytes20(
                         bytes32(
                             _sParams[
-                                PARAMS_TKN_START + (PARAMS_ENTRY_SIZE * i) + 12:
-                                    PARAMS_TKN_START + (PARAMS_ENTRY_SIZE * (PARAMS_START + i))
+                                PARAMS_TKN_START + (PARAMS_ENTRY_SIZE * i) + ADDRESS_PADDING:
+                                    PARAMS_TKN_START + (PARAMS_ENTRY_SIZE * (currentIterationOffset))
                             ]
                         )
                     )
@@ -601,34 +613,37 @@ contract BranchBridgeAgent is IBranchBridgeAgent {
             _tokens[i] = address(
                 uint160(
                     bytes20(
-                        _sParams[
-                            PARAMS_TKN_START + PARAMS_ENTRY_SIZE * uint16(i + numOfAssets) + 12:
-                                PARAMS_TKN_START + PARAMS_ENTRY_SIZE * uint16(PARAMS_START + i + numOfAssets)
-                        ]
+                        bytes32(
+                            _sParams[
+                                PARAMS_TKN_START + PARAMS_ENTRY_SIZE * (i + numOfAssets) + ADDRESS_PADDING:
+                                    PARAMS_TKN_START + PARAMS_ENTRY_SIZE * uint16(currentIterationOffset + numOfAssets)
+                            ]
+                        )
                     )
                 )
             );
             _amounts[i] = uint256(
                 bytes32(
                     _sParams[
-                        PARAMS_TKN_START + PARAMS_AMT_OFFSET * uint16(numOfAssets) + (PARAMS_ENTRY_SIZE * uint16(i)):
-                            PARAMS_TKN_START + PARAMS_AMT_OFFSET * uint16(numOfAssets)
-                                + PARAMS_ENTRY_SIZE * uint16(PARAMS_START + i)
+                        PARAMS_TKN_START + PARAMS_AMT_OFFSET * numOfAssets + (PARAMS_ENTRY_SIZE * i):
+                            PARAMS_TKN_START + PARAMS_AMT_OFFSET * numOfAssets + PARAMS_ENTRY_SIZE * currentIterationOffset
                     ]
                 )
             );
             _deposits[i] = uint256(
                 bytes32(
                     _sParams[
-                        PARAMS_TKN_START + PARAMS_DEPOSIT_OFFSET * uint16(numOfAssets) + (PARAMS_ENTRY_SIZE * uint16(i)):
-                            PARAMS_TKN_START + PARAMS_DEPOSIT_OFFSET * uint16(numOfAssets)
-                                + PARAMS_ENTRY_SIZE * uint16(PARAMS_START + i)
+                        PARAMS_TKN_START + PARAMS_DEPOSIT_OFFSET * numOfAssets + (PARAMS_ENTRY_SIZE * i):
+                            PARAMS_TKN_START + PARAMS_DEPOSIT_OFFSET * numOfAssets
+                                + PARAMS_ENTRY_SIZE * currentIterationOffset
                     ]
                 )
             );
             //Clear Tokens to destination
             if (_amounts[i] - _deposits[i] > 0) {
-                IPort(localPortAddress).bridgeIn(_recipient, _hTokens[i], _amounts[i] - _deposits[i]);
+                unchecked {
+                    IPort(localPortAddress).bridgeIn(_recipient, _hTokens[i], _amounts[i] - _deposits[i]);
+                }
             }
 
             if (_deposits[i] > 0) {
@@ -839,16 +854,18 @@ contract BranchBridgeAgent is IBranchBridgeAgent {
         //Deposit Gas to Port
         _depositGas(_gasToBridgeOut);
 
-        // Update State
-        getDeposit[depositNonce++] = Deposit({
-            owner: _user,
-            hTokens: new address[](0),
-            tokens: new address[](0),
-            amounts: new uint256[](0),
-            deposits: new uint256[](0),
-            status: DepositStatus.Success,
-            depositedGas: _gasToBridgeOut
-        });
+        address[] memory addressArray = new address[](0);
+        uint256[] memory uintArray = new uint256[](0);
+
+        //Save deposit to storage
+        Deposit storage deposit = getDeposit[depositNonce++];
+        deposit.owner = _user;
+        deposit.hTokens = addressArray;
+        deposit.tokens = addressArray;
+        deposit.amounts = uintArray;
+        deposit.deposits = uintArray;
+        deposit.status = DepositStatus.Success;
+        deposit.depositedGas = _gasToBridgeOut;
     }
 
     /**
@@ -875,23 +892,26 @@ contract BranchBridgeAgent is IBranchBridgeAgent {
         //Deposit Gas to Port
         _depositGas(_gasToBridgeOut);
 
-        // Cast to dynamic memory array
-        address[] memory hTokens = new address[](1);
-        hTokens[0] = _hToken;
-        address[] memory tokens = new address[](1);
-        tokens[0] = _token;
-        uint256[] memory amounts = new uint256[](1);
-        amounts[0] = _amount;
-        uint256[] memory deposits = new uint256[](1);
-        deposits[0] = _deposit;
+        //Cast to Dynamic
+        address[] memory addressArray = new address[](1);
+        uint256[] memory uintArray = new uint256[](1);
 
-        // Update State
+        //Save deposit to storage
         Deposit storage deposit = getDeposit[depositNonce++];
         deposit.owner = _user;
-        deposit.hTokens = hTokens;
-        deposit.tokens = tokens;
-        deposit.amounts = amounts;
-        deposit.deposits = deposits;
+
+        addressArray[0] = _hToken;
+        deposit.hTokens = addressArray;
+
+        addressArray[0] = _token;
+        deposit.tokens = addressArray;
+
+        uintArray[0] = _amount;
+        deposit.amounts = uintArray;
+
+        uintArray[0] = _deposit;
+        deposit.deposits = uintArray;
+
         deposit.status = DepositStatus.Success;
         deposit.depositedGas = _gasToBridgeOut;
     }
@@ -974,7 +994,9 @@ contract BranchBridgeAgent is IBranchBridgeAgent {
         internal
     {
         if (_amount - _deposit > 0) {
-            IPort(localPortAddress).bridgeIn(_recipient, _hToken, _amount - _deposit);
+            unchecked {
+                IPort(localPortAddress).bridgeIn(_recipient, _hToken, _amount - _deposit);
+            }
         }
 
         if (_deposit > 0) {
@@ -1348,8 +1370,6 @@ contract BranchBridgeAgent is IBranchBridgeAgent {
     /*///////////////////////////////////////////////////////////////
                                 MODIFIERS
     //////////////////////////////////////////////////////////////*/
-
-    uint256 internal _unlocked = 1;
 
     /// @notice Modifier for a simple re-entrancy check.
     modifier lock() {

@@ -21,9 +21,6 @@ contract ERC20hTokenBranchFactory is Ownable, IERC20hTokenBranchFactory {
     /// @notice Local hTokens deployed in current chain.
     ERC20hTokenBranch[] public hTokens;
 
-    /// @notice Number of hTokens deployed in current chain.
-    uint256 public hTokensLength;
-
     constructor(uint24 _localChainId, address _localPortAddress) {
         require(_localPortAddress != address(0), "Port address cannot be 0");
 
@@ -42,7 +39,6 @@ contract ERC20hTokenBranchFactory is Ownable, IERC20hTokenBranchFactory {
         );
 
         hTokens.push(newToken);
-        hTokensLength++;
 
         localCoreRouterAddress = _coreRouter;
 
@@ -64,7 +60,6 @@ contract ERC20hTokenBranchFactory is Ownable, IERC20hTokenBranchFactory {
     {
         newToken = new ERC20hTokenBranch(_name, _symbol, localPortAddress);
         hTokens.push(newToken);
-        hTokensLength++;
     }
 
     /*///////////////////////////////////////////////////////////////

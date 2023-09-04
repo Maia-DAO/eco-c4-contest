@@ -25,6 +25,9 @@ contract BaseBranchRouter is IBranchRouter, Ownable {
     /// @inheritdoc IBranchRouter
     address public bridgeAgentExecutorAddress;
 
+    /// @notice Re-entrancy lock modifier state.
+    uint256 internal _unlocked = 1;
+
     constructor() {
         _initializeOwner(msg.sender);
     }
@@ -139,8 +142,6 @@ contract BaseBranchRouter is IBranchRouter, Ownable {
         if (msg.sender != bridgeAgentExecutorAddress) revert UnrecognizedBridgeAgentExecutor();
         _;
     }
-
-    uint256 internal _unlocked = 1;
 
     /// @notice Modifier for a simple re-entrancy check.
     modifier lock() {

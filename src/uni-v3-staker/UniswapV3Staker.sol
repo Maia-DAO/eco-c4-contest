@@ -271,8 +271,8 @@ contract UniswapV3Staker is IUniswapV3Staker, Multicallable {
     function claimReward(address to, uint256 amountRequested) external returns (uint256 reward) {
         reward = rewards[msg.sender];
         if (amountRequested != 0 && amountRequested < reward) {
+            rewards[msg.sender] = reward - amountRequested;
             reward = amountRequested;
-            rewards[msg.sender] -= reward;
         } else {
             delete rewards[msg.sender];
         }

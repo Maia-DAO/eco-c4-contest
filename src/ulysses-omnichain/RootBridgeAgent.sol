@@ -186,6 +186,13 @@ contract RootBridgeAgent is IRootBridgeAgent {
 
     uint256 public accumulatedFees;
 
+    /*///////////////////////////////////////////////////////////////
+                        REENTRANCY STATE
+    //////////////////////////////////////////////////////////////*/
+
+    /// @notice Re-entrancy lock modifier state.
+    uint256 internal _unlocked = 1;
+
     /**
      * @notice Constructor for Bridge Agent.
      *     @param _wrappedNativeToken Local Wrapped Native Token.
@@ -350,6 +357,7 @@ contract RootBridgeAgent is IRootBridgeAgent {
     ) external payable lock requiresRouter {
         address[] memory hTokens = new address[](_globalAddresses.length);
         address[] memory tokens = new address[](_globalAddresses.length);
+
         for (uint256 i = 0; i < _globalAddresses.length;) {
             //Populate Addresses for Settlement
             hTokens[i] = IPort(localPortAddress).getLocalTokenFromGlobal(_globalAddresses[i], _toChain);
@@ -504,17 +512,30 @@ contract RootBridgeAgent is IRootBridgeAgent {
         uint24 _toChain
     ) internal {
         //Cast to Dynamic
-        address[] memory hTokens = new address[](1);
-        hTokens[0] = _hToken;
-        address[] memory tokens = new address[](1);
-        tokens[0] = _token;
-        uint256[] memory amounts = new uint256[](1);
-        amounts[0] = _amount;
-        uint256[] memory deposits = new uint256[](1);
-        deposits[0] = _deposit;
+        address[] memory addressArray = new address[](1);
+        uint256[] memory uintArray = new uint256[](1);
 
-        //Call createSettlement
-        _createMultipleSettlement(_owner, _recipient, hTokens, tokens, amounts, deposits, _callData, _toChain);
+        // Update State
+        Settlement storage settlement = getSettlement[settlementNonce++];
+        settlement.owner = _owner;
+        settlement.recipient = _recipient;
+
+        addressArray[0] = _hToken;
+        settlement.hTokens = addressArray;
+
+        addressArray[0] = _token;
+        settlement.tokens = addressArray;
+
+        uintArray[0] = _amount;
+        settlement.amounts = uintArray;
+
+        uintArray[0] = _deposit;
+        settlement.deposits = uintArray;
+
+        settlement.callData = _callData;
+        settlement.toChain = _toChain;
+        settlement.status = SettlementStatus.Success;
+        settlement.gasToBridgeOut = userFeeInfo.gasToBridgeOut;
     }
 
     /**
@@ -542,6 +563,7 @@ contract RootBridgeAgent is IRootBridgeAgent {
     ) internal {
         // Update State
         Settlement storage settlement = getSettlement[settlementNonce++];
+
         settlement.owner = _owner;
         settlement.recipient = _recipient;
         settlement.hTokens = _hTokens;
@@ -605,10 +627,12 @@ contract RootBridgeAgent is IRootBridgeAgent {
         for (uint256 i = 0; i < settlement.hTokens.length;) {
             //Save to memory
             address _hToken = settlement.hTokens[i];
-            uint24 _toChain = settlement.toChain;
 
             //Check if asset
             if (_hToken != address(0)) {
+                //Save to memory
+                uint24 _toChain = settlement.toChain;
+
                 //Move hTokens from Branch to Root + Mint Sufficient hTokens to match new port deposit
                 IPort(localPortAddress).bridgeToRoot(
                     msg.sender,
@@ -1274,8 +1298,6 @@ contract RootBridgeAgent is IRootBridgeAgent {
     /*///////////////////////////////////////////////////////////////
                             MODIFIERS
     //////////////////////////////////////////////////////////////*/
-
-    uint256 internal _unlocked = 1;
 
     /// @notice Modifier for a simple re-entrancy check.
     modifier lock() {

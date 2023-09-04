@@ -21,9 +21,6 @@ contract ERC20hTokenRootFactory is Ownable, IERC20hTokenRootFactory {
     /// @notice Root Core Router Address, in charge of the addition of new tokens to the system.
     address public coreRootRouterAddress;
 
-    /// @notice Length of the hTokens array.
-    uint96 public hTokensLength;
-
     /// @notice Array of all hTokens created.
     ERC20hTokenRoot[] public hTokens;
 
@@ -66,7 +63,6 @@ contract ERC20hTokenRootFactory is Ownable, IERC20hTokenRootFactory {
             _symbol
         );
         hTokens.push(newToken);
-        hTokensLength++;
     }
 
     /*///////////////////////////////////////////////////////////////

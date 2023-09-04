@@ -39,14 +39,8 @@ contract RootPort is Ownable, IRootPort {
     /// @notice wrapped native token address
     address public immutable wrappedNativeTokenAddress;
 
-    /// @notice Number of bridgeAgents deployed in current chain.
-    uint64 public bridgeAgentsLength;
-
     /// @notice The address of local branch port responsible for handling local transactions.
     address public localBranchPortAddress;
-
-    /// @notice Number of Bridge Agents deployed in current chain.
-    uint64 public bridgeAgentFactoriesLength;
 
     /// @notice The address of the core router in charge of adding new tokens to the system.
     address public coreRootRouterAddress;
@@ -140,7 +134,6 @@ contract RootPort is Ownable, IRootPort {
 
         isBridgeAgentFactory[_bridgeAgentFactory] = true;
         bridgeAgentFactories.push(_bridgeAgentFactory);
-        bridgeAgentFactoriesLength++;
 
         coreRootRouterAddress = _coreRootRouter;
 
@@ -285,25 +278,7 @@ contract RootPort is Ownable, IRootPort {
         if (!isGlobalAddress[_hToken]) revert UnrecognizedToken();
 
         if (_amount - _deposit > 0) _hToken.safeTransfer(_recipient, _amount - _deposit);
-        if (_deposit > 0) mint(_recipient, _hToken, _deposit, _fromChainId);
-    }
-
-    /**
-     * @notice Mints new hTokens to the recipient.
-     * @param _to recipient of the newly minted hTokens.
-     * @param _hToken address of the hToken to mint.
-     * @param _amount amount of hTokens to mint.
-     * @param _fromChain The chainId of the chain where the token is deployed.
-     */
-    function mint(address _to, address _hToken, uint256 _amount, uint24 _fromChain) internal {
-        if (!isGlobalAddress[_hToken]) revert UnrecognizedToken();
-        if (!ERC20hTokenRoot(_hToken).mint(_to, _amount, _fromChain)) revert UnableToMint();
-    }
-
-    /// @inheritdoc IRootPort
-    function burn(address _from, address _hToken, uint256 _amount, uint24 _fromChain) external requiresBridgeAgent {
-        if (!isGlobalAddress[_hToken]) revert UnrecognizedToken();
-        ERC20hTokenRoot(_hToken).burn(_from, _amount, _fromChain);
+        if (_deposit > 0) if (!ERC20hTokenRoot(_hToken).mint(_recipient, _deposit, _fromChainId)) revert UnableToMint();
     }
 
     /// @inheritdoc IRootPort
@@ -326,8 +301,9 @@ contract RootPort is Ownable, IRootPort {
     }
 
     /// @inheritdoc IRootPort
-    function mintToLocalBranch(address _to, address _hToken, uint256 _amount) external requiresLocalBranchPort {
-        mint(_to, _hToken, _amount, localChainId);
+    function burn(address _from, address _hToken, uint256 _amount, uint24 _fromChain) external requiresBridgeAgent {
+        if (!isGlobalAddress[_hToken]) revert UnrecognizedToken();
+        ERC20hTokenRoot(_hToken).burn(_from, _amount, _fromChain);
     }
 
     /// @inheritdoc IRootPort
@@ -335,6 +311,12 @@ contract RootPort is Ownable, IRootPort {
         if (!isGlobalAddress[_hToken]) revert UnrecognizedToken();
 
         ERC20hTokenRoot(_hToken).burn(_from, _amount, localChainId);
+    }
+
+    /// @inheritdoc IRootPort
+    function mintToLocalBranch(address _to, address _hToken, uint256 _amount) external requiresLocalBranchPort {
+        if (!isGlobalAddress[_hToken]) revert UnrecognizedToken();
+        if (!ERC20hTokenRoot(_hToken).mint(_to, _amount, localChainId)) revert UnableToMint();
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -372,9 +354,8 @@ contract RootPort is Ownable, IRootPort {
         if (isBridgeAgent[_bridgeAgent]) revert AlreadyAddedBridgeAgent();
 
         bridgeAgents.push(_bridgeAgent);
-        bridgeAgentsLength++;
         getBridgeAgentManager[_bridgeAgent] = _manager;
-        isBridgeAgent[_bridgeAgent] = !isBridgeAgent[_bridgeAgent];
+        isBridgeAgent[_bridgeAgent] = true;
 
         emit BridgeAgentAdded(_bridgeAgent, _manager);
     }
@@ -412,7 +393,6 @@ contract RootPort is Ownable, IRootPort {
         if (isBridgeAgentFactory[_bridgeAgentFactory]) revert AlreadyAddedBridgeAgentFactory();
 
         bridgeAgentFactories.push(_bridgeAgentFactory);
-        bridgeAgentFactoriesLength++;
         isBridgeAgentFactory[_bridgeAgentFactory] = true;
 
         emit BridgeAgentFactoryAdded(_bridgeAgentFactory);

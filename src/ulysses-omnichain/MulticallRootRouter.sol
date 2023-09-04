@@ -58,10 +58,14 @@ contract MulticallRootRouter is IRootRouter, Ownable {
     /// @notice Multicall Address
     address public immutable multicallAddress;
 
-    /// @notice Bridge Agent to maneg communcations and cross-chain assets.
+    /// @notice Bridge Agent to manage communcations and cross-chain assets.
     address payable public bridgeAgentAddress;
 
+    /// @notice Bridge Agent Executor Address
     address public bridgeAgentExecutorAddress;
+
+    /// @notice Re-entrancy lock modifier state.
+    uint256 internal _unlocked = 1;
 
     constructor(uint256 _localChainId, address _localPortAddress, address _multicallAddress) {
         require(_localPortAddress != address(0), "Local Port Address cannot be 0");
@@ -495,8 +499,6 @@ contract MulticallRootRouter is IRootRouter, Ownable {
     /*///////////////////////////////////////////////////////////////
                             MODIFIERS
     ////////////////////////////////////////////////////////////*/
-
-    uint256 internal _unlocked = 1;
 
     /// @notice Modifier for a simple re-entrancy check.
     modifier lock() {

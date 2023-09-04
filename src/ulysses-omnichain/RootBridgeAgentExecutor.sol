@@ -51,6 +51,8 @@ contract RootBridgeAgentExecutor is Ownable {
 
     /// BridgeIn Consts
 
+    uint8 internal constant ADDRESS_PADDING = 12;
+
     uint8 internal constant PARAMS_TKN_START = 5;
 
     uint8 internal constant PARAMS_AMT_OFFSET = 64;
@@ -356,7 +358,7 @@ contract RootBridgeAgentExecutor is Ownable {
     {
         // Parse Parameters
         uint8 numOfAssets = uint8(bytes1(_dParams[0]));
-        uint32 nonce = uint32(bytes4(_dParams[PARAMS_START:5]));
+        uint32 nonce = uint32(bytes4(_dParams[PARAMS_START:PARAMS_TKN_START]));
         uint24 toChain = uint24(bytes3(_dParams[_dParams.length - 3:_dParams.length]));
 
         address[] memory hTokens = new address[](numOfAssets);
@@ -365,14 +367,17 @@ contract RootBridgeAgentExecutor is Ownable {
         uint256[] memory deposits = new uint256[](numOfAssets);
 
         for (uint256 i = 0; i < uint256(uint8(numOfAssets));) {
+            //Cache offset
+            uint256 currentIterationOffset = PARAMS_START + i;
+
             //Parse Params
             hTokens[i] = address(
                 uint160(
                     bytes20(
                         bytes32(
                             _dParams[
-                                PARAMS_TKN_START + (PARAMS_ENTRY_SIZE * i) + 12:
-                                    PARAMS_TKN_START + (PARAMS_ENTRY_SIZE * (PARAMS_START + i))
+                                PARAMS_TKN_START + (PARAMS_ENTRY_SIZE * i) + ADDRESS_PADDING:
+                                    PARAMS_TKN_START + (PARAMS_ENTRY_SIZE * currentIterationOffset)
                             ]
                         )
                     )
@@ -382,10 +387,12 @@ contract RootBridgeAgentExecutor is Ownable {
             tokens[i] = address(
                 uint160(
                     bytes20(
-                        _dParams[
-                            PARAMS_TKN_START + PARAMS_ENTRY_SIZE * uint16(i + numOfAssets) + 12:
-                                PARAMS_TKN_START + PARAMS_ENTRY_SIZE * uint16(PARAMS_START + i + numOfAssets)
-                        ]
+                        bytes32(
+                            _dParams[
+                                PARAMS_TKN_START + PARAMS_ENTRY_SIZE * (i + numOfAssets) + ADDRESS_PADDING:
+                                    PARAMS_TKN_START + PARAMS_ENTRY_SIZE * (currentIterationOffset + numOfAssets)
+                            ]
+                        )
                     )
                 )
             );
@@ -393,9 +400,9 @@ contract RootBridgeAgentExecutor is Ownable {
             amounts[i] = uint256(
                 bytes32(
                     _dParams[
-                        PARAMS_TKN_START + PARAMS_AMT_OFFSET * uint16(numOfAssets) + (PARAMS_ENTRY_SIZE * uint16(i)):
-                            PARAMS_TKN_START + PARAMS_AMT_OFFSET * uint16(numOfAssets)
-                                + PARAMS_ENTRY_SIZE * uint16(PARAMS_START + i)
+                        PARAMS_TKN_START + PARAMS_AMT_OFFSET * numOfAssets + (PARAMS_ENTRY_SIZE * i):
+                            PARAMS_TKN_START + PARAMS_AMT_OFFSET * numOfAssets
+                                + (PARAMS_ENTRY_SIZE * currentIterationOffset)
                     ]
                 )
             );
@@ -403,9 +410,9 @@ contract RootBridgeAgentExecutor is Ownable {
             deposits[i] = uint256(
                 bytes32(
                     _dParams[
-                        PARAMS_TKN_START + PARAMS_DEPOSIT_OFFSET * uint16(numOfAssets) + (PARAMS_ENTRY_SIZE * uint16(i)):
-                            PARAMS_TKN_START + PARAMS_DEPOSIT_OFFSET * uint16(numOfAssets)
-                                + PARAMS_ENTRY_SIZE * uint16(PARAMS_START + i)
+                        PARAMS_TKN_START + PARAMS_DEPOSIT_OFFSET * numOfAssets + (PARAMS_ENTRY_SIZE * i):
+                            PARAMS_TKN_START + PARAMS_DEPOSIT_OFFSET * numOfAssets
+                                + PARAMS_ENTRY_SIZE * currentIterationOffset
                     ]
                 )
             );

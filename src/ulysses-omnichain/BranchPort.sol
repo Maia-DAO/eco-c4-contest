@@ -29,9 +29,6 @@ contract BranchPort is Ownable, IBranchPort {
     /// @notice Branch Routers deployed in branc chain.
     address[] public bridgeAgents;
 
-    /// @notice Number of Branch Routers deployed in current chain.
-    uint256 public bridgeAgentsLength;
-
     /*///////////////////////////////////////////////////////////////
                     BRIDGE AGENT FACTORIES STATE
     //////////////////////////////////////////////////////////////*/
@@ -41,9 +38,6 @@ contract BranchPort is Ownable, IBranchPort {
 
     /// @notice Branch Routers deployed in branc chain.
     address[] public bridgeAgentFactories;
-
-    /// @notice Number of Branch Routers deployed in current chain.
-    uint256 public bridgeAgentFactoriesLength;
 
     /*///////////////////////////////////////////////////////////////
                         PORT STRATEGY STATE
@@ -55,9 +49,6 @@ contract BranchPort is Ownable, IBranchPort {
 
     /// @notice List of Tokens allowlisted for usage in Port Strategies.
     address[] public strategyTokens;
-
-    /// @notice Number of Port Strategies deployed in current branch chain.
-    uint256 public strategyTokensLength;
 
     /// @notice Mapping returns a given token's total debt incurred by Port Strategies.
     mapping(address => uint256) public getStrategyTokenDebt;
@@ -73,9 +64,6 @@ contract BranchPort is Ownable, IBranchPort {
     /// @notice Port Strategy Addresses deployed in current branch chain.
     address[] public portStrategies;
 
-    /// @notice Number of Port Strategies deployed in current branch chain.
-    uint256 public portStrategiesLength;
-
     /// @notice Mapping returns the amount of Strategy Token debt a given Port Startegy has.  Strategy => Token => uint256.
     mapping(address => mapping(address => uint256)) public getPortStrategyTokenDebt;
 
@@ -88,8 +76,19 @@ contract BranchPort is Ownable, IBranchPort {
     /// @notice Mapping returns the amount of a Strategy Token a given Port Strategy can manage.
     mapping(address => mapping(address => uint256)) public strategyDailyLimitRemaining;
 
+    /*///////////////////////////////////////////////////////////////
+                            CONSTANTS
+    //////////////////////////////////////////////////////////////*/
+
     uint256 internal constant DIVISIONER = 1e4;
     uint256 internal constant MIN_RESERVE_RATIO = 3e3;
+
+    /*///////////////////////////////////////////////////////////////
+                            REENTRANCY STATE
+    //////////////////////////////////////////////////////////////*/
+
+    /// @notice Reentrancy lock guard state.
+    uint256 internal _unlocked = 1;
 
     constructor(address _owner) {
         require(_owner != address(0), "Owner is zero address");
@@ -106,7 +105,6 @@ contract BranchPort is Ownable, IBranchPort {
         coreBranchRouterAddress = _coreBranchRouter;
         isBridgeAgentFactory[_bridgeAgentFactory] = true;
         bridgeAgentFactories.push(_bridgeAgentFactory);
-        bridgeAgentFactoriesLength++;
     }
 
     /// @notice Function being overrriden to prevent mistakenly renouncing ownership.
@@ -123,9 +121,9 @@ contract BranchPort is Ownable, IBranchPort {
      *   @param _token Address of a given Strategy Token.
      *   @return uint256 excess reserves
      */
-    function _excessReserves(address _token) internal view returns (uint256) {
+    function _excessReserves(uint256 _strategyTokenDebt, address _token) internal view returns (uint256) {
         uint256 currBalance = ERC20(_token).balanceOf(address(this));
-        uint256 minReserves = _minimumReserves(currBalance, _token);
+        uint256 minReserves = _minimumReserves(_strategyTokenDebt, currBalance, _token);
 
         unchecked {
             return currBalance > minReserves ? currBalance - minReserves : 0;
@@ -137,9 +135,9 @@ contract BranchPort is Ownable, IBranchPort {
      *   @param _token Address of a given Strategy Token.
      *   @return uint256 excess reserves
      */
-    function _reservesLacking(address _token) internal view returns (uint256) {
+    function _reservesLacking(uint256 _strategyTokenDebt, address _token) internal view returns (uint256) {
         uint256 currBalance = ERC20(_token).balanceOf(address(this));
-        uint256 minReserves = _minimumReserves(currBalance, _token);
+        uint256 minReserves = _minimumReserves(_strategyTokenDebt, currBalance, _token);
 
         unchecked {
             return currBalance < minReserves ? minReserves - currBalance : 0;
@@ -148,12 +146,17 @@ contract BranchPort is Ownable, IBranchPort {
 
     /**
      * @notice Internal function to return the minimum amount of reserves of a given Strategy Token the Port should hold.
+     *   @param _strategyTokenDebt Total token debt incurred by Port Strategies.
      *   @param _currBalance Current balance of a given Strategy Token.
      *   @param _token Address of a given Strategy Token.
      *   @return uint256 minimum reserves
      */
-    function _minimumReserves(uint256 _currBalance, address _token) internal view returns (uint256) {
-        return ((_currBalance + getStrategyTokenDebt[_token]) * getMinimumTokenReserveRatio[_token]) / DIVISIONER;
+    function _minimumReserves(uint256 _strategyTokenDebt, uint256 _currBalance, address _token)
+        internal
+        view
+        returns (uint256)
+    {
+        return ((_currBalance + _strategyTokenDebt) * getMinimumTokenReserveRatio[_token]) / DIVISIONER;
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -162,11 +165,13 @@ contract BranchPort is Ownable, IBranchPort {
 
     /// @inheritdoc IBranchPort
     function manage(address _token, uint256 _amount) external requiresPortStrategy(_token) {
-        if (_amount > _excessReserves(_token)) revert InsufficientReserves();
+        uint256 _strategyTokenDebt = getStrategyTokenDebt[_token];
+
+        if (_amount > _excessReserves(_strategyTokenDebt, _token)) revert InsufficientReserves();
 
         _checkTimeLimit(_token, _amount);
 
-        getStrategyTokenDebt[_token] += _amount;
+        getStrategyTokenDebt[_token] = _strategyTokenDebt + _amount;
         getPortStrategyTokenDebt[msg.sender][_token] += _amount;
 
         _token.safeTransfer(msg.sender, _amount);
@@ -176,15 +181,17 @@ contract BranchPort is Ownable, IBranchPort {
 
     /// @inheritdoc IBranchPort
     function replenishReserves(address _strategy, address _token, uint256 _amount) external lock {
-        if (getPortStrategyTokenDebt[_strategy][_token] < _amount) revert NoDebtToRepay();
-        if (!isPortStrategy[_strategy][_token]) revert UnrecognizedPortStrategy();
+        uint256 portStrategyTokenDebt = getPortStrategyTokenDebt[_strategy][_token];
 
-        uint256 reservesLacking = _reservesLacking(_token);
+        if (portStrategyTokenDebt < _amount) revert NoDebtToRepay();
+
+        uint256 strategyTokenDebt = getStrategyTokenDebt[_token];
+        uint256 reservesLacking = _reservesLacking(strategyTokenDebt, _token);
 
         uint256 amountToWithdraw = _amount < reservesLacking ? _amount : reservesLacking;
 
-        getPortStrategyTokenDebt[_strategy][_token] -= amountToWithdraw;
-        getStrategyTokenDebt[_token] -= amountToWithdraw;
+        getPortStrategyTokenDebt[_strategy][_token] = portStrategyTokenDebt - amountToWithdraw;
+        getStrategyTokenDebt[_token] = strategyTokenDebt - amountToWithdraw;
 
         IPortStrategy(_strategy).withdraw(address(this), _token, amountToWithdraw);
 
@@ -302,7 +309,6 @@ contract BranchPort is Ownable, IBranchPort {
 
         isBridgeAgent[_bridgeAgent] = true;
         bridgeAgents.push(_bridgeAgent);
-        bridgeAgentsLength++;
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -322,7 +328,6 @@ contract BranchPort is Ownable, IBranchPort {
 
         isBridgeAgentFactory[_newBridgeAgentFactory] = true;
         bridgeAgentFactories.push(_newBridgeAgentFactory);
-        bridgeAgentFactoriesLength++;
 
         emit BridgeAgentFactoryAdded(_newBridgeAgentFactory);
     }
@@ -348,7 +353,6 @@ contract BranchPort is Ownable, IBranchPort {
         }
 
         strategyTokens.push(_token);
-        strategyTokensLength++;
         getMinimumTokenReserveRatio[_token] = _minimumReservesRatio;
         isStrategyToken[_token] = true;
 
@@ -369,7 +373,6 @@ contract BranchPort is Ownable, IBranchPort {
     {
         if (!isStrategyToken[_token]) revert UnrecognizedStrategyToken();
         portStrategies.push(_portStrategy);
-        portStrategiesLength++;
         strategyDailyLimitAmount[_portStrategy][_token] = _dailyManagementLimit;
         isPortStrategy[_portStrategy][_token] = true;
 
@@ -434,8 +437,6 @@ contract BranchPort is Ownable, IBranchPort {
         if (!isPortStrategy[msg.sender][_token]) revert UnrecognizedPortStrategy();
         _;
     }
-
-    uint256 internal _unlocked = 1;
 
     /// @notice Modifier for a simple re-entrancy check.
     modifier lock() {

@@ -216,7 +216,7 @@ contract CoreBranchRouter is ICoreBranchRouter, BaseBranchRouter {
     }
 
     /**
-     * @notice Function to deploy/add a token already active in the global enviornment in the Root Chain. Must be called from another chain.
+     * @notice Function to deploy/add a token already active in the global environment in the Root Chain. Must be called from another chain.
      *  @param _portStrategy the address of the port strategy.
      *  @param _underlyingToken the address of the underlying token.
      *  @param _dailyManagementLimit the daily management limit.

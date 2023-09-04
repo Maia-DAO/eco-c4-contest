@@ -86,13 +86,13 @@ struct SettlementMultipleParams {
 /**
  * @title  Branch Bridge Agent Contract
  * @author MaiaDAO
- * @notice Contract for deployment in Branch Chains of Omnichain System, responible for
- *         interfacing with Users and Routers acting as a middleman to access Anycall cross-chain
- *         messaging and  requesting / depositing  assets in the Branch Chain's Ports.
- * @dev    Bridge Agents allow for the encapsulation of business logic as well as the standardize
- *         cross-chain communication, allowing for the creation of custom Routers to perform
- *         actions as a response to remote user requests. This contract for deployment in the Branch
- *         Chains of the Ulysses Omnichain Liquidity System.
+ * @notice Contract for deployment in Branch Chains of Omnichain System, responsible for interfacing with Users
+ *         and Routers acting as a middleman to access Anycall cross-chain messaging and requesting / depositing
+ *         assets in the Branch Chain's Ports.
+ * @dev    Bridge Agents allow for the encapsulation of business logic as well as the standardization of cross-
+ *         -chain communication, allowing for the creation of custom Routers to perform actions as a response to
+ *         remote user requests. This contract for deployment in the Branch Chains of the Ulysses Omnichain
+ *         Liquidity System.
  *         This contract manages gas spenditure calling `_replenishingGas` after each remote initiated
  *         execution, as well as requests tokens clearances and tx execution to the `BranchBridgeAgentExecutor`.
  *         Remote execution is "sandboxed" in 3 different nestings:
@@ -103,11 +103,11 @@ struct SettlementMultipleParams {
  *              Router interaction the userDepositedGas < executionGasSpent. This is done by calling the `_forceRevert()`
  *              internal function clearing all executionBudget from the AnycallConfig contract forcing the error `no enough budget`.
  *         - 3: The `BranchBridgeAgentExecutor` is in charge of requesting token deposits for each remote interaction as well
- *              as performing the Router calls, if any of the calls initiated by the Router lead to an invlaid state change
+ *              as performing the Router calls, if any of the calls initiated by the Router lead to an invalid state change
  *              both the token deposit clearances as well as the external interactions will be reverted. Yet executionGas
  *              will still be credited by the `BranchBridgeAgent`.
  *
- *         Func IDs for calling these functions through messaging layer:
+ *         Func IDs for calling these functions through the messaging layer:
  *
  *         BRANCH BRIDGE AGENT SETTLEMENT FLAGS
  *         --------------------------------------
@@ -160,7 +160,7 @@ interface IBranchBridgeAgent is IApp {
 
     /**
      * @notice Function to perform a call to the Root Omnichain Router without token deposit.
-     *   @param params enconded parameters to execute on the root chain router.
+     *   @param params encoded parameters to execute on the root chain router.
      *   @param remoteExecutionGas gas allocated for remote branch execution.
      *   @dev DEPOSIT ID: 1 (Call without deposit)
      *
@@ -169,7 +169,7 @@ interface IBranchBridgeAgent is IApp {
 
     /**
      * @notice Function to perform a call to the Root Omnichain Router while depositing a single asset.
-     *   @param params enconded parameters to execute on the root chain router.
+     *   @param params encoded parameters to execute on the root chain router.
      *   @param dParams additional token deposit parameters.
      *   @param remoteExecutionGas gas allocated for remote branch execution.
      *   @dev DEPOSIT ID: 2 (Call with single deposit)
@@ -181,7 +181,7 @@ interface IBranchBridgeAgent is IApp {
 
     /**
      * @notice Function to perform a call to the Root Omnichain Router while depositing two or more assets.
-     *   @param params enconded parameters to execute on the root chain router.
+     *   @param params encoded parameters to execute on the root chain router.
      *   @param dParams additional token deposit parameters.
      *   @param remoteExecutionGas gas allocated for remote branch execution.
      *   @dev DEPOSIT ID: 3 (Call with multiple deposit)
@@ -195,7 +195,7 @@ interface IBranchBridgeAgent is IApp {
 
     /**
      * @notice Function to perform a call to the Root Omnichain Router without token deposit with msg.sender information.
-     *   @param params enconded parameters to execute on the root chain router.
+     *   @param params encoded parameters to execute on the root chain router.
      *   @param remoteExecutionGas gas allocated for remote branch execution.
      *   @dev DEPOSIT ID: 4 (Call without deposit and verified sender)
      *
@@ -204,7 +204,7 @@ interface IBranchBridgeAgent is IApp {
 
     /**
      * @notice Function to perform a call to the Root Omnichain Router while depositing a single asset msg.sender.
-     *   @param params enconded parameters to execute on the root chain router.
+     *   @param params encoded parameters to execute on the root chain router.
      *   @param dParams additional token deposit parameters.
      *   @param remoteExecutionGas gas allocated for remote branch execution.
      *   @dev DEPOSIT ID: 5 (Call with single deposit and verified sender)
@@ -216,7 +216,7 @@ interface IBranchBridgeAgent is IApp {
 
     /**
      * @notice Function to perform a call to the Root Omnichain Router while depositing two or more assets with msg.sender.
-     *   @param params enconded parameters to execute on the root chain router.
+     *   @param params encoded parameters to execute on the root chain router.
      *   @param dParams additional token deposit parameters.
      *   @param remoteExecutionGas gas allocated for remote branch execution.
      *   @dev DEPOSIT ID: 6 (Call with multiple deposit and verified sender)
@@ -326,7 +326,7 @@ interface IBranchBridgeAgent is IApp {
     /**
      * @notice Function to perform a call to the Root Omnichain Router while depositing a single asset.
      *   @param depositor address of user depositing assets.
-     *   @param params enconded parameters to execute on the root chain router.
+     *   @param params encoded parameters to execute on the root chain router.
      *   @param dParams additional token deposit parameters.
      *   @param gasToBridgeOut gas allocated for the cross-chain call.
      *   @param remoteExecutionGas gas allocated for omnichain execution.
@@ -344,7 +344,7 @@ interface IBranchBridgeAgent is IApp {
     /**
      * @notice Function to perform a call to the Root Omnichain Router while depositing two or more assets.
      *   @param depositor address of user depositing assets.
-     *   @param params enconded parameters to execute on the root chain router.
+     *   @param params encoded parameters to execute on the root chain router.
      *   @param dParams additional token deposit parameters.
      *   @param gasToBridgeOut gas allocated for the cross-chain call.
      *   @param remoteExecutionGas gas allocated for omnichain execution.

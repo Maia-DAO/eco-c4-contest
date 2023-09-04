@@ -31,7 +31,7 @@ struct OutputMultipleParams {
 /**
  * @title  Multicall Root Router Contract
  * @author MaiaDAO
- * @notice Root Router implementation for interfacing with third party dApps present in the Root Omnichain Environment.
+ * @notice Root Router implementation for interfacing with third-party dApps present in the Root Omnichain Environment.
  * @dev    Func IDs for calling these  functions through messaging layer:
  *
  *         CROSS-CHAIN MESSAGING FUNCIDs
@@ -58,7 +58,7 @@ contract MulticallRootRouter is IRootRouter, Ownable {
     /// @notice Multicall Address
     address public immutable multicallAddress;
 
-    /// @notice Bridge Agent to manage communcations and cross-chain assets.
+    /// @notice Bridge Agent to manage communications and cross-chain assets.
     address payable public bridgeAgentAddress;
 
     /// @notice Bridge Agent Executor Address
@@ -90,7 +90,7 @@ contract MulticallRootRouter is IRootRouter, Ownable {
     ///////////////////////////////////////////////////////////////*/
 
     /**
-     *   @notice Function to perform a set of actions on the omnichian environment without using the user's Virtual Acccount.
+     *   @notice Function to perform a set of actions on the omnichain environment without using the user's Virtual Acccount.
      *   @param calls to be executed.
      *
      */
@@ -135,7 +135,7 @@ contract MulticallRootRouter is IRootRouter, Ownable {
     }
 
     /**
-     *  @notice Function to approve token spend before Bridge Agent interaction to Bridge Out of omnichian environment.
+     *  @notice Function to approve token spend before Bridge Agent interaction to Bridge Out of omnichain environment.
      *  @param owner settlement owner.
      *  @param recipient Address to receive the output tokens.
      *  @param outputTokens Addresses of the output hTokens.

@@ -492,13 +492,13 @@ contract RootBridgeAgent is IRootBridgeAgent {
     /**
      * @notice Function to store a Settlement instance. Settlement should be reopened if fallback occurs.
      *    @param _owner settlement owner address.
-     *    @param _recipient destination chain reciever address.
+     *    @param _recipient destination chain receiver address.
      *    @param _hToken deposited global token address.
      *    @param _token deposited global token address.
      *    @param _amount amounts of total hTokens + Tokens output.
      *    @param _deposit amount of underlying / native token to output.
      *    @param _callData calldata to execute on destination Router.
-     *    @param _toChain Destination chain identificator.
+     *    @param _toChain Destination chain identifier.
      *
      */
     function _createSettlement(
@@ -539,15 +539,15 @@ contract RootBridgeAgent is IRootBridgeAgent {
     }
 
     /**
-     * @notice Function to create a settlemment. Settlement should be reopened if fallback occurs.
+     * @notice Function to create a settlement. Settlement should be reopened if fallback occurs.
      *    @param _owner settlement owner address.
-     *    @param _recipient destination chain reciever address.
+     *    @param _recipient destination chain receiver address.
      *    @param _hTokens deposited global token addresses.
      *    @param _tokens deposited global token addresses.
      *    @param _amounts amounts of total hTokens + Tokens output.
      *    @param _deposits amount of underlying / native tokens to output.
      *    @param _callData calldata to execute on destination Router.
-     *    @param _toChain Destination chain identificator.
+     *    @param _toChain Destination chain identifier.
      *
      *
      */

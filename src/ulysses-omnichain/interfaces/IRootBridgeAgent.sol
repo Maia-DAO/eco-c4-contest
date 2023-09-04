@@ -86,7 +86,7 @@ struct DepositMultipleParams {
  * @author MaiaDAO
  * @notice Contract responsible for interfacing with Users and Routers acting as a middleman to
  *         access Anycall cross-chain messaging and Port communication for asset management.
- * @dev    Bridge Agents allow for the encapsulation of business logic as well as the standardize
+ * @dev    Bridge Agents allow for the encapsulation of business logic as well as the standardization of
  *         cross-chain communication, allowing for the creation of custom Routers to perform
  *         actions as a response to remote user requests. This contract is for deployment in the Root
  *         Chain Omnichain Environment based on Arbitrum.
@@ -104,7 +104,7 @@ struct DepositMultipleParams {
  *              both the token deposit clearances as well as the external interactions will be reverted. Yet executionGas
  *              will still be credited by the `RootBridgeAgent`.
  *
- *          Func IDs for calling these  functions through messaging layer:
+ *          Func IDs for calling these  functions through the messaging layer:
  *
  *          ROOT BRIDGE AGENT DEPOSIT FLAGS
  *          --------------------------------------
@@ -116,7 +116,7 @@ struct DepositMultipleParams {
  *          0x03         | Call to Root Router with Deposit of Multiple Tokens.
  *          0x04         | Call to Root Router without Deposit + singned message.
  *          0x05         | Call to Root Router with Deposit + singned message.
- *          0x06         | Call to Root Router with Deposit of Multiple Tokens + singned message.
+ *          0x06         | Call to Root Router with Deposit of Multiple Tokens + signed message.
  *          0x07         | Call to `retrySettlement()´. (retries sending a settlement + calldata for branch execution with new gas)
  *          0x08         | Call to `clearDeposit()´. (clears a deposit that has not been executed yet triggering `anyFallback`)
  *
@@ -161,13 +161,13 @@ interface IRootBridgeAgent is IApp {
                             VIEW FUNCTIONS
     //////////////////////////////////////////////////////////////*/
     /**
-     * @notice External function to get the intial gas available for remote request execution.
+     * @notice External function to get the initial gas available for remote request execution.
      *   @return uint256 Initial gas available for remote request execution.
      */
     function initialGas() external view returns (uint256);
 
     /**
-     * @notice External get gas fee details for current remote request being executed.
+     * @notice External getter for gas fee details for the current remote request being executed.
      *   @return uint256 Gas fee for remote request execution.
      *   @return uint256 Gas fee for remote request execution.
      */
@@ -213,7 +213,7 @@ interface IRootBridgeAgent is IApp {
     function callOut(address _recipient, bytes memory _calldata, uint24 _toChain) external payable;
 
     /**
-     * @notice External function to move assets from root chain to branch omnichain envirsonment.
+     * @notice External function to move assets from root chain to branch omnichain environment.
      *   @param _owner address allowed for redeeming assets after a failed settlement fallback. This address' Virtual Account is also allowed.
      *   @param _recipient recipient of bridged tokens and any outstanding gas on the destination chain.
      *   @param _data parameters for function call on branch chain.

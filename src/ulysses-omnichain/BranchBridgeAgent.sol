@@ -665,7 +665,7 @@ contract BranchBridgeAgent is IBranchBridgeAgent {
     /**
      * @notice Function to perform a call to the Root Omnichain Router without token deposit.
      *   @param _depositor address of the user that will deposit the funds.
-     *   @param _params RLP enconded parameters to execute on the root chain.
+     *   @param _params encoded parameters to execute on the root chain.
      *   @param _gasToBridgeOut gas allocated for the cross-chain call.
      *   @param _remoteExecutionGas gas allocated for branch chain execution.
      *   @dev ACTION ID: 1 (Call without deposit)
@@ -685,7 +685,7 @@ contract BranchBridgeAgent is IBranchBridgeAgent {
     /**
      * @notice Function to perform a call to the Root Omnichain Router while depositing a single asset.
      *   @param _depositor address of the user that will deposit the funds.
-     *   @param _params RLP enconded parameters to execute on the root chain.
+     *   @param _params encoded parameters to execute on the root chain.
      *   @param _dParams additional token deposit parameters.
      *   @param _gasToBridgeOut gas allocated for the cross-chain call.
      *   @param _remoteExecutionGas gas allocated for branch chain execution.
@@ -721,7 +721,7 @@ contract BranchBridgeAgent is IBranchBridgeAgent {
 
     /**
      * @notice Function to perform a call to the Root Omnichain Router while depositing two or more assets.
-     *   @param _params RLP enconded parameters to execute on the root chain.
+     *   @param _params encoded parameters to execute on the root chain.
      *   @param _dParams additional token deposit parameters.
      *   @param _gasToBridgeOut gas allocated for the cross-chain call.
      *   @param _remoteExecutionGas gas allocated for branch chain execution.
@@ -871,8 +871,8 @@ contract BranchBridgeAgent is IBranchBridgeAgent {
     /**
      * @dev Function to create a pending deposit.
      *    @param _user user address.
-     *    @param _hToken deposited local hToken addresses.
-     *    @param _token deposited native / underlying Token addresses.
+     *    @param _hToken deposited local hToken addresss.
+     *    @param _token deposited native / underlying Token addresss.
      *    @param _amount amounts of hTokens input.
      *    @param _deposit amount of deposited underlying / native tokens.
      *    @param _gasToBridgeOut gas allocated for omnichain execution.
@@ -919,8 +919,8 @@ contract BranchBridgeAgent is IBranchBridgeAgent {
     /**
      * @notice Function to create a pending deposit.
      *    @param _user user address.
-     *    @param _hTokens deposited local hToken addresses.
-     *    @param _tokens deposited native / underlying Token addresses.
+     *    @param _hTokens deposited local hToken addresss.
+     *    @param _tokens deposited native / underlying Token addresss.
      *    @param _amounts amounts of hTokens input.
      *    @param _deposits amount of deposited underlying / native tokens.
      *    @param _gasToBridgeOut gas allocated for omnichain execution.
@@ -984,8 +984,8 @@ contract BranchBridgeAgent is IBranchBridgeAgent {
     /**
      * @notice Function to request balance clearance from a Port to a given user.
      *     @param _recipient token receiver.
-     *     @param _hToken  local hToken addresse to clear balance for.
-     *     @param _token  native / underlying token addresse to clear balance for.
+     *     @param _hToken  local hToken address to clear balance for.
+     *     @param _token  native / underlying token address to clear balance for.
      *     @param _amount amounts of hToken to clear balance for.
      *     @param _deposit amount of native / underlying tokens to clear balance for.
      *
@@ -1355,7 +1355,7 @@ contract BranchBridgeAgent is IBranchBridgeAgent {
     /**
      * @notice Internal function to normalize decimals of multiple tokens.
      * @param _deposits Array of deposit amounts.
-     * @param _tokens Array of token addresses.
+     * @param _tokens Array of token addresss.
      */
     function _normalizeDecimalsMultiple(uint256[] memory _deposits, address[] memory _tokens)
         internal

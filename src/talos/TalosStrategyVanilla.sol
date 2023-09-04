@@ -16,7 +16,7 @@ import {PoolVariables} from "./libraries/PoolVariables.sol";
 import {TalosStrategySimple, TalosBaseStrategy} from "./strategies/TalosStrategySimple.sol";
 
 /// @title Deploy Vanilla
-/// @notice This library deploys talos vanilla strategies
+/// @notice This library deploys TALOS vanilla strategies
 library DeployVanilla {
     function createTalosV3Vanilla(
         IUniswapV3Pool pool,
@@ -66,14 +66,14 @@ contract TalosStrategyVanilla is TalosStrategySimple {
                           INTERNAL HOOKS LOGIC
     //////////////////////////////////////////////////////////////*/
 
-    /// @notice Performs the necessary actions before a withdraw can take place
+    /// @notice Performs the necessary actions before a withdrawal can take place
     /// @param _tokenId position id that the user is trying to withdraw from
     function beforeRedeem(uint256 _tokenId, address) internal override {
         _earnFees(_tokenId);
         _compoundFees(_tokenId);
     }
 
-    /// @notice Performs the necessary actions after a withdraw takes place
+    /// @notice Performs the necessary actions after a withdrawal takes place
     function afterRedeem(uint256) internal override {}
 
     /// @notice Performs the necessary actions before a deposit can take place
@@ -120,7 +120,7 @@ contract TalosStrategyVanilla is TalosStrategySimple {
         emit CollectFees(earnedProtocolFees0, earnedProtocolFees1, collect0, collect1);
     }
 
-    /// @notice Compounds fees from the pool from a user prespective
+    /// @notice Compounds fees from the pool from a user perspective
     /// @param _tokenId position id that the user wants to compound fees from
     function _compoundFees(uint256 _tokenId) internal returns (uint256, uint256) {
         uint256 balance0 = token0.balanceOf(address(this)) - protocolFees0;
@@ -155,14 +155,14 @@ contract TalosStrategyVanilla is TalosStrategySimple {
                                 EVENTS
     //////////////////////////////////////////////////////////////*/
 
-    /// @notice Emitted when fees was collected from the pool
+    /// @notice Emitted when fees are collected from the pool
     /// @param feesFromPool0 Total amount of fees collected in terms of token 0
     /// @param feesFromPool1 Total amount of fees collected in terms of token 1
     /// @param usersFees0 Total amount of fees collected by users in terms of token 0
     /// @param usersFees1 Total amount of fees collected by users in terms of token 1
     event CollectFees(uint256 feesFromPool0, uint256 feesFromPool1, uint256 usersFees0, uint256 usersFees1);
 
-    /// @notice Emitted when fees was compuonded to the pool
+    /// @notice Emitted when fees are compounded to the pool
     /// @param amount0 Total amount of fees compounded in terms of token 0
     /// @param amount1 Total amount of fees compounded in terms of token 1
     event CompoundFees(uint256 amount0, uint256 amount1);

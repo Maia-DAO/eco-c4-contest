@@ -120,7 +120,7 @@ interface ITalosBaseStrategy is IERC721Receiver {
      * @notice Deposits tokens in proportion to the Optimizer's current ticks.
      * @param amount0Desired Max amount of token0 to deposit
      * @param amount1Desired Max amount of token1 to deposit
-     * @param receiver address that tlp should be transfered
+     * @param receiver address that the lp should be transferred
      * @return shares minted
      * @return amount0 Amount of token0 deposited
      * @return amount1 Amount of token1 deposited
@@ -140,7 +140,7 @@ interface ITalosBaseStrategy is IERC721Receiver {
      * @param shares burned
      * @param amount0Min Min amount of token0 to withdraw
      * @param amount1Min Min amount of token1 to withdraw
-     * @param receiver address that tokens should be transfered
+     * @param receiver address that tokens should be transferred
      * @param owner of the shares to be burned
      * @return amount0 Amount of token0 sent to recipient
      * @return amount1 Amount of token1 sent to recipient
@@ -167,8 +167,8 @@ interface ITalosBaseStrategy is IERC721Receiver {
 
     /**
      * @notice Updates Optimizer's positions. Can only be called by the strategy manager.
-     * @dev Swaps imbalanced token. Finds base position and limit position for imbalanced token if
-     * we don't have balance during swap because of price impact.
+     * @dev Swaps imbalanced token. Finds base position and limit position for the imbalanced token if
+     * we don't have balance during the swap because of price impact.
      * mints all amounts to this position (including earned fees)
      */
     function rebalance() external;
@@ -177,7 +177,7 @@ interface ITalosBaseStrategy is IERC721Receiver {
                             EXTERNAL HOOKS
     //////////////////////////////////////////////////////////////*/
 
-    /// @notice Called to `msg.sender` after minting swaping from IUniswapV3Pool#swap.
+    /// @notice Called to `msg.sender` after minting swapping from IUniswapV3Pool#swap.
     /// @dev In the implementation you must pay to the pool for swap.
     /// @param amount0 The amount of token0 due to the pool for the swap
     /// @param amount1 The amount of token1 due to the pool for the swap
@@ -195,7 +195,7 @@ interface ITalosBaseStrategy is IERC721Receiver {
                                  EVENTS
     //////////////////////////////////////////////////////////////*/
 
-    /// @notice Emitted when user collects his fee share
+    /// @notice Emitted when the user collects his fee share
     /// @param sender User address
     /// @param fees0 Exact amount of fees claimed by the users in terms of token 0
     /// @param fees1 Exact amount of fees claimed by the users in terms of token 1
@@ -276,10 +276,10 @@ interface ITalosBaseStrategy is IERC721Receiver {
     /// @notice Error emitted when both amounts are zero
     error AmountsAreZero();
 
-    /// @notice Error emitted when widthdrawing zero shares
+    /// @notice Error emitted when withdrawing zero shares
     error RedeemingZeroShares();
 
-    /// @notice Error emitted when receiver is zero address
+    /// @notice Error emitted when the receiver is zero address
     error ReceiverIsZeroAddress();
 
     // Token 0 amount is bigger than accrued protocol fees

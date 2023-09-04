@@ -49,7 +49,7 @@ library PoolVariables {
         view
         returns (uint256, uint256)
     {
-        //Get current price from the pool
+        //Get the current price from the pool
         (uint160 sqrtRatioX96,,,,,,) = pool.slot0();
         return LiquidityAmounts.getAmountsForLiquidity(
             sqrtRatioX96, TickMath.getSqrtRatioAtTick(_tickLower), TickMath.getSqrtRatioAtTick(_tickUpper), liquidity
@@ -70,7 +70,7 @@ library PoolVariables {
         int24 _tickLower,
         int24 _tickUpper
     ) internal view returns (uint128) {
-        //Get current price from the pool
+        //Get the current price from the pool
         (uint160 sqrtRatioX96,,,,,,) = pool.slot0();
 
         return LiquidityAmounts.getLiquidityForAmounts(
@@ -100,7 +100,7 @@ library PoolVariables {
         return compressed * tickSpacing;
     }
 
-    /// @dev Gets ticks with proportion equivalent to desired amount
+    /// @dev Gets ticks with proportion equivalent to the desired amount
     /// @param pool Uniswap V3 pool
     /// @param amount0Desired The desired amount of token0
     /// @param amount1Desired The desired amount of token1
@@ -116,15 +116,15 @@ library PoolVariables {
         int24 tickSpacing
     ) internal view returns (int24 tickLower, int24 tickUpper) {
         Info memory cache = Info(amount0Desired, amount1Desired, 0, 0, 0, 0, 0);
-        // Get current price and tick from the pool
+        // Get the current price and tick from the pool
         (uint160 sqrtPriceX96, int24 currentTick,,,,,) = pool.slot0();
         //Calc base ticks
         (cache.tickLower, cache.tickUpper) = baseTicks(currentTick, baseThreshold, tickSpacing);
-        //Calc amounts of token0, token1 that can be stored in base range and liquidity that can be stored in base range
+        //Calc amounts of token0, token1 that can be stored in the base range and liquidity that can be stored in the base range
         (cache.amount0, cache.amount1, cache.liquidity) =
             amountsForTicks(sqrtPriceX96, cache.amount0Desired, cache.amount1Desired, cache.tickLower, cache.tickUpper);
 
-        //Get imbalanced token
+        //Get the imbalanced token
         bool zeroGreaterOne = amountsDirection(cache.amount0Desired, cache.amount1Desired, cache.amount0, cache.amount1);
         //Calc new tick(upper or lower) for imbalanced token
         if (zeroGreaterOne) {
@@ -259,7 +259,7 @@ library PoolVariables {
                 LiquidityAmounts.getAmountsForLiquidity(sqrtPriceX96, lowerSqrtRatio, upperSqrtRatio, cache.liquidity);
         }
 
-        // Get imbalanced token
+        // Get the imbalanced token
         zeroForOne = amountsDirection(cache.amount0Desired, cache.amount1Desired, cache.amount0, cache.amount1);
         // Calculate the amount of imbalanced token that should be swapped. Calculations strive to achieve one to one ratio
         amountSpecified = zeroForOne

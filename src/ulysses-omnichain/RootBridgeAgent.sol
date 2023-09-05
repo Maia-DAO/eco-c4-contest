@@ -328,9 +328,8 @@ contract RootBridgeAgent is IRootBridgeAgent {
         address underlyingAddress = IPort(localPortAddress).getUnderlyingTokenFromLocal(localAddress, _toChain);
 
         // Check if valid assets
-        if (localAddress == address(0) || (underlyingAddress == address(0) && _deposit > 0)) {
-            revert InvalidInputParams();
-        }
+        if (localAddress == address(0)) revert InvalidInputParams();
+        if (underlyingAddress == address(0)) if (_deposit > 0) revert InvalidInputParams();
 
         // Prepare data for call
         bytes memory data = abi.encodePacked(
@@ -1310,7 +1309,11 @@ contract RootBridgeAgent is IRootBridgeAgent {
     }
 
     /// @inheritdoc IRootBridgeAgent
-    function syncBranchBridgeAgent(address _newBranchBridgeAgent, uint24 _branchChainId) external override requiresPort {
+    function syncBranchBridgeAgent(address _newBranchBridgeAgent, uint24 _branchChainId)
+        external
+        override
+        requiresPort
+    {
         getBranchBridgeAgent[_branchChainId] = _newBranchBridgeAgent;
     }
 

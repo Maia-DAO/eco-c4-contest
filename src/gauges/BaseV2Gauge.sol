@@ -51,8 +51,9 @@ abstract contract BaseV2Gauge is IBaseV2Gauge {
         rewardToken = _flywheelGaugeRewards.rewardToken();
         hermesGaugeBoost = BaseV2GaugeFactory(msg.sender).bHermesBoostToken();
         strategy = _strategy;
-
-        epoch = (block.timestamp / WEEK) * WEEK;
+        unchecked {
+            epoch = (block.timestamp / WEEK) * WEEK;
+        }
 
         multiRewardsDepot =
         new MultiRewardsDepot{salt: keccak256(abi.encodePacked(this))}(address(BaseV2GaugeFactory(msg.sender).bribesFactory()));
@@ -64,7 +65,11 @@ abstract contract BaseV2Gauge is IBaseV2Gauge {
 
     /// @inheritdoc IBaseV2Gauge
     function newEpoch() external override {
-        uint256 _newEpoch = (block.timestamp / WEEK) * WEEK;
+        uint256 _newEpoch;
+        
+        unchecked {
+            _newEpoch = (block.timestamp / WEEK) * WEEK;
+        }
 
         if (epoch < _newEpoch) {
             epoch = _newEpoch;

@@ -217,8 +217,10 @@ contract FlywheelGaugeRewards is IFlywheelGaugeRewards {
         bool incompleteCycle = queuedRewards.storedCycle > cycle;
 
         // no rewards
-        if (queuedRewards.priorCycleRewards == 0 && (queuedRewards.cycleRewards == 0 || incompleteCycle)) {
-            return 0;
+        if (queuedRewards.priorCycleRewards == 0) {
+            // no rewards
+            if (queuedRewards.cycleRewards == 0) return 0;
+            if (incompleteCycle) return 0;
         }
 
         // if stored cycle != 0 it must be >= the last queued cycle

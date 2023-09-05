@@ -270,9 +270,11 @@ contract UniswapV3Staker is IUniswapV3Staker, Multicallable {
     /// @inheritdoc IUniswapV3Staker
     function claimReward(address to, uint256 amountRequested) external override returns (uint256 reward) {
         reward = rewards[msg.sender];
-        if (amountRequested != 0 && amountRequested < reward) {
-            rewards[msg.sender] = reward - amountRequested;
-            reward = amountRequested;
+        if (amountRequested != 0) {
+            if (amountRequested < reward) {
+                rewards[msg.sender] = reward - amountRequested;
+                reward = amountRequested;
+            }
         } else {
             delete rewards[msg.sender];
         }
@@ -380,7 +382,7 @@ contract UniswapV3Staker is IUniswapV3Staker, Multicallable {
         address owner = deposit.owner;
 
         // anyone can call restakeToken if the block time is after the end time of the incentive
-        if ((isNotRestake || block.timestamp < endTime) && owner != msg.sender) revert NotCalledByOwner();
+        if (isNotRestake || block.timestamp < endTime) if (owner != msg.sender) revert NotCalledByOwner();
 
         {
             // scope for bribeAddress, avoids stack too deep errors
@@ -408,11 +410,13 @@ contract UniswapV3Staker is IUniswapV3Staker, Multicallable {
             UniswapV3Gauge gauge = gauges[key.pool]; // saves another SLOAD if no tokenId is attached
 
             // If tokenId is attached to gauge
-            if (hermesGaugeBoost.isUserGauge(owner, address(gauge)) && _userAttachements[owner][key.pool] == tokenId) {
-                // get boost amount and total supply
-                (boostAmount, boostTotalSupply) = hermesGaugeBoost.getUserGaugeBoost(owner, address(gauge));
-                gauge.detachUser(owner);
-                delete _userAttachements[owner][key.pool];
+            if (hermesGaugeBoost.isUserGauge(owner, address(gauge))) {
+                if (_userAttachements[owner][key.pool] == tokenId) {
+                    // get boost amount and total supply
+                    (boostAmount, boostTotalSupply) = hermesGaugeBoost.getUserGaugeBoost(owner, address(gauge));
+                    gauge.detachUser(owner);
+                    delete _userAttachements[owner][key.pool];
+                }
             }
 
             uint160 secondsPerLiquidityInsideInitialX128;
@@ -548,7 +552,7 @@ contract UniswapV3Staker is IUniswapV3Staker, Multicallable {
          | false          | true           | remove |
          | false          | false          | update |
         */
-        if (newGaugeIsZero && currentGauge == address(0)) revert InvalidGauge();
+        if (newGaugeIsZero) if (currentGauge == address(0)) revert InvalidGauge();
 
         if (currentGauge != uniswapV3Gauge) {
             emit GaugeUpdated(uniswapV3Pool, uniswapV3Gauge);

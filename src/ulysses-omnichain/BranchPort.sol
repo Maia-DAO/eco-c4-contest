@@ -208,7 +208,9 @@ contract BranchPort is Ownable, IBranchPort {
         uint256 dailyLimit = strategyDailyLimitRemaining[msg.sender][_token];
         if (block.timestamp - lastManaged[msg.sender][_token] >= 1 days) {
             dailyLimit = strategyDailyLimitAmount[msg.sender][_token];
-            lastManaged[msg.sender][_token] = (block.timestamp / 1 days) * 1 days;
+            unchecked {
+                lastManaged[msg.sender][_token] = (block.timestamp / 1 days) * 1 days;
+            }
         }
         strategyDailyLimitRemaining[msg.sender][_token] = dailyLimit - _amount;
     }

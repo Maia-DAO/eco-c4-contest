@@ -70,8 +70,10 @@ contract ERC20hTokenRootFactory is Ownable, IERC20hTokenRootFactory {
     //////////////////////////////////////////////////////////////*/
     /// @notice Modifier that verifies msg sender is the RootInterface Contract from Root Chain.
     modifier requiresCoreRouterOrPort() {
-        if (msg.sender != coreRootRouterAddress && msg.sender != rootPortAddress) {
-            revert UnrecognizedCoreRouterOrPort();
+        if (msg.sender != coreRootRouterAddress) {
+            if (msg.sender != rootPortAddress) {
+                revert UnrecognizedCoreRouterOrPort();
+            }
         }
         _;
     }

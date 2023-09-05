@@ -1326,11 +1326,9 @@ contract BranchBridgeAgent is IBranchBridgeAgent {
             _payFallbackGas(_depositNonce, initialGas);
 
             return (true, "");
-
-            // Unrecognized Function Selector
-        } else {
-            return (false, "unknown selector");
         }
+        // Unrecognized Function Selector
+        return (false, "unknown selector");
     }
 
     /// @inheritdoc IBranchBridgeAgent

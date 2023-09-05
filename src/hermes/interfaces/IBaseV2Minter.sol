@@ -95,7 +95,7 @@ interface IBaseV2Minter is IRewardsStream {
      *         the weekly emissions, and mints the tokens for the previous week rewards.
      *         Update period can only be called once per cycle (1 week)
      */
-    function updatePeriod() external returns (uint256);
+    function updatePeriod() external;
 
     /**
      * @notice Distributes the weekly emissions to flywheelGaugeRewards contract.

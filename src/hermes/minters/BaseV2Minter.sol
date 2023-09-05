@@ -112,63 +112,74 @@ contract BaseV2Minter is Ownable, IBaseV2Minter {
     //////////////////////////////////////////////////////////////*/
 
     /// @inheritdoc IBaseV2Minter
-    function circulatingSupply() public view override returns (uint256) {
+    function circulatingSupply() public view returns (uint256) {
         return HERMES(underlying).totalSupply() - vault.totalAssets();
     }
 
     /// @inheritdoc IBaseV2Minter
-    function weeklyEmission() external view override returns (uint256) {
+    function weeklyEmission() external view returns (uint256) {
         return _weeklyEmission(circulatingSupply());
+    }
+    /// @inheritdoc IBaseV2Minter
+
+    function calculateGrowth(uint256 _minted) external view returns (uint256) {
+        return (vault.totalAssets() * _minted) / HERMES(underlying).totalSupply();
     }
 
     function _weeklyEmission(uint256 _circulatingSupply) private view returns (uint256) {
         return (_circulatingSupply * tailEmission) / BASE;
     }
 
-    /// @inheritdoc IBaseV2Minter
-    function calculateGrowth(uint256 _minted) public view override returns (uint256) {
-        return (vault.totalAssets() * _minted) / HERMES(underlying).totalSupply();
+    function _calculateGrowth(uint256 totalSupply, uint256 totalAssets, uint256 _minted)
+        private
+        pure
+        returns (uint256)
+    {
+        return (totalAssets * _minted) / totalSupply;
     }
 
     /// @inheritdoc IBaseV2Minter
-    function updatePeriod() public override returns (uint256) {
-        uint256 _period = activePeriod;
+    function updatePeriod() public override {
         // only trigger if new week
-        if (block.timestamp >= _period + 1 weeks && initializer == address(0)) {
-            _period = (block.timestamp / 1 weeks) * 1 weeks;
-            activePeriod = _period;
-            uint256 _circulatingSupply = circulatingSupply();
-            uint256 newWeeklyEmission = _weeklyEmission(_circulatingSupply);
-            weekly += newWeeklyEmission;
-
-            uint256 _growth = calculateGrowth(newWeeklyEmission);
-            /// @dev share of newWeeklyEmission emissions sent to DAO.
-            uint256 share = (newWeeklyEmission * daoShare) / BASE;
-
-            uint256 _required = weekly + _growth + share;
-            address _underlying = underlying;
-            uint256 _balanceOf = _underlying.balanceOf(address(this));
-
-            if (_balanceOf < _required) {
+        if (block.timestamp >= activePeriod + 1 weeks) {
+            if (initializer == address(0)) {
                 unchecked {
+                    activePeriod = (block.timestamp / 1 weeks) * 1 weeks;
+                }
+
+                uint256 totalSupply = HERMES(underlying).totalSupply();
+                uint256 totalAssets = vault.totalAssets();
+
+                uint256 _circulatingSupply = totalSupply - totalAssets;
+                uint256 newWeeklyEmission = _weeklyEmission(_circulatingSupply);
+                weekly += newWeeklyEmission;
+
+                uint256 _growth = _calculateGrowth(totalSupply, totalAssets, newWeeklyEmission);
+                /// @dev share of newWeeklyEmission emissions sent to DAO.
+                uint256 share = (newWeeklyEmission * daoShare) / BASE;
+
+                uint256 _required = weekly + _growth + share;
+                address _underlying = underlying;
+                uint256 _balanceOf = _underlying.balanceOf(address(this));
+
+                if (_balanceOf < _required) {
                     HERMES(_underlying).mint(address(this), _required - _balanceOf);
                 }
+
+                _underlying.safeTransfer(address(vault), _growth);
+
+                address _dao = dao;
+
+                if (_dao != address(0)) _underlying.safeTransfer(_dao, share);
+
+                emit Mint(msg.sender, newWeeklyEmission, _circulatingSupply, _growth, share);
+
+                /// @dev queue rewards for the cycle, anyone can call if fails
+                ///      queueRewardsForCycle will call this function but won't enter
+                ///      here because activePeriod was updated
+                try flywheelGaugeRewards.queueRewardsForCycle() {} catch {}
             }
-
-            _underlying.safeTransfer(address(vault), _growth);
-
-            address _dao = dao;
-
-            if (_dao != address(0)) _underlying.safeTransfer(_dao, share);
-
-            emit Mint(msg.sender, newWeeklyEmission, _circulatingSupply, _growth, share);
-
-            /// @dev queue rewards for the cycle, anyone can call if fails
-            ///      queueRewardsForCycle will call this function but won't enter
-            ///      here because activePeriod was updated
-            try flywheelGaugeRewards.queueRewardsForCycle() {} catch {}
         }
-        return _period;
     }
 
     /*//////////////////////////////////////////////////////////////

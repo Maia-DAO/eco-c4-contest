@@ -218,7 +218,7 @@ contract BranchPort is Ownable, IBranchPort {
 
     /// @inheritdoc IBranchPort
     function withdraw(address _recipient, address _underlyingAddress, uint256 _deposit)
-        external
+        public
         virtual
         lock
         requiresBridgeAgent
@@ -239,12 +239,16 @@ contract BranchPort is Ownable, IBranchPort {
         uint256 _amount,
         uint256 _deposit
     ) internal virtual {
-        if (_amount - _deposit > 0) {
-            _localAddress.safeTransferFrom(_depositor, address(this), _amount - _deposit);
-            unchecked {
-                ERC20hTokenBranch(_localAddress).burn(_amount - _deposit);
-            }
+        //Cache hToken amount out
+        uint256 _hTokenAmount = _amount - _deposit;
+
+        //Check if hTokens are being bridged out
+        if (_hTokenAmount > 0) {
+            _localAddress.safeTransferFrom(_depositor, address(this), _hTokenAmount);
+            ERC20hTokenBranch(_localAddress).burn(_hTokenAmount);
         }
+
+        //Check if underlying tokens are being bridged out
         if (_deposit > 0) {
             _underlyingAddress.safeTransferFrom(
                 _depositor, address(this), _denormalizeDecimals(_deposit, ERC20(_underlyingAddress).decimals())
@@ -258,12 +262,26 @@ contract BranchPort is Ownable, IBranchPort {
     }
 
     /// @inheritdoc IBranchPort
-    function bridgeInMultiple(address _recipient, address[] memory _localAddresses, uint256[] memory _amounts)
-        external
-        requiresBridgeAgent
-    {
+    function bridgeInMultiple(
+        address _recipient,
+        address[] memory _localAddresses,
+        address[] memory _underlyingAddresses,
+        uint256[] memory _amounts,
+        uint256[] memory _deposits
+    ) external requiresBridgeAgent {
+        //Loop through token inputs
         for (uint256 i = 0; i < _localAddresses.length;) {
-            _bridgeIn(_recipient, _localAddresses[i], _amounts[i]);
+            //Check if hTokens are being bridged in
+            if (_amounts[i] - _deposits[i] > 0) {
+                unchecked {
+                    _bridgeIn(_recipient, _localAddresses[i], _amounts[i] - _deposits[i]);
+                }
+            }
+
+            //Check if underlying tokens are being cleared
+            if (_deposits[i] > 0) {
+                withdraw(_recipient, _underlyingAddresses[i], _deposits[i]);
+            }
 
             unchecked {
                 ++i;
@@ -290,6 +308,13 @@ contract BranchPort is Ownable, IBranchPort {
         uint256[] memory _amounts,
         uint256[] memory _deposits
     ) external lock requiresBridgeAgent {
+        //Sanity Check input arrays
+        if (_localAddresses.length > 255) revert InvalidInputArrays();
+        if (_localAddresses.length != _underlyingAddresses.length) revert InvalidInputArrays();
+        if (_underlyingAddresses.length != _amounts.length) revert InvalidInputArrays();
+        if (_amounts.length != _deposits.length) revert InvalidInputArrays();
+
+        //Loop through token inputs and bridge out
         for (uint256 i = 0; i < _localAddresses.length;) {
             _bridgeOut(_depositor, _localAddresses[i], _underlyingAddresses[i], _amounts[i], _deposits[i]);
 

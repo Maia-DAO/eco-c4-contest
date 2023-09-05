@@ -112,6 +112,10 @@ contract RootBridgeAgent is IRootBridgeAgent {
 
     uint8 internal constant PARAMS_DEPOSIT_OFFSET = 96;
 
+    /// BridgeOut Consts
+
+    uint8 internal constant MAX_TOKENS_LENGTH = 255;
+
     /*///////////////////////////////////////////////////////////////
                         ROOT BRIDGE AGENT STATE
     //////////////////////////////////////////////////////////////*/
@@ -355,16 +359,27 @@ contract RootBridgeAgent is IRootBridgeAgent {
         uint256[] memory _deposits,
         uint24 _toChain
     ) external payable lock requiresRouter {
+        //Check if valid length
+        if (_globalAddresses.length > MAX_TOKENS_LENGTH) revert InvalidInputParams();
+
+        //Create Arrays for Settlement
         address[] memory hTokens = new address[](_globalAddresses.length);
         address[] memory tokens = new address[](_globalAddresses.length);
+
+        //Check if valid length
+        if (hTokens.length != _amounts.length) revert InvalidInputParams();
+        if (_amounts.length != _deposits.length) revert InvalidInputParams();
 
         for (uint256 i = 0; i < _globalAddresses.length;) {
             //Populate Addresses for Settlement
             hTokens[i] = IPort(localPortAddress).getLocalTokenFromGlobal(_globalAddresses[i], _toChain);
             tokens[i] = IPort(localPortAddress).getUnderlyingTokenFromLocal(hTokens[i], _toChain);
 
-            if (hTokens[i] == address(0) || (tokens[i] == address(0) && _deposits[i] > 0)) revert InvalidInputParams();
+            //Check if valid assets requested
+            if (hTokens[i] == address(0)) revert InvalidInputParams();
+            if (tokens[i] == address(0)) if (_deposits[i] > 0) revert InvalidInputParams();
 
+            //Update State to reflect bridgeOut
             _updateStateOnBridgeOut(
                 msg.sender, _globalAddresses[i], hTokens[i], tokens[i], _amounts[i], _deposits[i], _toChain
             );

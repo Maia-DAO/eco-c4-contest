@@ -81,6 +81,10 @@ contract BranchBridgeAgent is IBranchBridgeAgent {
 
     uint8 internal constant PARAMS_DEPOSIT_OFFSET = 96;
 
+    /// BridgeOut Consts
+
+    uint8 internal constant MAX_TOKENS_LENGTH = 255;
+
     /*///////////////////////////////////////////////////////////////
                         BRIDGE AGENT STATE
     //////////////////////////////////////////////////////////////*/
@@ -583,10 +587,13 @@ contract BranchBridgeAgent is IBranchBridgeAgent {
         requiresAgentExecutor
         returns (SettlementMultipleParams memory)
     {
-        //Parse Params
+        //Parse Tokens Length
         uint8 numOfAssets = uint8(bytes1(_sParams[0]));
+
+        //Parse Nonce
         uint32 nonce = uint32(bytes4(_sParams[PARAMS_START:PARAMS_TKN_START]));
 
+        //Initialize Arrays
         address[] memory _hTokens = new address[](numOfAssets);
         address[] memory _tokens = new address[](numOfAssets);
         uint256[] memory _amounts = new uint256[](numOfAssets);
@@ -610,50 +617,46 @@ contract BranchBridgeAgent is IBranchBridgeAgent {
                     )
                 )
             );
+
             _tokens[i] = address(
                 uint160(
                     bytes20(
                         bytes32(
                             _sParams[
                                 PARAMS_TKN_START + PARAMS_ENTRY_SIZE * (i + numOfAssets) + ADDRESS_PADDING:
-                                    PARAMS_TKN_START + PARAMS_ENTRY_SIZE * uint16(currentIterationOffset + numOfAssets)
+                                    PARAMS_TKN_START + PARAMS_ENTRY_SIZE * (currentIterationOffset + numOfAssets)
                             ]
                         )
                     )
                 )
             );
+
             _amounts[i] = uint256(
                 bytes32(
                     _sParams[
                         PARAMS_TKN_START + PARAMS_AMT_OFFSET * numOfAssets + (PARAMS_ENTRY_SIZE * i):
-                            PARAMS_TKN_START + PARAMS_AMT_OFFSET * numOfAssets + PARAMS_ENTRY_SIZE * currentIterationOffset
+                            PARAMS_TKN_START + PARAMS_AMT_OFFSET * numOfAssets
+                                + (PARAMS_ENTRY_SIZE * currentIterationOffset)
                     ]
                 )
             );
+
             _deposits[i] = uint256(
                 bytes32(
                     _sParams[
                         PARAMS_TKN_START + PARAMS_DEPOSIT_OFFSET * numOfAssets + (PARAMS_ENTRY_SIZE * i):
                             PARAMS_TKN_START + PARAMS_DEPOSIT_OFFSET * numOfAssets
-                                + PARAMS_ENTRY_SIZE * currentIterationOffset
+                                + (PARAMS_ENTRY_SIZE * currentIterationOffset)
                     ]
                 )
             );
-            //Clear Tokens to destination
-            if (_amounts[i] - _deposits[i] > 0) {
-                unchecked {
-                    IPort(localPortAddress).bridgeIn(_recipient, _hTokens[i], _amounts[i] - _deposits[i]);
-                }
-            }
-
-            if (_deposits[i] > 0) {
-                IPort(localPortAddress).withdraw(_recipient, _tokens[i], _deposits[i]);
-            }
 
             unchecked {
                 ++i;
             }
         }
+
+        IPort(localPortAddress).bridgeInMultiple(_recipient, _hTokens, _tokens, _amounts, _deposits);
 
         return SettlementMultipleParams(numOfAssets, _recipient, nonce, _hTokens, _tokens, _amounts, _deposits);
     }
@@ -832,10 +835,10 @@ contract BranchBridgeAgent is IBranchBridgeAgent {
         uint128 _gasToBridgeOut
     ) internal {
         //Validate Input
-        if (
-            _hTokens.length != _tokens.length || _tokens.length != _amounts.length
-                || _amounts.length != _deposits.length
-        ) revert InvalidInput();
+        if (_hTokens.length > MAX_TOKENS_LENGTH) revert InvalidInput();
+        if (_hTokens.length != _tokens.length) revert InvalidInput();
+        if (_tokens.length != _amounts.length) revert InvalidInput();
+        if (_amounts.length != _deposits.length) revert InvalidInput();
 
         //Deposit and Store Info
         _createDepositMultiple(_depositor, _hTokens, _tokens, _amounts, _deposits, _gasToBridgeOut);

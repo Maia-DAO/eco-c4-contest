@@ -90,7 +90,7 @@ contract ArbitrumBranchPort is BranchPort, IArbitrumBranchPort {
 
     /// @inheritdoc IBranchPort
     function withdraw(address _recipient, address _underlyingAddress, uint256 _deposit)
-        external
+        public
         override(IBranchPort, BranchPort)
         lock
         requiresBridgeAgent

@@ -91,8 +91,13 @@ interface IBranchPort {
      *   @param _amounts amount of tokens.
      *
      */
-    function bridgeInMultiple(address _recipient, address[] memory _localAddresses, uint256[] memory _amounts)
-        external;
+    function bridgeInMultiple(
+        address _recipient,
+        address[] memory _localAddresses,
+        address[] memory _underlyingAddresses,
+        uint256[] memory _amounts,
+        uint256[] memory _deposits
+    ) external;
 
     /**
      * @notice Setter function to decrease local hToken supply.
@@ -217,6 +222,7 @@ interface IBranchPort {
     error AlreadyAddedBridgeAgent();
     error AlreadyAddedBridgeAgentFactory();
     error InvalidMinimumReservesRatio();
+    error InvalidInputArrays();
     error InsufficientReserves();
     error NoDebtToRepay();
     error UnrecognizedCore();

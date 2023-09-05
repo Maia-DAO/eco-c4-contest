@@ -41,7 +41,7 @@ contract UniswapV3GaugeFactory is BaseV2GaugeFactory, IUniswapV3GaugeFactory {
     /**
      * @notice Creates a new Uniswap V3 Gauge Factory
      * @param _gaugeManager Gauge Factory manager
-     * @param _bHermesBoost bHermes Boost Token
+     * @param _bHermesBoost BurntHermes Boost Token
      * @param _factory Uniswap V3 Factory
      * @param _nonfungiblePositionManager Uniswap V3 Nonfungible Position Manager
      * @param _flywheelGaugeRewards Flywheel Gauge Rewards

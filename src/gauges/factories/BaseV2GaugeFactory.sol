@@ -44,7 +44,7 @@ abstract contract BaseV2GaugeFactory is Ownable, IBaseV2GaugeFactory {
     /**
      * @notice Creates a new gauge factory
      * @param _gaugeManager The gauge manager to use
-     * @param _bHermesBoost The bHermes boost token to use
+     * @param _bHermesBoost The BurntHermes boost token to use
      * @param _bribesFactory The bribes factory to use
      * @param _owner The owner of the factory
      */

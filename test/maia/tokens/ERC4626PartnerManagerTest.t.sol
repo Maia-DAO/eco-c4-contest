@@ -18,7 +18,7 @@ import {MockVault} from "../mock/MockVault.t.sol";
 import {PartnerManagerFactory} from "@maia/factories/PartnerManagerFactory.sol";
 import {PartnerUtilityManager} from "@maia/PartnerUtilityManager.sol";
 
-import {bHermes} from "@hermes/bHermes.sol";
+import {BurntHermes} from "@hermes/BurntHermes.sol";
 import {bHermesVotes as ERC20MultiVotes} from "@hermes/tokens/bHermesVotes.sol";
 
 contract ERC4626PartnerManagerTest is DSTestPlus {
@@ -35,14 +35,14 @@ contract ERC4626PartnerManagerTest is DSTestPlus {
 
     uint256 bHermesRate;
 
-    bHermes public _bHermes;
+    BurntHermes public _bHermes;
 
     function setUp() public {
         hermes = new MockERC20("test hermes", "RTKN", 18);
 
         partnerAsset = new MockERC20("test partnerAsset", "tpartnerAsset", 18);
 
-        _bHermes = new bHermes(hermes, address(this), address(this), 1 weeks, 1 days / 2);
+        _bHermes = new BurntHermes(hermes, address(this), address(this), 1 weeks, 1 days / 2);
 
         bHermesRate = 1 ether;
 

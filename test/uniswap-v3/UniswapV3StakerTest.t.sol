@@ -26,7 +26,7 @@ import {BribesFactory, FlywheelBoosterGaugeWeight} from "@gauges/factories/Bribe
 import {UniswapV3Gauge, BaseV2Gauge} from "@gauges/UniswapV3Gauge.sol";
 
 import {BaseV2Minter} from "@hermes/minters/BaseV2Minter.sol";
-import {bHermes} from "@hermes/bHermes.sol";
+import {BurntHermes} from "@hermes/BurntHermes.sol";
 
 import {UniswapV3Assistant} from "@test/test-utils/UniswapV3Assistant.t.sol";
 
@@ -46,7 +46,7 @@ contract UniswapV3StakerTest is DSTestPlus, IERC721Receiver {
     //////////////////////////////////////////////////////////////////
     //                          VARIABLES
     //////////////////////////////////////////////////////////////////
-    bHermes bHermesToken;
+    BurntHermes bHermesToken;
 
     BaseV2Minter baseV2Minter;
 
@@ -95,7 +95,7 @@ contract UniswapV3StakerTest is DSTestPlus, IERC721Receiver {
 
         (uniswapV3Factory, nonfungiblePositionManager) = UniswapV3Assistant.deployUniswapV3();
 
-        bHermesToken = new bHermes(rewardToken, address(this), address(this), 1 weeks, 12 hours);
+        bHermesToken = new BurntHermes(rewardToken, address(this), address(this), 1 weeks, 12 hours);
 
         flywheelGaugeWeightBooster = new FlywheelBoosterGaugeWeight(1 weeks);
 

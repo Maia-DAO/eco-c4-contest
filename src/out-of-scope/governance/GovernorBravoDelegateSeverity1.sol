@@ -5,7 +5,7 @@ import "./GovernorBravoInterfaces.sol";
 
 contract GovernorBravoConstantsSeverity1 {
     /// @notice The name of this contract
-    string public constant name = "bHermes Governor Bravo Severity 1";
+    string public constant name = "BurntHermes Governor Bravo Severity 1";
 
     /// @notice The minimum setable proposal threshold
     uint256 public constant MIN_PROPOSAL_THRESHOLD = 0.001 ether; // 0.1% of GovToken

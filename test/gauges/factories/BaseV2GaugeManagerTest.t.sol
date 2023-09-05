@@ -28,7 +28,7 @@ contract BaseV2GaugeManagerTest is DSTestPlus {
         hevm.mockCall(address(this), abi.encodeWithSignature("gaugeCycleLength()"), abi.encode(1));
         hevm.mockCall(address(this), abi.encodeWithSignature("gaugeCycle()"), abi.encode(type(uint32).max));
         manager = new MockBaseV2GaugeManager(
-            bHermes(_bHermes),
+            BurntHermes(_bHermes),
             FlywheelGaugeRewards(address(this)),
             address(this),
             _admin
@@ -313,7 +313,7 @@ contract BaseV2GaugeManagerTest is DSTestPlus {
     /// @notice Emitted when a gauge factory is removed.
     event RemovedGaugeFactory(address gaugeFactory);
 
-    /// @notice Emitted when changing bHermes GaugeWeight and GaugeWeight owner.
+    /// @notice Emitted when changing BurntHermes GaugeWeight and GaugeWeight owner.
     event ChangedbHermesGaugeOwner(address newOwner);
 
     /// @notice Emitted when changing admin.

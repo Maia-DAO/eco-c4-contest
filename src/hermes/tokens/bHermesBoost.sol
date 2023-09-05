@@ -17,7 +17,7 @@ contract bHermesBoost is ERC20Boost, IbHermesUnderlying {
     /// @inheritdoc IbHermesUnderlying
     address public immutable override bHermes;
 
-    constructor(address _owner) ERC20("bHermes Boost", "bHERMES-B", 18) {
+    constructor(address _owner) ERC20("BurntHermes Boost", "bHERMES-B", 18) {
         _initializeOwner(_owner);
         bHermes = msg.sender;
     }

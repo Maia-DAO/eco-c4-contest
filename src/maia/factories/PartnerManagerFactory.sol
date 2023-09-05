@@ -3,10 +3,9 @@ pragma solidity ^0.8.0;
 
 import {Ownable} from "solady/auth/Ownable.sol";
 
-import {ERC20} from "solmate/tokens/ERC20.sol";
-
+import {IBaseVault} from "../interfaces/IBaseVault.sol";
 import {IPartnerManagerFactory} from "../interfaces/IPartnerManagerFactory.sol";
-import {ERC4626PartnerManager as PartnerManager, IBaseVault} from "../tokens/ERC4626PartnerManager.sol";
+import {ERC4626PartnerManager as PartnerManager} from "../tokens/ERC4626PartnerManager.sol";
 
 /// @title Factory for managing PartnerManagers
 contract PartnerManagerFactory is Ownable, IPartnerManagerFactory {
@@ -15,7 +14,7 @@ contract PartnerManagerFactory is Ownable, IPartnerManagerFactory {
     //////////////////////////////////////////////////////////////*/
 
     /// @inheritdoc IPartnerManagerFactory
-    ERC20 public immutable override bHermes;
+    address public immutable override bHermes;
 
     /// @inheritdoc IPartnerManagerFactory
     PartnerManager[] public override partners;
@@ -30,11 +29,11 @@ contract PartnerManagerFactory is Ownable, IPartnerManagerFactory {
     mapping(IBaseVault vault => uint256 vaultId) public override vaultIds;
 
     /**
-     * @notice Initializes the contract with the owner and bHermes token.
-     * @param _bHermes The address of the bHermes token.
+     * @notice Initializes the contract with the owner and BurntHermes token.
+     * @param _bHermes The address of the BurntHermes token.
      * @param _owner The owner of the contract.
      */
-    constructor(ERC20 _bHermes, address _owner) {
+    constructor(address _bHermes, address _owner) {
         _initializeOwner(_owner);
         bHermes = _bHermes;
         partners.push(PartnerManager(address(0)));

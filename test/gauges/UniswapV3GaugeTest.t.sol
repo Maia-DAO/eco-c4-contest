@@ -9,7 +9,7 @@ import {MockERC20} from "solmate/test/utils/mocks/MockERC20.sol";
 import {MockERC20Gauges} from "../erc-20/mocks/MockERC20Gauges.t.sol";
 import {MockRewardsStream} from "../rewards/mocks/MockRewardsStream.sol";
 
-import {bHermes} from "@hermes/bHermes.sol";
+import {BurntHermes} from "@hermes/BurntHermes.sol";
 import {FlywheelBoosterGaugeWeight} from "@rewards/booster/FlywheelBoosterGaugeWeight.sol";
 import {MultiRewardsDepot} from "@rewards/depots/MultiRewardsDepot.sol";
 import {FlywheelCore, ERC20} from "@rewards/FlywheelCoreStrategy.sol";
@@ -22,7 +22,7 @@ contract UniswapV3GaugeTest is DSTestPlus {
     MockERC20 public strategy;
     MockERC20 public rewardToken;
     MockERC20 public hermes;
-    bHermes public bhermesToken;
+    BurntHermes public bhermesToken;
     MockRewardsStream public rewardsStream;
     MultiRewardsDepot public depot;
     FlywheelBoosterGaugeWeight public booster;
@@ -48,7 +48,7 @@ contract UniswapV3GaugeTest is DSTestPlus {
 
         booster = new FlywheelBoosterGaugeWeight(1 weeks);
 
-        bhermesToken = new bHermes(hermes, address(this), address(booster), 604800, 604800 / 7);
+        bhermesToken = new BurntHermes(hermes, address(this), address(booster), 604800, 604800 / 7);
         bhermesToken.gaugeWeight().setMaxGauges(10);
 
         booster.transferOwnership(address(bhermesToken.gaugeWeight()));

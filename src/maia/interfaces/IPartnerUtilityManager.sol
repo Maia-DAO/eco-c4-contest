@@ -7,7 +7,7 @@ import {bHermesVotes as ERC20Votes} from "@hermes/tokens/bHermesVotes.sol";
  * @title Partner Utility Tokens Manager Contract.
  * @author Maia DAO (https://github.com/Maia-DAO)
  *  @notice When implemented, this contract allows for the partner
- *          management of bHermes utility tokens.
+ *          management of BurntHermes utility tokens.
  */
 interface IPartnerUtilityManager {
     /*//////////////////////////////////////////////////////////////

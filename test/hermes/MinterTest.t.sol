@@ -7,14 +7,14 @@ import {DSTestPlus} from "solmate/test/utils/DSTestPlus.sol";
 
 import {MockERC20} from "solmate/test/utils/mocks/MockERC20.sol";
 
-import {bHermes} from "@hermes/bHermes.sol";
+import {BurntHermes} from "@hermes/BurntHermes.sol";
 import {IBaseV2Minter, BaseV2Minter, FlywheelGaugeRewards} from "@hermes/minters/BaseV2Minter.sol";
 
 contract BaseV2MinterTest is DSTestPlus {
     //////////////////////////////////////////////////////////////////
     //                          VARIABLES
     //////////////////////////////////////////////////////////////////
-    bHermes bHermesToken;
+    BurntHermes bHermesToken;
 
     BaseV2Minter baseV2Minter;
 
@@ -29,7 +29,7 @@ contract BaseV2MinterTest is DSTestPlus {
     function setUp() public {
         rewardToken = new MockERC20("test reward token", "RTKN", 18);
 
-        bHermesToken = new bHermes(rewardToken, address(this), address(this), 1 weeks, 12 hours);
+        bHermesToken = new BurntHermes(rewardToken, address(this), address(this), 1 weeks, 12 hours);
 
         baseV2Minter = new BaseV2Minter(address(bHermesToken), address(this), address(this));
 

@@ -5,7 +5,7 @@ pragma solidity ^0.8.0;
  * @title  An ERC20 with an embedded attachment mechanism to keep track of boost allocations to gauges.
  *  @author Maia DAO (https://github.com/Maia-DAO)
  *  @notice This contract is meant to be used to represent a token that can boost holders' rewards in other contracts.
- *          Holders can have their boost attached to gauges and cannot transfer their bHermes until they detach it.
+ *          Holders can have their boost attached to gauges and cannot transfer their BurntHermes until they detach it.
  *          Only gauges can attach and detach boost from a user. 
  *          The current user's boost and total supply are stored when attaching.
  *          The boost is then detached when the user removes their boost or when the gauge is removed.
@@ -36,9 +36,9 @@ interface IERC20Boost {
     //////////////////////////////////////////////////////////////*/
 
     /**
-     * @notice User allocated boost to a gauge and bHermes total supply.
+     * @notice User allocated boost to a gauge and BurntHermes total supply.
      * @param userGaugeBoost User allocated boost to a gauge.
-     * @param totalGaugeBoost bHermes total supply when a user allocated the boost.
+     * @param totalGaugeBoost BurntHermes total supply when a user allocated the boost.
      */
     struct GaugeState {
         uint128 userGaugeBoost;
@@ -50,11 +50,11 @@ interface IERC20Boost {
     //////////////////////////////////////////////////////////////*/
 
     /**
-     * @notice User allocated boost to a gauge and the bHermes total supply.
+     * @notice User allocated boost to a gauge and the BurntHermes total supply.
      * @param user User address.
      * @param gauge Gauge address.
      * @return userGaugeBoost User allocated boost to a gauge.
-     * @return totalGaugeBoost The bHermes total supply when a user allocated the boost.
+     * @return totalGaugeBoost The BurntHermes total supply when a user allocated the boost.
      */
     function getUserGaugeBoost(address user, address gauge)
         external

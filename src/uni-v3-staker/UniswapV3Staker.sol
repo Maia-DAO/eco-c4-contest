@@ -23,7 +23,7 @@ import {RewardMath} from "./libraries/RewardMath.sol";
 
 import {IUniswapV3Staker} from "./interfaces/IUniswapV3Staker.sol";
 
-/// @title Uniswap V3 Staker Interface with bHermes Boost.
+/// @title Uniswap V3 Staker Interface with BurntHermes Boost.
 contract UniswapV3Staker is IUniswapV3Staker, Multicallable {
     using SafeTransferLib for address;
 
@@ -113,7 +113,7 @@ contract UniswapV3Staker is IUniswapV3Staker, Multicallable {
     /// @param _factory the Uniswap V3 factory
     /// @param _nonfungiblePositionManager the NFT position manager contract address
     /// @param _uniswapV3GaugeFactory the Uniswap V3 Gauge Factory contract address
-    /// @param _hermesGaugeBoost the bHermes Boost contract address
+    /// @param _hermesGaugeBoost the BurntHermes Boost contract address
     /// @param _maxIncentiveStartLeadTime the max duration of an incentive in seconds
     /// @param _minter the minter address, used for refunds
     /// @param _hermes the hermes token address, used for rewards

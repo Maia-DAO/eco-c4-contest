@@ -4,7 +4,7 @@ pragma solidity ^0.8.0;
 
 import {Ownable} from "solady/auth/Ownable.sol";
 
-import {bHermes, bHermesBoost, bHermesGauges} from "@hermes/bHermes.sol";
+import {BurntHermes, bHermesBoost, bHermesGauges} from "@hermes/BurntHermes.sol";
 
 import {FlywheelGaugeRewards} from "@rewards/rewards/FlywheelGaugeRewards.sol";
 
@@ -12,7 +12,7 @@ import {BaseV2GaugeFactory} from "./BaseV2GaugeFactory.sol";
 
 import {IBaseV2GaugeManager} from "../interfaces/IBaseV2GaugeManager.sol";
 
-/// @title Base V2 Gauge Factory Manager - Manages addition/removal of Gauge Factories to bHermes.
+/// @title Base V2 Gauge Factory Manager - Manages addition/removal of Gauge Factories to BurntHermes.
 contract BaseV2GaugeManager is Ownable, IBaseV2GaugeManager {
     /*///////////////////////////////////////////////////////////////
                         GAUGE MANAGER STATE
@@ -40,11 +40,11 @@ contract BaseV2GaugeManager is Ownable, IBaseV2GaugeManager {
 
     /**
      * @notice Initializes Base V2 Gauge Factory Manager contract.
-     * @param _bHermes bHermes contract
+     * @param _bHermes BurntHermes contract
      * @param _owner can add BaseV2GaugeFactories.
      * @param _admin can transfer ownership of bHermesWeight and bHermesBoost.
      */
-    constructor(bHermes _bHermes, FlywheelGaugeRewards _rewards, address _owner, address _admin) {
+    constructor(BurntHermes _bHermes, FlywheelGaugeRewards _rewards, address _owner, address _admin) {
         admin = _admin;
         _initializeOwner(_owner);
         rewards = _rewards;

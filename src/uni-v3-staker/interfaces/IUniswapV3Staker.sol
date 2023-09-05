@@ -13,7 +13,7 @@ import {UniswapV3Gauge} from "@gauges/UniswapV3Gauge.sol";
 import {bHermesBoost} from "@hermes/tokens/bHermesBoost.sol";
 
 /**
- * @title Uniswap V3 Staker Interface with bHermes Boost.
+ * @title Uniswap V3 Staker Interface with BurntHermes Boost.
  *  @author Maia DAO (https://github.com/Maia-DAO)
  *  @notice Allows staking non-fungible liquidity tokens in exchange for reward tokens.
  *
@@ -98,7 +98,7 @@ interface IUniswapV3Staker is IERC721Receiver {
     /// @notice The reward token
     function hermes() external view returns (address);
 
-    /// @notice bHermes boost token
+    /// @notice BurntHermes boost token
     function hermesGaugeBoost() external view returns (bHermesBoost);
 
     /// @notice returns the pool address for a given gauge.

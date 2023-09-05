@@ -6,7 +6,7 @@ import "./GovernorBravoInterfaces.sol";
 /// @title Governor Bravo Constants Contract
 contract GovernorBravoConstants {
     /// @notice The name of this contract
-    string public constant name = "vMaia Governor Bravo";
+    string public constant name = "VoteMaia Governor Bravo";
 
     /// @notice The minimum setable proposal threshold
     uint256 public constant MIN_PROPOSAL_THRESHOLD = 0.005 ether; // 0.5% of GovToken

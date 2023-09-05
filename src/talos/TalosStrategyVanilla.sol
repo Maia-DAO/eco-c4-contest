@@ -2,8 +2,6 @@
 // Logic inspired by Popsicle Finance Contracts (PopsicleV3Optimizer/contracts/popsicle-v3-optimizer/PopsicleV3Optimizer.sol)
 pragma solidity ^0.8.0;
 
-import {FixedPointMathLib} from "solady/utils/FixedPointMathLib.sol";
-
 import {ERC20} from "solmate/tokens/ERC20.sol";
 
 import {IUniswapV3Pool} from "@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol";
@@ -43,8 +41,8 @@ contract TalosStrategyVanilla is TalosStrategySimple {
     using PoolVariables for IUniswapV3Pool;
 
     /// @notice The protocol's fee in hundredths of a bip, i.e. 1e-6
-    uint24 private constant protocolFee = 2 * 1e5; // 20%
-    uint24 private constant GLOBAL_DIVISIONER = 1e6;
+    uint256 private constant PROTOCOL_FEE = 2 * 1e5; // 20%
+    uint256 private constant GLOBAL_DIVISIONER = 1e6;
 
     /**
      * @notice Constructs a new TalosStrategyVanilla contract.
@@ -109,12 +107,9 @@ contract TalosStrategyVanilla is TalosStrategySimple {
             })
         );
 
-        uint24 _protocolFee = protocolFee;
-        uint24 _GLOBAL_DIVISIONER = GLOBAL_DIVISIONER;
-
         // Calculate protocol's fees
-        uint256 earnedProtocolFees0 = (collect0 * _protocolFee) / _GLOBAL_DIVISIONER;
-        uint256 earnedProtocolFees1 = (collect1 * _protocolFee) / _GLOBAL_DIVISIONER;
+        uint256 earnedProtocolFees0 = (collect0 * PROTOCOL_FEE) / GLOBAL_DIVISIONER;
+        uint256 earnedProtocolFees1 = (collect1 * PROTOCOL_FEE) / GLOBAL_DIVISIONER;
         protocolFees0 += earnedProtocolFees0;
         protocolFees1 += earnedProtocolFees1;
         emit CollectFees(earnedProtocolFees0, earnedProtocolFees1, collect0, collect1);

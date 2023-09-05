@@ -86,7 +86,7 @@ interface IBaseV2Minter is IRewardsStream {
 
     /**
      * @notice Calculate inflation and adjust burn balances accordingly.
-     * @param _minted Amount of minted bhermes
+     * @param _minted Amount of minted bHermes
      */
     function calculateGrowth(uint256 _minted) external view returns (uint256);
 

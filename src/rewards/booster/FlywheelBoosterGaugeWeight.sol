@@ -108,7 +108,7 @@ contract FlywheelBoosterGaugeWeight is Ownable, IFlywheelBooster {
     }
 
     /*///////////////////////////////////////////////////////////////
-                       bHERMES GAUGE WEIGHT ACCRUAL
+                    BURNT HERMES GAUGE WEIGHT ACCRUAL
     ///////////////////////////////////////////////////////////////*/
 
     /// @inheritdoc IFlywheelBooster

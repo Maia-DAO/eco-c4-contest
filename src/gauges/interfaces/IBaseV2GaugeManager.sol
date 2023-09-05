@@ -23,10 +23,10 @@ interface IBaseV2GaugeManager {
     /// @notice Address that holds admin power over the contract.
     function admin() external view returns (address);
 
-    /// @notice Represent the underlying gauge voting power of bHermes.
+    /// @notice Represent the underlying gauge voting power of BurntHermes.
     function bHermesGaugeWeight() external view returns (bHermesGauges);
 
-    /// @notice Represents the boosting power of bHermes.
+    /// @notice Represents the boosting power of BurntHermes.
     function bHermesGaugeBoost() external view returns (bHermesBoost);
 
     /// @notice Array that holds every gauge factory.
@@ -60,13 +60,13 @@ interface IBaseV2GaugeManager {
     //////////////////////////////////////////////////////////////*/
 
     /**
-     * @notice Adds a gauge to a bhermes position.
+     * @notice Adds a gauge to a bHermes position.
      * @param gauge gauge address to add.
      */
     function addGauge(address gauge) external;
 
     /**
-     * @notice Removes a gauge to a bhermes position.
+     * @notice Removes a gauge to a bHermes position.
      * @param gauge gauge address to remove.
      */
     function removeGauge(address gauge) external;
@@ -92,7 +92,7 @@ interface IBaseV2GaugeManager {
     //////////////////////////////////////////////////////////////*/
 
     /**
-     * @notice Changes the ownership of the bHermes gauge boost and gauge weight properties.
+     * @notice Changes the ownership of the BurntHermes gauge boost and gauge weight properties.
      * @param newOwner address of the new owner.
      */
     function changebHermesGaugeOwner(address newOwner) external;
@@ -113,7 +113,7 @@ interface IBaseV2GaugeManager {
     /// @notice Emitted when a gauge factory is removed.
     event RemovedGaugeFactory(address gaugeFactory);
 
-    /// @notice Emitted when changing bHermes GaugeWeight and GaugeWeight owner.
+    /// @notice Emitted when changing BurntHermes GaugeWeight and GaugeWeight owner.
     event ChangedbHermesGaugeOwner(address newOwner);
 
     /// @notice Emitted when changing admin.

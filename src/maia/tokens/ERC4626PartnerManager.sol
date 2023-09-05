@@ -9,7 +9,7 @@ import {ERC20} from "solmate/tokens/ERC20.sol";
 
 import {ERC4626} from "@ERC4626/ERC4626.sol";
 
-import {bHermes} from "@hermes/bHermes.sol";
+import {BurntHermes} from "@hermes/BurntHermes.sol";
 import {bHermesVotes as ERC20MultiVotes} from "@hermes/tokens/bHermesVotes.sol";
 
 import {PartnerManagerFactory} from "../factories/PartnerManagerFactory.sol";
@@ -31,7 +31,7 @@ abstract contract ERC4626PartnerManager is PartnerUtilityManager, Ownable, ERC46
     PartnerManagerFactory public immutable override factory;
 
     /// @inheritdoc IERC4626PartnerManager
-    bHermes public immutable override bHermesToken;
+    BurntHermes public immutable override bHermes;
 
     /// @inheritdoc IERC4626PartnerManager
     uint256 public override bHermesRate;
@@ -39,11 +39,11 @@ abstract contract ERC4626PartnerManager is PartnerUtilityManager, Ownable, ERC46
     /**
      * @notice Initializes the ERC4626PartnerManager token.
      * @param _factory The partner manager factory.
-     * @param _bHermesRate The rate at which bHermes underlying's can be claimed.
+     * @param _bHermesRate The rate at which BurntHermes underlying's can be claimed.
      * @param _partnerAsset The asset that will be used to deposit to get partner tokens.
      * @param _name The name of the token.
      * @param _symbol The symbol of the token.
-     * @param _bhermes The address of the bHermes token.
+     * @param _bHermes The address of the BurntHermes token.
      * @param _partnerVault The address of the partner vault.
      * @param _owner The owner of this contract.
      */
@@ -53,28 +53,28 @@ abstract contract ERC4626PartnerManager is PartnerUtilityManager, Ownable, ERC46
         ERC20 _partnerAsset,
         string memory _name,
         string memory _symbol,
-        address _bhermes,
+        address _bHermes,
         address _partnerVault,
         address _owner
     )
         PartnerUtilityManager(
-            address(bHermes(_bhermes).gaugeWeight()),
-            address(bHermes(_bhermes).gaugeBoost()),
-            address(bHermes(_bhermes).governance()),
+            address(BurntHermes(_bHermes).gaugeWeight()),
+            address(BurntHermes(_bHermes).gaugeBoost()),
+            address(BurntHermes(_bHermes).governance()),
             address(new ERC20MultiVotes(_owner)),
             _partnerVault
         )
         ERC4626(
             _partnerAsset,
             string.concat(_name, " - Burned Hermes: Aggregated Gov + Yield + Boost"),
-            string.concat(_symbol, "-bHermes")
+            string.concat(_symbol, "-bHERMES")
         )
     {
         _initializeOwner(_owner);
         partnerVault = _partnerVault;
         factory = _factory;
         bHermesRate = _bHermesRate;
-        bHermesToken = bHermes(_bhermes);
+        bHermes = BurntHermes(_bHermes);
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -83,7 +83,7 @@ abstract contract ERC4626PartnerManager is PartnerUtilityManager, Ownable, ERC46
 
     /// @inheritdoc IERC4626PartnerManager
     function updateUnderlyingBalance() public virtual override {
-        bHermesToken.claimOutstanding();
+        bHermes.claimOutstanding();
     }
 
     /// @inheritdoc IERC4626PartnerManager
@@ -160,15 +160,15 @@ abstract contract ERC4626PartnerManager is PartnerUtilityManager, Ownable, ERC46
     //////////////////////////////////////////////////////////////*/
 
     /// @notice Returns the maximum amount of assets that can be deposited by a user.
-    /// @dev Returns the remaining balance of the bHermes divided by the bHermesRate.
+    /// @dev Returns the remaining balance of the BurntHermes divided by the bHermesRate.
     function maxDeposit(address) public view virtual override returns (uint256) {
-        return address(bHermesToken).balanceOf(address(this)).divWad(bHermesRate) - totalSupply;
+        return address(bHermes).balanceOf(address(this)).divWad(bHermesRate) - totalSupply;
     }
 
     /// @notice Returns the maximum amount of shares that can be minted by a user.
-    /// @dev Returns the remaining balance of the bHermes divided by the bHermesRate.
+    /// @dev Returns the remaining balance of the BurntHermes divided by the bHermesRate.
     function maxMint(address) public view virtual override returns (uint256) {
-        return address(bHermesToken).balanceOf(address(this)).divWad(bHermesRate) - totalSupply;
+        return address(bHermes).balanceOf(address(this)).divWad(bHermesRate) - totalSupply;
     }
 
     /// @notice Returns the maximum amount of assets that can be withdrawn by a user.
@@ -207,9 +207,9 @@ abstract contract ERC4626PartnerManager is PartnerUtilityManager, Ownable, ERC46
 
         address oldPartnerVault = partnerVault;
         if (oldPartnerVault != address(0)) IBaseVault(oldPartnerVault).clearAll();
-        bHermesToken.claimOutstanding();
+        bHermes.claimOutstanding();
 
-        uint256 bHermesBalance = address(bHermesToken).balanceOf(address(this));
+        uint256 bHermesBalance = address(bHermes).balanceOf(address(this));
         if (
             address(gaugeWeight).balanceOf(address(this)) >= bHermesBalance
                 || address(gaugeBoost).balanceOf(address(this)) >= bHermesBalance
@@ -242,7 +242,7 @@ abstract contract ERC4626PartnerManager is PartnerUtilityManager, Ownable, ERC46
         if (newRate <= _bHermesRate) revert InvalidRate();
 
         uint256 _totalSupply = totalSupply;
-        if (newRate > address(bHermesToken).balanceOf(address(this)).divWad(_totalSupply)) {
+        if (newRate > address(bHermes).balanceOf(address(this)).divWad(_totalSupply)) {
             revert InsufficientBacking();
         }
 
@@ -250,7 +250,7 @@ abstract contract ERC4626PartnerManager is PartnerUtilityManager, Ownable, ERC46
 
         partnerGovernance.mint(address(this), _totalSupply.mulWad(newRate - _bHermesRate));
 
-        bHermesToken.claimOutstanding();
+        bHermes.claimOutstanding();
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -258,23 +258,23 @@ abstract contract ERC4626PartnerManager is PartnerUtilityManager, Ownable, ERC46
     //////////////////////////////////////////////////////////////*/
 
     /**
-     * @notice Mints new partner bhermes tokens to a specific address.
+     * @notice Mints new partner bHermes tokens to a specific address.
      * @param to address to mints tokens to.
      * @param amount amount of tokens to mint.
      */
     function _mint(address to, uint256 amount) internal virtual override {
         if (amount > maxMint(to)) revert ExceedsMaxDeposit();
-        bHermesToken.claimOutstanding();
+        bHermes.claimOutstanding();
 
         ERC20MultiVotes(partnerGovernance).mint(address(this), amount.mulWad(bHermesRate));
         super._mint(to, amount);
     }
 
     /**
-     * @notice Burns (or unstakes) the vMaia token in exchange for the underlying
-     *         Partner tokens, performing changes around bHermes tokens.
+     * @notice Burns (or unstakes) the VoteMaia token in exchange for the underlying
+     *         Partner tokens, performing changes around BurntHermes tokens.
      * @param from account to burn the partner manager from
-     * @param amount amounts of vMaia to burn
+     * @param amount amounts of VoteMaia to burn
      */
     function _burn(address from, uint256 amount) internal virtual override checkTransfer(from, amount) {
         ERC20MultiVotes(partnerGovernance).burn(address(this), amount.mulWad(bHermesRate));

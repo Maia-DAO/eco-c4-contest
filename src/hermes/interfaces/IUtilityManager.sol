@@ -9,29 +9,29 @@ import {bHermesVotes as ERC20Votes} from "../tokens/bHermesVotes.sol";
  * @title Utility Tokens Manager Contract.
  *  @author Maia DAO (https://github.com/Maia-DAO)
  *  @notice When implemented, this contract allows for the management
- *          of bHermes utility tokens.
+ *          of BurntHermes utility tokens.
  */
 interface IUtilityManager {
     /*//////////////////////////////////////////////////////////////
                          UTILITY MANAGER STATE
     //////////////////////////////////////////////////////////////*/
 
-    /// @notice bHermes Underlying Token responsible for allocating gauge weights.
+    /// @notice BurntHermes Underlying Token responsible for allocating gauge weights.
     function gaugeWeight() external view returns (bHermesGauges);
 
-    /// @notice bHermes Underlying Token for user boost accounting.
+    /// @notice BurntHermes Underlying Token for user boost accounting.
     function gaugeBoost() external view returns (bHermesBoost);
 
-    /// @notice bHermes Underlying Token which grants governance rights.
+    /// @notice BurntHermes Underlying Token which grants governance rights.
     function governance() external view returns (ERC20Votes);
 
-    /// @notice Mapping of different user's bHermes Gauge Weight withdrawn from vault.
+    /// @notice Mapping of different user's BurntHermes Gauge Weight withdrawn from vault.
     function userClaimedWeight(address) external view returns (uint256);
 
-    /// @notice Mapping of different user's bHermes Boost withdrawn from vault.
+    /// @notice Mapping of different user's BurntHermes Boost withdrawn from vault.
     function userClaimedBoost(address) external view returns (uint256);
 
-    /// @notice Mapping of different user's bHermes Governance withdrawn from vault.
+    /// @notice Mapping of different user's BurntHermes Governance withdrawn from vault.
     function userClaimedGovernance(address) external view returns (uint256);
 
     /*///////////////////////////////////////////////////////////////

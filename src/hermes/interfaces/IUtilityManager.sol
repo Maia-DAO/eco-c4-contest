@@ -38,6 +38,9 @@ interface IUtilityManager {
                         UTILITY TOKENS LOGIC
     //////////////////////////////////////////////////////////////*/
 
+    /// @notice Forfeits all claimed utility tokens.
+    function forfeitOutstanding() external;
+
     /// @notice Forfeits the same amounts of multiple utility tokens.
     function forfeitMultiple(uint256 amount) external;
 

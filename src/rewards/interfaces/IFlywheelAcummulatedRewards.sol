@@ -8,9 +8,13 @@ import {ERC20} from "solmate/tokens/ERC20.sol";
  * @title Flywheel Accumulated Rewards.
  *  @author Maia DAO (https://github.com/Maia-DAO)
  *  @notice This contract is responsible for strategy rewards management.
- *          Once every cycle all the rewards can be accrued from the strategy's corresponding rewards depot for subsequent distribution.
+ *          Once every cycle all the rewards can be accrued
+ *          from the strategy's corresponding rewards depot for subsequent distribution.
+ *
  *          The reward depot serves as a pool of rewards.
- *          The getNextCycleRewards() hook should also transfer the next cycle's rewards to this contract to ensure proper accounting.
+ *
+ *          The getNextCycleRewards() hook should also transfer the next cycle's rewards to this contract
+ *          to ensure proper accounting.
  */
 interface IFlywheelAcummulatedRewards {
     /*//////////////////////////////////////////////////////////////
@@ -22,7 +26,6 @@ interface IFlywheelAcummulatedRewards {
 
     /// @notice end of current active rewards cycle's UNIX timestamp.
     function endCycles(ERC20 strategy) external view returns (uint256);
-
 
     /*//////////////////////////////////////////////////////////////
                         FLYWHEEL CORE FUNCTIONS

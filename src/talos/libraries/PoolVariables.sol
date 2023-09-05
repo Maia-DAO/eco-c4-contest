@@ -49,7 +49,7 @@ library PoolVariables {
         view
         returns (uint256, uint256)
     {
-        //Get the current price from the pool
+        // Get the current price from the pool
         (uint160 sqrtRatioX96,,,,,,) = pool.slot0();
         return LiquidityAmounts.getAmountsForLiquidity(
             sqrtRatioX96, TickMath.getSqrtRatioAtTick(_tickLower), TickMath.getSqrtRatioAtTick(_tickUpper), liquidity
@@ -70,7 +70,7 @@ library PoolVariables {
         int24 _tickLower,
         int24 _tickUpper
     ) internal view returns (uint128) {
-        //Get the current price from the pool
+        // Get the current price from the pool
         (uint160 sqrtRatioX96,,,,,,) = pool.slot0();
 
         return LiquidityAmounts.getLiquidityForAmounts(
@@ -118,15 +118,16 @@ library PoolVariables {
         Info memory cache = Info(amount0Desired, amount1Desired, 0, 0, 0, 0, 0);
         // Get the current price and tick from the pool
         (uint160 sqrtPriceX96, int24 currentTick,,,,,) = pool.slot0();
-        //Calc base ticks
+        // Calc base ticks
         (cache.tickLower, cache.tickUpper) = baseTicks(currentTick, baseThreshold, tickSpacing);
-        //Calc amounts of token0, token1 that can be stored in the base range and liquidity that can be stored in the base range
+        // Calc amounts of token0, token1 that can be stored in the base range
+        // and liquidity that can be stored in the base range
         (cache.amount0, cache.amount1, cache.liquidity) =
             amountsForTicks(sqrtPriceX96, cache.amount0Desired, cache.amount1Desired, cache.tickLower, cache.tickUpper);
 
-        //Get the imbalanced token
+        // Get the imbalanced token
         bool zeroGreaterOne = amountsDirection(cache.amount0Desired, cache.amount1Desired, cache.amount0, cache.amount1);
-        //Calc new tick(upper or lower) for imbalanced token
+        // Calc new tick(upper or lower) for imbalanced token
         if (zeroGreaterOne) {
             uint160 nextSqrtPrice0 = SqrtPriceMath.getNextSqrtPriceFromAmount0RoundingUp(
                 sqrtPriceX96, cache.liquidity, cache.amount0Desired, false
@@ -169,7 +170,7 @@ library PoolVariables {
         (amount0, amount1) =
             LiquidityAmounts.getAmountsForLiquidity(sqrtRatioX96, lowerSqrtRatio, upperSqrtRatio, liquidity);
 
-        //Liquidity that can be stored in base range
+        // Liquidity that can be stored in base range
         liquidity =
             LiquidityAmounts.getLiquidityForAmounts(sqrtRatioX96, lowerSqrtRatio, upperSqrtRatio, amount0, amount1);
     }
@@ -213,7 +214,7 @@ library PoolVariables {
         if (deviation > maxTwapDeviation) revert DeviationTooHigh();
     }
 
-    /// @dev Fetches time-weighted average price in ticks from Uniswap pool for specified duration
+    /// @dev Fetches time-weighted average price in ticks from Uniswap pool for a specified duration
     function getTwap(IUniswapV3Pool pool, uint32 twapDuration) private view returns (int24) {
         uint32 _twapDuration = twapDuration;
         uint32[] memory secondsAgo = new uint32[](2);
@@ -240,7 +241,7 @@ library PoolVariables {
         cache.amount1Desired = _token1.balanceOf(address(this)) - protocolFees1;
         emit Snapshot(cache.amount0Desired, cache.amount1Desired);
 
-        //Calc base ticks
+        // Calc base ticks
         (uint160 sqrtPriceX96, int24 currentTick,,,,,) = _pool.slot0();
 
         (cache.tickLower, cache.tickUpper) = baseTicks(currentTick, baseThreshold, _tickSpacing);
@@ -261,10 +262,12 @@ library PoolVariables {
 
         // Get the imbalanced token
         zeroForOne = amountsDirection(cache.amount0Desired, cache.amount1Desired, cache.amount0, cache.amount1);
-        // Calculate the amount of imbalanced token that should be swapped. Calculations strive to achieve one to one ratio
+        // Calculate the amount of imbalanced token that should be swapped.
+        // Calculations strive to achieve a one to one ratio
+        // always positive. "overflow" safe conversion cuz we are dividing by 2
         amountSpecified = zeroForOne
             ? int256((cache.amount0Desired - cache.amount0) / 2)
-            : int256((cache.amount1Desired - cache.amount1) / 2); // always positive. "overflow" safe convertion cuz we are dividing by 2
+            : int256((cache.amount1Desired - cache.amount1) / 2);
 
         // Calculate Price limit depending on price impact
         uint160 exactSqrtPriceImpact = (sqrtPriceX96 * _strategy.priceImpactPercentage()) / (2 * GLOBAL_DIVISIONER);

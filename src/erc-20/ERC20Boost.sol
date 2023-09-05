@@ -22,12 +22,12 @@ abstract contract ERC20Boost is ERC20, Ownable, IERC20Boost {
     //////////////////////////////////////////////////////////////*/
 
     /// @inheritdoc IERC20Boost
-    mapping(address => mapping(address => GaugeState)) public override getUserGaugeBoost;
+    mapping(address user => mapping(address gauge => GaugeState userGaugeState)) public override getUserGaugeBoost;
 
     /// @inheritdoc IERC20Boost
-    mapping(address => uint256) public override getUserBoost;
+    mapping(address user => uint256 boost) public override getUserBoost;
 
-    mapping(address => EnumerableSet.AddressSet) internal _userGauges;
+    mapping(address user => EnumerableSet.AddressSet userGaugeSet) internal _userGauges;
 
     EnumerableSet.AddressSet internal _gauges;
 

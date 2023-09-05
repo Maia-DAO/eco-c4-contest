@@ -24,10 +24,10 @@ contract PartnerManagerFactory is Ownable, IPartnerManagerFactory {
     IBaseVault[] public override vaults;
 
     /// @inheritdoc IPartnerManagerFactory
-    mapping(PartnerManager => uint256) public override partnerIds;
+    mapping(PartnerManager partner => uint256 partnerId) public override partnerIds;
 
     /// @inheritdoc IPartnerManagerFactory
-    mapping(IBaseVault => uint256) public override vaultIds;
+    mapping(IBaseVault vault => uint256 vaultId) public override vaultIds;
 
     /**
      * @notice Initializes the contract with the owner and bHermes token.
@@ -41,7 +41,7 @@ contract PartnerManagerFactory is Ownable, IPartnerManagerFactory {
         vaults.push(IBaseVault(address(0)));
     }
 
-    /// @notice Function being overrriden to prevent mistakenly renouncing ownership.
+    /// @notice Function being overridden to prevent mistakenly renouncing ownership.
     function renounceOwnership() public payable override onlyOwner {
         revert("Cannot renounce ownership");
     }

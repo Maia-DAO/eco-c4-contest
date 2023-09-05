@@ -22,7 +22,8 @@ interface IBaseV2Minter is IRewardsStream {
     /// @notice Underlying token that the contract has minting powers over.
     function underlying() external view returns (address);
 
-    /// @notice ERC4626 vault that receives emissions via rebases, which later will be distributed throughout the depositors.
+    /// @notice ERC4626 vault that receives emissions via rebases,
+    ///         which later will be distributed to the depositors.
     function vault() external view returns (ERC4626);
 
     /// @notice Holds the rewards for the current cycle and distributes them to the gauges.

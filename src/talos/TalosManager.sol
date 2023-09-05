@@ -70,7 +70,7 @@ contract TalosManager is Ownable, AutomationCompatibleInterface, ITalosManager {
      * @dev Checks if current tick is in range, returns true if not
      */
     function getRebalance(ITalosBaseStrategy position) private view returns (bool) {
-        //Calculate base ticks.
+        // Calculate base ticks.
         (, int24 currentTick,,,,,) = position.pool().slot0();
 
         return currentTick - position.tickLower() >= ticksFromLowerRebalance
@@ -82,7 +82,7 @@ contract TalosManager is Ownable, AutomationCompatibleInterface, ITalosManager {
      * @dev Checks if current tick is in range, returns true if not
      */
     function getRerange(ITalosBaseStrategy position) private view returns (bool) {
-        //Calculate base ticks.
+        // Calculate base ticks.
         (, int24 currentTick,,,,,) = position.pool().slot0();
 
         return currentTick - position.tickLower() >= ticksFromLowerRerange

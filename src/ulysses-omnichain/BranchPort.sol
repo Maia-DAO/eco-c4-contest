@@ -24,9 +24,9 @@ contract BranchPort is Ownable, IBranchPort {
     //////////////////////////////////////////////////////////////*/
 
     /// @notice Mapping from Underlying Address to isUnderlying (bool).
-    mapping(address => bool) public isBridgeAgent;
+    mapping(address bridgeAgent => bool isActiveBridgeAgent) public isBridgeAgent;
 
-    /// @notice Branch Routers deployed in branc chain.
+    /// @notice Branch Routers deployed in branch chain.
     address[] public bridgeAgents;
 
     /*///////////////////////////////////////////////////////////////
@@ -34,9 +34,9 @@ contract BranchPort is Ownable, IBranchPort {
     //////////////////////////////////////////////////////////////*/
 
     /// @notice Mapping from Underlying Address to isUnderlying (bool).
-    mapping(address => bool) public isBridgeAgentFactory;
+    mapping(address bridgeAgentFactory => bool isActiveBridgeAgentFactory) public isBridgeAgentFactory;
 
-    /// @notice Branch Routers deployed in branc chain.
+    /// @notice Branch Routers deployed in branch chain.
     address[] public bridgeAgentFactories;
 
     /*///////////////////////////////////////////////////////////////
@@ -45,36 +45,37 @@ contract BranchPort is Ownable, IBranchPort {
     /// Strategy Tokens
 
     /// @notice Mapping returns true if Strategy Token Address is active for usage in Port Strategies.
-    mapping(address => bool) public isStrategyToken;
+    mapping(address token => bool allowsStrategies) public isStrategyToken;
 
-    /// @notice List of Tokens allowlisted for usage in Port Strategies.
+    /// @notice List of Tokens allowed for usage in Port Strategies.
     address[] public strategyTokens;
 
     /// @notice Mapping returns a given token's total debt incurred by Port Strategies.
-    mapping(address => uint256) public getStrategyTokenDebt;
+    mapping(address token => uint256 debt) public getStrategyTokenDebt;
 
     /// @notice Mapping returns the minimum ratio of a given Strategy Token the Port should hold.
-    mapping(address => uint256) public getMinimumTokenReserveRatio;
+    mapping(address token => uint256 minimumReserveRatio) public getMinimumTokenReserveRatio;
 
     /// Port Strategies
 
-    /// @notice Mapping returns true if Port Startegy is allowed to manage a given Strategy Token. Strategy => Token => bool.
-    mapping(address => mapping(address => bool)) public isPortStrategy;
+    /// @notice Mapping returns true if Port Strategy is allowed to manage a given Strategy Token.
+    mapping(address strategy => mapping(address token => bool isActiveStrategy)) public isPortStrategy;
 
-    /// @notice Port Strategy Addresses deployed in current branch chain.
+    /// @notice Port Strategy Addresses deployed in the current branch chain.
     address[] public portStrategies;
 
-    /// @notice Mapping returns the amount of Strategy Token debt a given Port Startegy has.  Strategy => Token => uint256.
-    mapping(address => mapping(address => uint256)) public getPortStrategyTokenDebt;
+    /// @notice Mapping returns the amount of Strategy Token debt a given Port Strategy has.
+    mapping(address strategy => mapping(address token => uint256 debt)) public getPortStrategyTokenDebt;
 
-    /// @notice Mapping returns the last time a given Port Strategy managed a given Strategy Token. Strategy => Token => uint256.
-    mapping(address => mapping(address => uint256)) public lastManaged;
+    /// @notice Mapping returns the last time a given Port Strategy managed a given Strategy Token.
+    mapping(address strategy => mapping(address token => uint256 lastManaged)) public lastManaged;
 
-    /// @notice Mapping returns the time limit a given Port Strategy must wait before managing a Strategy Token. Strategy => Token => uint256.
-    mapping(address => mapping(address => uint256)) public strategyDailyLimitAmount;
+    /// @notice Mapping returns the time limit a given Port Strategy must wait before managing a Strategy Token.
+    mapping(address strategy => mapping(address token => uint256 dailyLimitAmount)) public strategyDailyLimitAmount;
 
     /// @notice Mapping returns the amount of a Strategy Token a given Port Strategy can manage.
-    mapping(address => mapping(address => uint256)) public strategyDailyLimitRemaining;
+    mapping(address strategy => mapping(address token => uint256 dailyLimitRemaining)) public
+        strategyDailyLimitRemaining;
 
     /*///////////////////////////////////////////////////////////////
                             CONSTANTS
@@ -239,16 +240,16 @@ contract BranchPort is Ownable, IBranchPort {
         uint256 _amount,
         uint256 _deposit
     ) internal virtual {
-        //Cache hToken amount out
+        // Cache hToken amount out
         uint256 _hTokenAmount = _amount - _deposit;
 
-        //Check if hTokens are being bridged out
+        // Check if hTokens are being bridged out
         if (_hTokenAmount > 0) {
             _localAddress.safeTransferFrom(_depositor, address(this), _hTokenAmount);
             ERC20hTokenBranch(_localAddress).burn(_hTokenAmount);
         }
 
-        //Check if underlying tokens are being bridged out
+        // Check if underlying tokens are being bridged out
         if (_deposit > 0) {
             _underlyingAddress.safeTransferFrom(
                 _depositor, address(this), _denormalizeDecimals(_deposit, ERC20(_underlyingAddress).decimals())
@@ -269,16 +270,16 @@ contract BranchPort is Ownable, IBranchPort {
         uint256[] memory _amounts,
         uint256[] memory _deposits
     ) external requiresBridgeAgent {
-        //Loop through token inputs
+        // Loop through token inputs
         for (uint256 i = 0; i < _localAddresses.length;) {
-            //Check if hTokens are being bridged in
+            // Check if hTokens are being bridged in
             if (_amounts[i] - _deposits[i] > 0) {
                 unchecked {
                     _bridgeIn(_recipient, _localAddresses[i], _amounts[i] - _deposits[i]);
                 }
             }
 
-            //Check if underlying tokens are being cleared
+            // Check if underlying tokens are being cleared
             if (_deposits[i] > 0) {
                 withdraw(_recipient, _underlyingAddresses[i], _deposits[i]);
             }
@@ -308,13 +309,13 @@ contract BranchPort is Ownable, IBranchPort {
         uint256[] memory _amounts,
         uint256[] memory _deposits
     ) external lock requiresBridgeAgent {
-        //Sanity Check input arrays
+        // Sanity Check input arrays
         if (_localAddresses.length > 255) revert InvalidInputArrays();
         if (_localAddresses.length != _underlyingAddresses.length) revert InvalidInputArrays();
         if (_underlyingAddresses.length != _amounts.length) revert InvalidInputArrays();
         if (_amounts.length != _deposits.length) revert InvalidInputArrays();
 
-        //Loop through token inputs and bridge out
+        // Loop through token inputs and bridge out
         for (uint256 i = 0; i < _localAddresses.length;) {
             _bridgeOut(_depositor, _localAddresses[i], _underlyingAddresses[i], _amounts[i], _deposits[i]);
 

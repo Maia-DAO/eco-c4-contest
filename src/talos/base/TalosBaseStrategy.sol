@@ -129,7 +129,8 @@ abstract contract TalosBaseStrategy is Ownable, ERC20, ReentrancyGuard, ITalosBa
         address(_token1).safeTransferFrom(msg.sender, address(this), amount1Desired);
 
         {
-            INonfungiblePositionManager _nonfungiblePositionManager = nonfungiblePositionManager; // Saves an extra SLOAD
+            // Saves an extra SLOAD
+            INonfungiblePositionManager _nonfungiblePositionManager = nonfungiblePositionManager;
 
             address(_token0).safeApprove(address(_nonfungiblePositionManager), type(uint256).max);
             address(_token1).safeApprove(address(_nonfungiblePositionManager), type(uint256).max);

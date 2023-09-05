@@ -42,7 +42,7 @@ abstract contract TalosTestor is DSTestPlus {
     //                          STRUCTS
     //////////////////////////////////////////////////////////////////
 
-    //Any data passed through by the caller via the IUniswapV3PoolActions#swap call
+    // Any data passed through by the caller via the IUniswapV3PoolActions#swap call
     struct SwapCallbackData {
         bool zeroForOne;
     }
@@ -283,7 +283,7 @@ abstract contract TalosTestor is DSTestPlus {
     }
 
     function poolSwap(uint256 amountSpecified, bool zeroForOne) private {
-        //Calc base ticks
+        // Calc base ticks
         (uint160 sqrtPriceX96,,,,,,) = pool.slot0();
 
         // Calculate Price limit depending on price impact
@@ -292,7 +292,7 @@ abstract contract TalosTestor is DSTestPlus {
         uint160 sqrtPriceLimitX96 =
             zeroForOne ? sqrtPriceX96 - exactSqrtPriceImpact : sqrtPriceX96 + exactSqrtPriceImpact;
 
-        //Swap imbalanced token as long as we haven't used the entire amountSpecified and haven't reached the price limit
+        // Swap imbalanced token as long as we haven't used the entire amountSpecified and haven't reached the price limit
         pool.swap(
             address(this),
             zeroForOne,

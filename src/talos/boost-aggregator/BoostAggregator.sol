@@ -36,16 +36,16 @@ contract BoostAggregator is Ownable, IBoostAggregator {
     ERC20 public immutable hermes;
 
     /// @inheritdoc IBoostAggregator
-    mapping(address => address) public userToRewardsDepot;
+    mapping(address user => address depot) public userToRewardsDepot;
 
     /// @inheritdoc IBoostAggregator
-    mapping(uint256 => address) public tokenIdToUser;
+    mapping(uint256 tokenId => address user) public tokenIdToUser;
 
     /// @inheritdoc IBoostAggregator
-    mapping(uint256 => uint256) public tokenIdRewards;
+    mapping(uint256 tokenId => uint256 rewardsCheckpoint) public tokenIdRewards;
 
     /// @inheritdoc IBoostAggregator
-    mapping(address => bool) public allowlistedAddresses;
+    mapping(address user => bool allowed) public allowlistedAddresses;
 
     /// @inheritdoc IBoostAggregator
     uint256 public protocolRewards;
@@ -53,7 +53,7 @@ contract BoostAggregator is Ownable, IBoostAggregator {
     /// @inheritdoc IBoostAggregator
     uint256 public protocolFee = 2000; // 20%
     // divisioner for protocol fee
-    uint256 private constant DIVISIONER = 10000;
+    uint256 private constant DIVISIONER = 10_000;
 
     uint256 public immutable maxFee;
 

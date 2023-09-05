@@ -33,10 +33,10 @@ contract BaseV2GaugeManager is Ownable, IBaseV2GaugeManager {
     BaseV2GaugeFactory[] public gaugeFactories;
 
     /// @inheritdoc IBaseV2GaugeManager
-    mapping(BaseV2GaugeFactory => uint256) public gaugeFactoryIds;
+    mapping(BaseV2GaugeFactory gaugeFactory => uint256 gaugeFactoryId ) public gaugeFactoryIds;
 
     /// @inheritdoc IBaseV2GaugeManager
-    mapping(BaseV2GaugeFactory => bool) public activeGaugeFactories;
+    mapping(BaseV2GaugeFactory gaugeFactory => bool isActive) public activeGaugeFactories;
 
     /**
      * @notice Initializes Base V2 Gauge Factory Manager contract.

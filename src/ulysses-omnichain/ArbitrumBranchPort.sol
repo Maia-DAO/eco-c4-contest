@@ -44,19 +44,19 @@ contract ArbitrumBranchPort is BranchPort, IArbitrumBranchPort {
         lock
         requiresBridgeAgent
     {
-        //Save root port address to memory
+        // Save root port address to memory
         address _rootPortAddress = rootPortAddress;
 
-        //Get global token address from root port
+        // Get global token address from root port
         address _globalToken = IRootPort(_rootPortAddress).getLocalTokenFromUnderlying(_underlyingAddress, localChainId);
 
-        //Check if global token exists
+        // Check if global token exists
         if (_globalToken == address(0)) revert UnknownUnderlyingToken();
 
-        //Deposit Assets to Port
+        // Deposit Assets to Port
         _underlyingAddress.safeTransferFrom(_depositor, address(this), _deposit);
 
-        //Request Minting of Global Token
+        // Request Minting of Global Token
         IRootPort(_rootPortAddress).mintToLocalBranch(_recipient, _globalToken, _deposit);
     }
 
@@ -66,25 +66,25 @@ contract ArbitrumBranchPort is BranchPort, IArbitrumBranchPort {
         lock
         requiresBridgeAgent
     {
-        //Save root port address to memory
+        // Save root port address to memory
         address _rootPortAddress = rootPortAddress;
 
-        //Check if global token exists
+        // Check if global token exists
         if (!IRootPort(_rootPortAddress).isGlobalToken(_globalAddress, localChainId)) {
             revert UnknownToken();
         }
 
-        //Get underlying token address from root port
+        // Get underlying token address from root port
         address underlyingAddress =
             IRootPort(_rootPortAddress).getUnderlyingTokenFromLocal(_globalAddress, localChainId);
 
-        //Check if underlying token exists
+        // Check if underlying token exists
         if (underlyingAddress == address(0)) revert UnknownUnderlyingToken();
 
-        //Burn Global Token
+        // Burn Global Token
         IRootPort(_rootPortAddress).burnFromLocalBranch(_depositor, _globalAddress, _deposit);
 
-        //Withdraw Assets from Port
+        // Withdraw Assets from Port
         underlyingAddress.safeTransfer(_recipient, _denormalizeDecimals(_deposit, ERC20(underlyingAddress).decimals()));
     }
 

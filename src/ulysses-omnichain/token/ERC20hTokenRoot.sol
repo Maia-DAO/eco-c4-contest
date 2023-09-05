@@ -19,7 +19,7 @@ contract ERC20hTokenRoot is Ownable, ERC20, IERC20hTokenRoot {
     address public factoryAddress;
 
     /// @inheritdoc IERC20hTokenRoot
-    mapping(uint256 => uint256) public getTokenBalance;
+    mapping(uint256 chainId => uint256 balance) public getTokenBalance;
 
     /**
      * @notice Constructor for the ERC20hTokenRoot Contract.

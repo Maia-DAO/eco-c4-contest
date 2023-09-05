@@ -150,7 +150,8 @@ interface IUniswapV3Staker is IERC721Receiver {
         view
         returns (uint160 secondsPerLiquidityInsideInitialX128, uint128 liquidity);
 
-    /// @notice Returns amounts of reward tokens owed to a given address according to the last time all stakes were updated
+    /// @notice Returns amounts of reward tokens owed to a given address 
+    /// @dev According to the last time all stakes were updated
     /// @param owner The owner for which the rewards owed are checked
     /// @return rewardsOwed The amount of the reward token claimable by the owner
     function rewards(address owner) external view returns (uint256 rewardsOwed);

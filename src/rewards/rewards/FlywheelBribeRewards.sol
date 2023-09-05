@@ -19,7 +19,7 @@ contract FlywheelBribeRewards is Ownable, FlywheelAcummulatedRewards, IFlywheelB
     //////////////////////////////////////////////////////////////*/
 
     /// @inheritdoc IFlywheelBribeRewards
-    mapping(ERC20 => RewardsDepot) public override rewardsDepots;
+    mapping(ERC20 reward => RewardsDepot depot) public override rewardsDepots;
 
     /**
      * @notice Flywheel Accumulated Bribes Reward Stream constructor.

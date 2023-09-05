@@ -33,13 +33,13 @@ abstract contract BaseV2GaugeFactory is Ownable, IBaseV2GaugeFactory {
     BaseV2Gauge[] public override gauges;
 
     /// @inheritdoc IBaseV2GaugeFactory
-    mapping(BaseV2Gauge => uint256) public override gaugeIds;
+    mapping(BaseV2Gauge gauge => uint256 gaugeId) public override gaugeIds;
 
     /// @inheritdoc IBaseV2GaugeFactory
-    mapping(BaseV2Gauge => bool) public override activeGauges;
+    mapping(BaseV2Gauge gauge => bool isActive) public override activeGauges;
 
     /// @inheritdoc IBaseV2GaugeFactory
-    mapping(address => BaseV2Gauge) public override strategyGauges;
+    mapping(address strategy => BaseV2Gauge gauge) public override strategyGauges;
 
     /**
      * @notice Creates a new gauge factory

@@ -5,8 +5,9 @@ pragma solidity ^0.8.0;
  * @title  An ERC20 with an embedded attachment mechanism to keep track of boost allocations to gauges.
  *  @author Maia DAO (https://github.com/Maia-DAO)
  *  @notice This contract is meant to be used to represent a token that can boost holders' rewards in other contracts.
- *          Holders can have their boost attached to gauges and cannot transfer their bHermes until they remove their boost.
- *          Only gauges can attach and detach boost from a user. The current user's boost and total supply are stored when attaching.
+ *          Holders can have their boost attached to gauges and cannot transfer their bHermes until they detach it.
+ *          Only gauges can attach and detach boost from a user. 
+ *          The current user's boost and total supply are stored when attaching.
  *          The boost is then detached when the user removes their boost or when the gauge is removed.
  *          A "gauge" is represented by an address that distributes rewards to users periodically or continuously.
  *
@@ -23,7 +24,9 @@ pragma solidity ^0.8.0;
  *  @dev    SECURITY NOTES: decrementGaugeAllBoost can run out of gas.
  *          Gauges should be removed individually until decrementGaugeAllBoost can be called.
  *
- *          After having the boost attached, getUserBoost() will return the maximum boost a user had allocated to all gauges.
+ *          After having the boost attached:
+ *           - getUserBoost() will return the maximum boost a user had allocated to all gauges.
+ *             Which may be more than the current boost if there was boost removed and updateUserBoost() was not called.
  *
  *          Boost state is preserved on the gauge and user level even when a gauge is removed, in case it is re-added.
  */

@@ -148,21 +148,21 @@ contract ArbitrumBranchBridgeAgent is BranchBridgeAgent {
      * @notice Internal that clears gas allocated for usage with remote request
      */
     function _gasSwapIn(bytes memory) internal override returns (uint256) {
-        //Gas already provided by Root Bridge Agent
+        // Gas already provided by Root Bridge Agent
     }
 
     /**
      * @notice Internal function to pay for execution gas. Overwritten Gas is processed by Root Bridge Agent contract - `depositedGas` is used to pay for execution and `gasToBridgeOut`is cleared to recipient.
      */
     function _payExecutionGas(address _recipient, uint256) internal override {
-        //Get gas remaining
+        // Get gas remaining
         uint256 gasRemaining = wrappedNativeToken.balanceOf(address(this));
 
         if (gasRemaining > 0) {
-            //Unwrap Gas
+            // Unwrap Gas
             wrappedNativeToken.withdraw(gasRemaining);
 
-            //Transfer gas remaining to recipient
+            // Transfer gas remaining to recipient
             SafeTransferLib.safeTransferETH(_recipient, gasRemaining);
         }
 
@@ -173,7 +173,7 @@ contract ArbitrumBranchBridgeAgent is BranchBridgeAgent {
      * @notice Internal function to pay for fallback gas. Overwritten no cross-chain messaging fallback between Arbitrum Branch Bridge Agent and Root Bridge Agent.
      */
     function _payFallbackGas(uint32, uint256) internal override {
-        //Cross-chain messaging + Fallback is managed by the Root Bridge Agent
+        // Cross-chain messaging + Fallback is managed by the Root Bridge Agent
     }
 
     /**
@@ -188,12 +188,12 @@ contract ArbitrumBranchBridgeAgent is BranchBridgeAgent {
 
     /// @notice Verifies enough gas is deposited to pay for an eventual fallback call. Reuse to reduce contract bytesize.
     function _requiresFallbackGas() internal view override {
-        //Cross-chain messaging + Fallback is managed by the Root Bridge Agent
+        // Cross-chain messaging + Fallback is managed by the Root Bridge Agent
     }
 
     /// @notice Verifies enough gas is deposited to pay for an eventual fallback call.
     function _requiresFallbackGas(uint256) internal view override {
-        //Cross-chain messaging + Fallback is managed by the Root Bridge Agent
+        // Cross-chain messaging + Fallback is managed by the Root Bridge Agent
     }
 
     /*///////////////////////////////////////////////////////////////

@@ -48,20 +48,20 @@ abstract contract ERC20Gauges is ERC20MultiVotes, ReentrancyGuard, IERC20Gauges 
     uint32 public immutable override incrementFreezeWindow;
 
     /// @inheritdoc IERC20Gauges
-    mapping(address => mapping(address => uint112)) public override getUserGaugeWeight;
+    mapping(address user => mapping(address gauge => uint112 weight)) public override getUserGaugeWeight;
 
     /// @inheritdoc IERC20Gauges
     /// @dev NOTE this may contain weights for deprecated gauges
-    mapping(address => uint112) public override getUserWeight;
+    mapping(address user => uint112 weight) public override getUserWeight;
 
     /// @notice a mapping from a gauge to the total weight allocated to it
     /// @dev NOTE this may contain weights for deprecated gauges
-    mapping(address => Weight) internal _getGaugeWeight;
+    mapping(address gauge => Weight gaugeWeight) internal _getGaugeWeight;
 
     /// @notice the total global allocated weight ONLY of live gauges
     Weight internal _totalWeight;
 
-    mapping(address => EnumerableSet.AddressSet) internal _userGauges;
+    mapping(address user => EnumerableSet.AddressSet userGaugeSet) internal _userGauges;
 
     EnumerableSet.AddressSet internal _gauges;
 
@@ -80,7 +80,8 @@ abstract contract ERC20Gauges is ERC20MultiVotes, ReentrancyGuard, IERC20Gauges 
     function _getGaugeCycleEnd() internal view returns (uint32) {
         uint32 nowPlusOneCycle = block.timestamp.toUint32() + gaugeCycleLength;
         unchecked {
-            return (nowPlusOneCycle / gaugeCycleLength) * gaugeCycleLength; // cannot divide by zero and always <= nowPlusOneCycle so no overflow
+            // cannot divide by zero and always <= nowPlusOneCycle so no overflow
+            return (nowPlusOneCycle / gaugeCycleLength) * gaugeCycleLength;
         }
     }
 
@@ -405,7 +406,7 @@ abstract contract ERC20Gauges is ERC20MultiVotes, ReentrancyGuard, IERC20Gauges 
     uint256 public override maxGauges;
 
     /// @inheritdoc IERC20Gauges
-    mapping(address => bool) public override canContractExceedMaxGauges;
+    mapping(address contractAddress => bool canExceedMaxGauges) public override canContractExceedMaxGauges;
 
     /// @inheritdoc IERC20Gauges
     function addGauge(address gauge) external onlyOwner returns (uint112) {

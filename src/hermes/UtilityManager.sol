@@ -28,11 +28,11 @@ abstract contract UtilityManager is IUtilityManager {
     ERC20Votes public immutable governance;
 
     /// @inheritdoc IUtilityManager
-    mapping(address => uint256) public userClaimedWeight;
+    mapping(address user => uint256 claimedWeight) public userClaimedWeight;
     /// @inheritdoc IUtilityManager
-    mapping(address => uint256) public userClaimedBoost;
+    mapping(address user => uint256 claimedBoost) public userClaimedBoost;
     /// @inheritdoc IUtilityManager
-    mapping(address => uint256) public userClaimedGovernance;
+    mapping(address user => uint256 claimedGovernance) public userClaimedGovernance;
 
     /**
      * @notice Constructs the UtilityManager contract.
@@ -50,7 +50,7 @@ abstract contract UtilityManager is IUtilityManager {
                         UTILITY TOKENS LOGIC
     //////////////////////////////////////////////////////////////*/
 
-    // TODO /// @inheritdoc IUtilityManager
+    /// @inheritdoc IUtilityManager
     function forfeitOutstanding() public virtual {
         forfeitWeight(userClaimedWeight[msg.sender]);
         forfeitBoost(userClaimedBoost[msg.sender]);

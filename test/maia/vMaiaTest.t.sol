@@ -31,7 +31,7 @@ contract vMaiaTest is DSTestPlus {
     bHermes public bhermes;
 
     function setUp() public {
-        //1 jan 2023
+        // 1 jan 2023
         hevm.warp(1672531200);
 
         hermes = new MockERC20("test hermes", "RTKN", 18);

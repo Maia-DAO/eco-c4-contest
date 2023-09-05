@@ -24,44 +24,44 @@ struct Deposit {
 }
 
 struct DepositInput {
-    //Deposit Info
-    address hToken; //Input Local hTokens Address.
-    address token; //Input Native / underlying Token Address.
-    uint256 amount; //Amount of Local hTokens deposited for interaction.
-    uint256 deposit; //Amount of native tokens deposited for interaction.
-    uint24 toChain; //Destination chain for interaction.
+    // Deposit Info
+    address hToken; // Input Local hTokens Address.
+    address token; // Input Native / underlying Token Address.
+    uint256 amount; // Amount of Local hTokens deposited for interaction.
+    uint256 deposit; // Amount of native tokens deposited for interaction.
+    uint24 toChain; // Destination chain for interaction.
 }
 
 struct DepositMultipleInput {
-    //Deposit Info
-    address[] hTokens; //Input Local hTokens Address.
-    address[] tokens; //Input Native / underlying Token Address.
-    uint256[] amounts; //Amount of Local hTokens deposited for interaction.
-    uint256[] deposits; //Amount of native tokens deposited for interaction.
-    uint24 toChain; //Destination chain for interaction.
+    // Deposit Info
+    address[] hTokens; // Input Local hTokens Address.
+    address[] tokens; // Input Native / underlying Token Address.
+    uint256[] amounts; // Amount of Local hTokens deposited for interaction.
+    uint256[] deposits; // Amount of native tokens deposited for interaction.
+    uint24 toChain; // Destination chain for interaction.
 }
 
 struct DepositParams {
-    //Deposit Info
-    uint32 depositNonce; //Deposit nonce.
-    address hToken; //Input Local hTokens Address.
-    address token; //Input Native / underlying Token Address.
-    uint256 amount; //Amount of Local hTokens deposited for interaction.
-    uint256 deposit; //Amount of native tokens deposited for interaction.
-    uint24 toChain; //Destination chain for interaction.
-    uint128 depositedGas; //BRanch chain gas token amount sent with request.
+    // Deposit Info
+    uint32 depositNonce; // Deposit nonce.
+    address hToken; // Input Local hTokens Address.
+    address token; // Input Native / underlying Token Address.
+    uint256 amount; // Amount of Local hTokens deposited for interaction.
+    uint256 deposit; // Amount of native tokens deposited for interaction.
+    uint24 toChain; // Destination chain for interaction.
+    uint128 depositedGas; // BRanch chain gas token amount sent with request.
 }
 
 struct DepositMultipleParams {
-    //Deposit Info
-    uint8 numberOfAssets; //Number of assets to deposit.
-    uint32 depositNonce; //Deposit nonce.
-    address[] hTokens; //Input Local hTokens Address.
-    address[] tokens; //Input Native / underlying Token Address.
-    uint256[] amounts; //Amount of Local hTokens deposited for interaction.
-    uint256[] deposits; //Amount of native tokens deposited for interaction.
-    uint24 toChain; //Destination chain for interaction.
-    uint128 depositedGas; //BRanch chain gas token amount sent with request.
+    // Deposit Info
+    uint8 numberOfAssets; // Number of assets to deposit.
+    uint32 depositNonce; // Deposit nonce.
+    address[] hTokens; // Input Local hTokens Address.
+    address[] tokens; // Input Native / underlying Token Address.
+    uint256[] amounts; // Amount of Local hTokens deposited for interaction.
+    uint256[] deposits; // Amount of native tokens deposited for interaction.
+    uint24 toChain; // Destination chain for interaction.
+    uint128 depositedGas; // BRanch chain gas token amount sent with request.
 }
 
 struct SettlementParams {
@@ -74,7 +74,7 @@ struct SettlementParams {
 }
 
 struct SettlementMultipleParams {
-    uint8 numberOfAssets; //Number of assets to deposit.
+    uint8 numberOfAssets; // Number of assets to deposit.
     address recipient;
     uint32 settlementNonce;
     address[] hTokens;

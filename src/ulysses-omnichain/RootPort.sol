@@ -53,34 +53,34 @@ contract RootPort is Ownable, IRootPort {
     //////////////////////////////////////////////////////////////*/
 
     /// @notice Mapping from user address to Virtual Account.
-    mapping(address => VirtualAccount) public getUserAccount;
+    mapping(address user => VirtualAccount account) public getUserAccount;
 
     /// @notice Holds the mapping from Virtual account to router address => bool.
     /// @notice Stores whether a router is approved to spend a virtual account.
-    mapping(VirtualAccount => mapping(address => bool)) public isRouterApproved;
+    mapping(VirtualAccount acount => mapping(address router => bool allowed)) public isRouterApproved;
 
     /*///////////////////////////////////////////////////////////////
                         BRIDGE AGENTS
     //////////////////////////////////////////////////////////////*/
 
     /// @notice Mapping from address to Bridge Agent.
-    mapping(uint256 => bool) public isChainId;
+    mapping(uint256 chainId => bool isActive) public isChainId;
 
     /// @notice Mapping from address to isBridgeAgent (bool).
-    mapping(address => bool) public isBridgeAgent;
+    mapping(address bridgeAgent => bool isActive) public isBridgeAgent;
 
     /// @notice Bridge Agents deployed in root chain.
     address[] public bridgeAgents;
 
     /// @notice Mapping address Bridge Agent => address Bridge Agent Manager
-    mapping(address => address) public getBridgeAgentManager;
+    mapping(address bridgeAgent => address bridgeAgentManager) public getBridgeAgentManager;
 
     /*///////////////////////////////////////////////////////////////
                     BRIDGE AGENT FACTORIES
     //////////////////////////////////////////////////////////////*/
 
     /// @notice Mapping from Underlying Address to isUnderlying (bool).
-    mapping(address => bool) public isBridgeAgentFactory;
+    mapping(address bridgeAgentFactory => bool isActive) public isBridgeAgentFactory;
 
     /// @notice Bridge Agents deployed in root chain.
     address[] public bridgeAgentFactories;
@@ -90,19 +90,21 @@ contract RootPort is Ownable, IRootPort {
     //////////////////////////////////////////////////////////////*/
 
     /// @notice Mapping with all global hTokens deployed in the system.
-    mapping(address => bool) public isGlobalAddress;
+    mapping(address token => bool isGlobalToken) public isGlobalAddress;
 
     /// @notice ChainId -> Local Address -> Global Address
-    mapping(address => mapping(uint256 => address)) public getGlobalTokenFromLocal;
+    mapping(address chainId => mapping(uint256 localAddress => address globalAddress)) public getGlobalTokenFromLocal;
 
     /// @notice ChainId -> Global Address -> Local Address
-    mapping(address => mapping(uint256 => address)) public getLocalTokenFromGlobal;
+    mapping(address chainId => mapping(uint256 globalAddress => address localAddress)) public getLocalTokenFromGlobal;
 
     /// @notice ChainId -> Underlying Address -> Local Address
-    mapping(address => mapping(uint256 => address)) public getLocalTokenFromUnderlying;
+    mapping(address chainId => mapping(uint256 underlyingAddress => address localAddress)) public
+        getLocalTokenFromUnderlying;
 
     /// @notice Mapping from Local Address to Underlying Address.
-    mapping(address => mapping(uint256 => address)) public getUnderlyingTokenFromLocal;
+    mapping(address chainId => mapping(uint256 localAddress => address underlyingAddress)) public
+        getUnderlyingTokenFromLocal;
 
     /*///////////////////////////////////////////////////////////////
                            GAS POOLS
@@ -442,7 +444,7 @@ contract RootPort is Ownable, IRootPort {
         getUnderlyingTokenFromLocal[_newLocalBranchWrappedNativeTokenAddress][_chainId] =
             _newUnderlyingBranchWrappedNativeTokenAddress;
 
-        //Avoid stack too deep
+        // Avoid stack too deep
         uint24 chainId = _chainId;
 
         address newGasPoolAddress;

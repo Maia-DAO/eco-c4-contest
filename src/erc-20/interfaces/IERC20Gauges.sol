@@ -5,7 +5,7 @@ pragma solidity ^0.8.0;
 /**
  * @title  An ERC20 with an embedded "Gauge" style vote with liquid weights
  *  @author Maia DAO (https://github.com/Maia-DAO)
- *  @notice This contract is meant to be used to support gauge style votes with weights associated with resource allocation.
+ *  @notice This contract supports gauge-style votes with weights associated with resource allocation.
  *          Only after delegating to himself can a user allocate weight to a gauge.
  *          Holders can allocate weight in any proportion to supported gauges.
  *          A "gauge" is represented by an address that would receive the resources periodically or continuously.
@@ -13,7 +13,8 @@ pragma solidity ^0.8.0;
  *          For example, gauges can be used to direct token emissions, similar to Curve or Hermes V1.
  *          Alternatively, gauges can be used to direct another quantity such as relative access to a line of credit.
  *
- *          The contract's Ownable <https://github.com/Vectorized/solady/blob/main/src/auth/Ownable.sol> manages the gauge set and cap.
+ *          The contract's Ownable <https://github.com/Vectorized/solady/blob/main/src/auth/Ownable.sol>
+ *          manages the gauge set and cap.
  *          "Live" gauges are in the set.
  *          Users can only add weight to live gauges but can remove weight from live or deprecated gauges.
  *          Gauges can be deprecated and reinstated; and will maintain any non-removed weight from before.
@@ -69,7 +70,8 @@ interface IERC20Gauges {
     //////////////////////////////////////////////////////////////*/
 
     /**
-     * @notice returns the end of the current cycle. This is the next unix timestamp which evenly divides `gaugeCycleLength`
+     * @notice returns the end of the current cycle.
+     * @dev This is the next unix timestamp which evenly divides `gaugeCycleLength`
      */
     function getGaugeCycleEnd() external view returns (uint32);
 
@@ -80,7 +82,8 @@ interface IERC20Gauges {
     function getGaugeWeight(address gauge) external view returns (uint112);
 
     /**
-     * @notice returns the stored weight of a given gauge. This is the snapshotted weight as-of the end of the last cycle.
+     * @notice returns the stored weight of a given gauge.
+     * @dev This is the snapshotted weight as of the end of the last cycle.
      */
     function getStoredGaugeWeight(address gauge) external view returns (uint112);
 
@@ -101,8 +104,8 @@ interface IERC20Gauges {
 
     /**
      * @notice returns a paginated subset of live gauges
-     *   @param offset the index of the first gauge element to read
-     *   @param num the number of gauges to return
+     *  @param offset the index of the first gauge element to read
+     *  @param num the number of gauges to return
      */
     function gauges(uint256 offset, uint256 num) external view returns (address[] memory values);
 
@@ -138,9 +141,9 @@ interface IERC20Gauges {
 
     /**
      * @notice returns a paginated subset of gauges the user has allocated to, may be live or deprecated.
-     *   @param user the user to return gauges from.
-     *   @param offset the index of the first gauge element to read.
-     *   @param num the number of gauges to return.
+     *  @param user the user to return gauges from.
+     *  @param offset the index of the first gauge element to read.
+     *  @param num the number of gauges to return.
      */
     function userGauges(address user, uint256 offset, uint256 num) external view returns (address[] memory values);
 
@@ -151,9 +154,10 @@ interface IERC20Gauges {
 
     /**
      * @notice helper function for calculating the proportion of a `quantity` allocated to a gauge
+     *  @dev Returns 0 if a gauge is not live, even if it has weight.
      *  @param gauge the gauge to calculate the allocation of
      *  @param quantity a representation of a resource to be shared among all gauges
-     *  @return the proportion of `quantity` allocated to `gauge`. Returns 0 if a gauge is not live, even if it has weight.
+     *  @return the proportion of `quantity` allocated to `gauge`.
      */
     function calculateGaugeAllocation(address gauge, uint256 quantity) external view returns (uint256);
 
@@ -203,7 +207,8 @@ interface IERC20Gauges {
 
     /**
      * @notice the default maximum amount of gauges a user can allocate to.
-     * @dev if this number is ever lowered, or a contract has an override, then existing addresses MAY have more gauges allocated to. Use `numUserGauges` to check this.
+     * @dev Use `numUserGauges` to check this. If this number is ever lowered, or a contract has an override, 
+     *      then existing addresses MAY have more gauges allocated to them. 
      */
     function maxGauges() external view returns (uint256);
 
@@ -213,23 +218,25 @@ interface IERC20Gauges {
     function canContractExceedMaxGauges(address) external view returns (bool);
 
     /**
-     * @notice add a new gauge. Requires auth by `authority`.
+     * @notice add a new gauge. Requires auth by `ownable`.
      */
     function addGauge(address gauge) external returns (uint112);
 
     /**
-     * @notice remove a new gauge. Requires auth by `authority`.
+     * @notice remove a new gauge. Requires auth by `ownable`.
      */
     function removeGauge(address gauge) external;
 
     /**
-     * @notice replace a gauge. Requires auth by `authority`.
+     * @notice replace a gauge. Requires auth by `ownable`.
      */
     function replaceGauge(address oldGauge, address newGauge) external;
 
     /**
-     * @notice set the new max gauges. Requires auth by `authority`.
-     * @dev if this is set to a lower number than the current max, users MAY have more gauges active than the max. Use `numUserGauges` to check this.
+     * @notice set the new max gauges. Requires auth by `ownable`.
+     * @dev Use `numUserGauges` to check this.
+     *      If this is set to a lower number than the current max, users MAY have more gauges active than the max. 
+     *      
      */
     function setMaxGauges(uint256 newMax) external;
 
@@ -254,7 +261,7 @@ interface IERC20Gauges {
     /// @notice emitted when removing a gauge from the live set.
     event RemoveGauge(address indexed gauge);
 
-    /// @notice emitted when updating the max number of gauges a user can delegate to.
+    /// @notice emitted when updating the maximum number of gauges a user can delegate to.
     event MaxGaugesUpdate(uint256 oldMaxGauges, uint256 newMaxGauges);
 
     /// @notice emitted when changing a contract's approval to go over the max gauges.

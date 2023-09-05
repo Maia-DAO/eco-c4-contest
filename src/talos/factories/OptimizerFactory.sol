@@ -14,7 +14,7 @@ contract OptimizerFactory is IOptimizerFactory {
 
     TalosOptimizer[] public optimizers;
 
-    mapping(TalosOptimizer => uint256) public optimizerIds;
+    mapping(TalosOptimizer optimizer => uint256 optimizerId) public optimizerIds;
 
     function getOptimizers() external view returns (TalosOptimizer[] memory) {
         return optimizers;

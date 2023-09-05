@@ -26,7 +26,7 @@ abstract contract ERC20MultiVotes is ERC20, Ownable, IERC20MultiVotes {
     //////////////////////////////////////////////////////////////*/
 
     /// @notice votes checkpoint list per user.
-    mapping(address => Checkpoint[]) private _checkpoints;
+    mapping(address user => Checkpoint[] checkpointList) private _checkpoints;
 
     /// @inheritdoc IERC20MultiVotes
     function checkpoints(address account, uint32 pos) public view virtual returns (Checkpoint memory) {
@@ -90,7 +90,7 @@ abstract contract ERC20MultiVotes is ERC20, Ownable, IERC20MultiVotes {
     uint256 public override maxDelegates;
 
     /// @inheritdoc IERC20MultiVotes
-    mapping(address => bool) public override canContractExceedMaxDelegates;
+    mapping(address contractAddress => bool canExceedMaxGauges) public override canContractExceedMaxDelegates;
 
     /// @inheritdoc IERC20MultiVotes
     function setMaxDelegates(uint256 newMax) external onlyOwner {
@@ -114,13 +114,13 @@ abstract contract ERC20MultiVotes is ERC20, Ownable, IERC20MultiVotes {
     //////////////////////////////////////////////////////////////*/
 
     /// @notice How many votes a user has delegated to a delegatee.
-    mapping(address => mapping(address => uint256)) private _delegatesVotesCount;
+    mapping(address user => mapping(address delegatee => uint256 votes)) private _delegatesVotesCount;
 
     /// @notice How many votes a user has delegated to him.
-    mapping(address => uint256) public userDelegatedVotes;
+    mapping(address user => uint256 votes) public userDelegatedVotes;
 
     /// @notice The delegatees of a user.
-    mapping(address => EnumerableSet.AddressSet) private _delegates;
+    mapping(address user => EnumerableSet.AddressSet delegatesSet) private _delegates;
 
     /// @inheritdoc IERC20MultiVotes
     function delegatesVotesCount(address delegator, address delegatee) public view virtual returns (uint256) {
@@ -216,7 +216,7 @@ abstract contract ERC20MultiVotes is ERC20, Ownable, IERC20MultiVotes {
         /**
          * @dev delegatee needs to have sufficient free votes for delegator to undelegate.
          *         Delegatee needs to be trusted, can be either a contract or an EOA.
-         *         If delegatee does not have any free votes and doesn't change their vote delegator won't be able to undelegate.
+         *         If the delegatee does not have any free votes their vote delegators won't be able to undelegate.
          *         If it is a contract, a possible safety measure is to have an emergency clear votes.
          */
         if (userUnusedVotes(delegatee) < amount) revert UndelegationVoteError();

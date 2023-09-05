@@ -29,7 +29,7 @@ abstract contract TalosBaseStrategyFactory is Ownable, ITalosBaseStrategyFactory
     TalosBaseStrategy[] public strategies;
 
     /// @inheritdoc ITalosBaseStrategyFactory
-    mapping(TalosBaseStrategy => uint256) public strategyIds;
+    mapping(TalosBaseStrategy strategy => uint256 strategyId) public strategyIds;
 
     /**
      * @notice Constructs the Talos Strategy Factory

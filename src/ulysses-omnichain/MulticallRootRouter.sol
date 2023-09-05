@@ -98,7 +98,7 @@ contract MulticallRootRouter is IRootRouter, Ownable {
         internal
         returns (uint256 blockNumber, bytes[] memory returnData)
     {
-        //Call desired functions
+        // Call desired functions
         (blockNumber, returnData) = IMulticall(multicallAddress).aggregate(calls);
     }
 
@@ -122,13 +122,13 @@ contract MulticallRootRouter is IRootRouter, Ownable {
         uint256 depositOut,
         uint24 toChain
     ) internal virtual {
-        //Save bridge agent address to memory
+        // Save bridge agent address to memory
         address _bridgeAgentAddress = bridgeAgentAddress;
 
-        //Approve Root Port to spend/send output hTokens.
+        // Approve Root Port to spend/send output hTokens.
         outputToken.safeApprove(_bridgeAgentAddress, amountOut);
 
-        //Move output hTokens from Root to Branch and call 'clearToken'.
+        // Move output hTokens from Root to Branch and call 'clearToken'.
         IBridgeAgent(_bridgeAgentAddress).callOutAndBridge{value: msg.value}(
             owner, recipient, "", outputToken, amountOut, depositOut, toChain
         );
@@ -151,19 +151,19 @@ contract MulticallRootRouter is IRootRouter, Ownable {
         uint256[] memory depositsOut,
         uint24 toChain
     ) internal virtual {
-        //Save bridge agent address to memory
+        // Save bridge agent address to memory
         address _bridgeAgentAddress = bridgeAgentAddress;
 
-        //For each output token
+        // For each output token
         for (uint256 i = 0; i < outputTokens.length;) {
-            //Approve Root Port to spend output hTokens.
+            // Approve Root Port to spend output hTokens.
             outputTokens[i].safeApprove(_bridgeAgentAddress, amountsOut[i]);
             unchecked {
                 ++i;
             }
         }
 
-        //Move output hTokens from Root to Branch and call 'clearTokens'.
+        // Move output hTokens from Root to Branch and call 'clearTokens'.
         IBridgeAgent(_bridgeAgentAddress).callOutAndBridgeMultiple{value: msg.value}(
             owner, recipient, "", outputTokens, amountsOut, depositsOut, toChain
         );
@@ -289,7 +289,7 @@ contract MulticallRootRouter is IRootRouter, Ownable {
         if (funcId == 0x01) {
             Call[] memory calls = abi.decode(encodedData, (Call[]));
 
-            //Call desired functions
+            // Call desired functions
             IVirtualAccount(userAccount).call(calls);
 
             /// FUNC ID: 2 (multicallSingleOutput)
@@ -297,7 +297,7 @@ contract MulticallRootRouter is IRootRouter, Ownable {
             (Call[] memory calls, OutputParams memory outputParams, uint24 toChain) =
                 abi.decode(encodedData, (Call[], OutputParams, uint24));
 
-            //Call desired functions
+            // Call desired functions
             IVirtualAccount(userAccount).call(calls);
 
             // Withdraw assets from Virtual Account
@@ -317,7 +317,7 @@ contract MulticallRootRouter is IRootRouter, Ownable {
             (Call[] memory calls, OutputMultipleParams memory outputParams, uint24 toChain) =
                 abi.decode(encodedData, (Call[], OutputMultipleParams, uint24));
 
-            //Call desired functions
+            // Call desired functions
             IVirtualAccount(userAccount).call(calls);
 
             for (uint256 i = 0; i < outputParams.outputTokens.length;) {
@@ -365,7 +365,7 @@ contract MulticallRootRouter is IRootRouter, Ownable {
         if (funcId == 0x01) {
             Call[] memory calls = abi.decode(encodedData, (Call[]));
 
-            //Call desired functions
+            // Call desired functions
             IVirtualAccount(userAccount).call(calls);
 
             /// FUNC ID: 2 (multicallSingleOutput)
@@ -373,7 +373,7 @@ contract MulticallRootRouter is IRootRouter, Ownable {
             (Call[] memory calls, OutputParams memory outputParams, uint24 toChain) =
                 abi.decode(encodedData, (Call[], OutputParams, uint24));
 
-            //Call desired functions
+            // Call desired functions
             IVirtualAccount(userAccount).call(calls);
 
             // Withdraw assets from Virtual Account
@@ -393,7 +393,7 @@ contract MulticallRootRouter is IRootRouter, Ownable {
             (Call[] memory calls, OutputMultipleParams memory outputParams, uint24 toChain) =
                 abi.decode(encodedData, (Call[], OutputMultipleParams, uint24));
 
-            //Call desired functions
+            // Call desired functions
             IVirtualAccount(userAccount).call(calls);
 
             for (uint256 i = 0; i < outputParams.outputTokens.length;) {
@@ -441,7 +441,7 @@ contract MulticallRootRouter is IRootRouter, Ownable {
         if (funcId == 0x01) {
             Call[] memory calls = abi.decode(encodedData, (Call[]));
 
-            //Call desired functions
+            // Call desired functions
             IVirtualAccount(userAccount).call(calls);
 
             /// FUNC ID: 2 (multicallSingleOutput)
@@ -449,7 +449,7 @@ contract MulticallRootRouter is IRootRouter, Ownable {
             (Call[] memory calls, OutputParams memory outputParams, uint24 toChain) =
                 abi.decode(encodedData, (Call[], OutputParams, uint24));
 
-            //Call desired functions
+            // Call desired functions
             IVirtualAccount(userAccount).call(calls);
 
             // Withdraw assets from Virtual Account
@@ -469,7 +469,7 @@ contract MulticallRootRouter is IRootRouter, Ownable {
             (Call[] memory calls, OutputMultipleParams memory outputParams, uint24 toChain) =
                 abi.decode(encodedData, (Call[], OutputMultipleParams, uint24));
 
-            //Call desired functions
+            // Call desired functions
             IVirtualAccount(userAccount).call(calls);
 
             for (uint256 i = 0; i < outputParams.outputTokens.length;) {

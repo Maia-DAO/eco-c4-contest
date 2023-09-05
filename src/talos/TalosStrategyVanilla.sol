@@ -43,7 +43,7 @@ contract TalosStrategyVanilla is TalosStrategySimple {
     using PoolVariables for IUniswapV3Pool;
 
     /// @notice The protocol's fee in hundredths of a bip, i.e. 1e-6
-    uint24 private constant protocolFee = 2 * 1e5; //20%
+    uint24 private constant protocolFee = 2 * 1e5; // 20%
     uint24 private constant GLOBAL_DIVISIONER = 1e6;
 
     /**
@@ -128,7 +128,7 @@ contract TalosStrategyVanilla is TalosStrategySimple {
 
         emit Snapshot(balance0, balance1);
 
-        //Get Liquidity for Optimizer's balances
+        // Get Liquidity for Optimizer's balances
         uint128 _liquidity = pool.liquidityForAmounts(balance0, balance1, tickLower, tickUpper);
 
         if (_liquidity == 0) return (0, 0); // no fees to compound when liquidity is zero

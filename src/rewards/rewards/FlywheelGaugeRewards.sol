@@ -47,7 +47,7 @@ contract FlywheelGaugeRewards is IFlywheelGaugeRewards {
     uint32 internal paginationOffset;
 
     /// @inheritdoc IFlywheelGaugeRewards
-    mapping(ERC20 => QueuedRewards) public override gaugeQueuedRewards;
+    mapping(ERC20 gauge => QueuedRewards rewards) public override gaugeQueuedRewards;
 
     constructor(address _rewardToken, ERC20Gauges _gaugeToken, IBaseV2Minter _minter) {
         rewardToken = _rewardToken;
@@ -68,12 +68,13 @@ contract FlywheelGaugeRewards is IFlywheelGaugeRewards {
 
     /// @inheritdoc IFlywheelGaugeRewards
     function queueRewardsForCycle() external returns (uint256 totalQueuedForCycle) {
-        /// @dev Update minter cycle and queue rewars if needed.
-        /// This will make this call fail if it is a new epoch, because the minter calls this function, the first call would fail with "CycleError()".
-        /// Should be called through Minter to kickoff new epoch.
+        /// @dev Update minter cycle and queue rewards if needed.
+        /// This will make this call fail if it is a new epoch,
+        /// because the minter calls this function, the first call would fail with "CycleError()".
+        /// Should be called through Minter to kick off the new epoch.
         minter.updatePeriod();
 
-        // next cycle is always the next even divisor of the cycle length above current block timestamp.
+        // next cycle is always the next even divisor of the cycle length above the current block timestamp.
         uint32 _gaugeCycleLength = gaugeCycleLength;
         uint32 currentCycle = (block.timestamp.toUint32() / _gaugeCycleLength) * _gaugeCycleLength;
         uint32 lastCycle = gaugeCycle;
@@ -104,12 +105,13 @@ contract FlywheelGaugeRewards is IFlywheelGaugeRewards {
 
     /// @inheritdoc IFlywheelGaugeRewards
     function queueRewardsForCyclePaginated(uint256 numRewards) external {
-        /// @dev Update minter cycle and queue rewars if needed.
-        /// This will make this call fail if it is a new epoch, because the minter calls this function, the first call would fail with "CycleError()".
-        /// Should be called through Minter to kickoff new epoch.
+        /// @dev Update minter cycle and queue rewards if needed.
+        /// This will make this call fail if it is a new epoch,
+        /// because the minter calls this function, the first call would fail with "CycleError()".
+        /// Should be called through Minter to kick off the new epoch.
         minter.updatePeriod();
 
-        // next cycle is always the next even divisor of the cycle length above current block timestamp.
+        // next cycle is always the next even divisor of the cycle length above the current block timestamp.
         uint32 _gaugeCycleLength = gaugeCycleLength;
         uint32 currentCycle = (block.timestamp.toUint32() / _gaugeCycleLength) * _gaugeCycleLength;
         uint32 lastCycle = gaugeCycle;
@@ -129,14 +131,17 @@ contract FlywheelGaugeRewards is IFlywheelGaugeRewards {
 
         uint112 queued;
 
-        // important to only calculate the reward amount once to prevent each page from having a different reward amount
+        // Important to only calculate the reward amount once
+        /// to prevent each page from having a different reward amount
         if (offset == 0) {
             // queue the rewards stream and sanity check the tokens were received
             uint256 balanceBefore = rewardToken.balanceOf(address(this));
             uint256 newRewards = minter.getRewards();
             require(rewardToken.balanceOf(address(this)) - balanceBefore >= newRewards);
-            require(newRewards <= type(uint112).max); // safe cast
-            queued = nextCycleQueuedRewards + uint112(newRewards); // in case a previous incomplete cycle had rewards, add on
+            // safe cast
+            require(newRewards <= type(uint112).max);
+            // In case a previous incomplete cycle had rewards, add on
+            queued = nextCycleQueuedRewards + uint112(newRewards);
             nextCycleQueuedRewards = queued;
         } else {
             queued = nextCycleQueuedRewards;
@@ -144,7 +149,8 @@ contract FlywheelGaugeRewards is IFlywheelGaugeRewards {
 
         uint256 remaining = gaugeToken.numGauges() - offset;
 
-        // Important to do non-strict inequality to include the case where the numRewards is just enough to complete the cycle
+        // Important to do non-strict inequality
+        // to include the case where the numRewards is just enough to complete the cycle
         if (remaining <= numRewards) {
             numRewards = remaining;
             gaugeCycle = currentCycle;
@@ -202,7 +208,7 @@ contract FlywheelGaugeRewards is IFlywheelGaugeRewards {
 
     /// @inheritdoc IFlywheelGaugeRewards
     function getAccruedRewards() external returns (uint256 accruedRewards) {
-        /// @dev Update minter cycle and queue rewars if needed.
+        /// @dev Update minter cycle and queue rewards if needed.
         minter.updatePeriod();
 
         QueuedRewards storage queuedRewards = gaugeQueuedRewards[ERC20(msg.sender)];

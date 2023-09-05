@@ -10,18 +10,19 @@ library IncentiveTime {
     /// @notice Throws when the staked timestamp is before the incentive start time.
     error InvalidStartTime();
 
-    uint256 private constant INCENTIVES_DURATION = 1 weeks; // Incentives are 1 week long and start at THURSDAY 12:00:00 UTC (00:00:00 UTC + 12 hours (INCENTIVE_OFFSET))
+    // Incentives are 1 week long and start at THURSDAY 12:00:00 UTC (00:00:00 UTC + 12 hours (INCENTIVE_OFFSET))
+    uint256 private constant INCENTIVES_DURATION = 1 weeks;
 
     uint256 private constant INCENTIVES_OFFSET = 12 hours;
 
     function computeStart(uint256 timestamp) internal pure returns (uint96 start) {
-        /// @dev The start of the incentive is the start of the week (Thursday 12:00:00 UTC) that the timestamp falls in
+        /// @dev The start of the incentive is the start of the week (Thursday 12:00:00 UTC) of the timestamp
         /// Remove Offset, rounds down to nearest week, adds offset back
         return uint96(((timestamp - INCENTIVES_OFFSET) / INCENTIVES_DURATION) * INCENTIVES_DURATION + INCENTIVES_OFFSET);
     }
 
     function computeEnd(uint256 timestamp) internal pure returns (uint96 end) {
-        /// @dev The end of the incentive is the end of the week (Thursday 12:00:00 UTC) that the timestamp falls in
+        /// @dev The end of the incentive is the end of the week (Thursday 12:00:00 UTC) of the timestamp
         /// Remove Offset, rounds up to nearest week, adds offset back
         return uint96(
             (((timestamp - INCENTIVES_OFFSET) / INCENTIVES_DURATION) + 1) * INCENTIVES_DURATION + INCENTIVES_OFFSET

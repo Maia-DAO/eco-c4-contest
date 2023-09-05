@@ -81,7 +81,7 @@ contract RootBridgeAgentExecutor is Ownable {
         onlyOwner
         returns (bool success, bytes memory result)
     {
-        //Try to execute remote request
+        // Try to execute remote request
         (success, result) = IRouter(_router).anyExecuteResponse(
             bytes1(_data[PARAMS_TKN_START]), _data[6:_data.length - PARAMS_GAS_IN], _fromChainId
         );
@@ -101,7 +101,7 @@ contract RootBridgeAgentExecutor is Ownable {
         onlyOwner
         returns (bool success, bytes memory result)
     {
-        //Execute remote request
+        // Execute remote request
         (success, result) =
             IRouter(_router).anyExecute(bytes1(_data[5]), _data[6:_data.length - PARAMS_GAS_IN], _fromChainId);
     }
@@ -120,7 +120,7 @@ contract RootBridgeAgentExecutor is Ownable {
         onlyOwner
         returns (bool success, bytes memory result)
     {
-        //Read Deposit Params
+        // Read Deposit Params
         DepositParams memory dParams = DepositParams({
             depositNonce: uint32(bytes4(_data[PARAMS_START:PARAMS_TKN_START])),
             hToken: address(uint160(bytes20(_data[PARAMS_TKN_START:25]))),
@@ -130,11 +130,11 @@ contract RootBridgeAgentExecutor is Ownable {
             toChain: uint24(bytes3(_data[109:112]))
         });
 
-        //Bridge In Assets
+        // Bridge In Assets
         _bridgeIn(_router, dParams, _fromChainId);
 
         if (_data.length - PARAMS_GAS_IN > 112) {
-            //Execute remote request
+            // Execute remote request
             (success, result) = IRouter(_router).anyExecuteDepositSingle(
                 _data[112], _data[113:_data.length - PARAMS_GAS_IN], dParams, _fromChainId
             );
@@ -157,7 +157,7 @@ contract RootBridgeAgentExecutor is Ownable {
         onlyOwner
         returns (bool success, bytes memory result)
     {
-        //Bridge In Assets and Save Deposit Params
+        // Bridge In Assets and Save Deposit Params
         DepositMultipleParams memory dParams = _bridgeInMultiple(
             _router,
             _data[
@@ -174,7 +174,7 @@ contract RootBridgeAgentExecutor is Ownable {
             length - PARAMS_GAS_IN
                 > PARAMS_END_OFFSET + uint16(uint8(bytes1(_data[PARAMS_START]))) * PARAMS_TKN_SET_SIZE_MULTIPLE
         ) {
-            //Try to execute remote request
+            // Try to execute remote request
             (success, result) = IRouter(_router).anyExecuteDepositMultiple(
                 bytes1(_data[PARAMS_END_OFFSET + uint16(numOfAssets) * PARAMS_TKN_SET_SIZE_MULTIPLE]),
                 _data[
@@ -204,7 +204,7 @@ contract RootBridgeAgentExecutor is Ownable {
         onlyOwner
         returns (bool success, bytes memory result)
     {
-        //Execute remote request
+        // Execute remote request
         (success, result) =
             IRouter(_router).anyExecuteSigned(_data[25], _data[26:_data.length - PARAMS_GAS_IN], _account, _fromChainId);
     }
@@ -224,7 +224,7 @@ contract RootBridgeAgentExecutor is Ownable {
         onlyOwner
         returns (bool success, bytes memory result)
     {
-        //Read Deposit Params
+        // Read Deposit Params
         DepositParams memory dParams = DepositParams({
             depositNonce: uint32(bytes4(_data[PARAMS_START_SIGNED:25])),
             hToken: address(uint160(bytes20(_data[25:45]))),
@@ -234,11 +234,11 @@ contract RootBridgeAgentExecutor is Ownable {
             toChain: uint24(bytes3(_data[129:132]))
         });
 
-        //Bridge In Asset
+        // Bridge In Asset
         _bridgeIn(_account, dParams, _fromChainId);
 
         if (_data.length - PARAMS_GAS_IN > 132) {
-            //Execute remote request
+            // Execute remote request
             unchecked {
                 (success, result) = IRouter(_router).anyExecuteSignedDepositSingle(
                     _data[132], _data[133:_data.length - PARAMS_GAS_IN], dParams, _account, _fromChainId
@@ -265,7 +265,7 @@ contract RootBridgeAgentExecutor is Ownable {
         bytes calldata _data,
         uint24 _fromChainId
     ) external onlyOwner returns (bool success, bytes memory result) {
-        //Bridge In Assets
+        // Bridge In Assets
         DepositMultipleParams memory dParams = _bridgeInMultiple(
             _account,
             _data[
@@ -282,7 +282,7 @@ contract RootBridgeAgentExecutor is Ownable {
                     > PARAMS_END_SIGNED_OFFSET
                         + uint16(uint8(bytes1(_data[PARAMS_START_SIGNED]))) * PARAMS_TKN_SET_SIZE_MULTIPLE
             ) {
-                //Execute remote request
+                // Execute remote request
                 unchecked {
                     (success, result) = IRouter(_router).anyExecuteSignedDepositMultiple(
                         _data[PARAMS_END_SIGNED_OFFSET
@@ -315,9 +315,9 @@ contract RootBridgeAgentExecutor is Ownable {
         onlyOwner
         returns (bool success, bytes memory result)
     {
-        //Execute remote request
+        // Execute remote request
         RootBridgeAgent(payable(msg.sender)).retrySettlement(_settlementNonce, 0);
-        //Trigger retry success (no guarantees about settlement success at this point)
+        // Trigger retry success (no guarantees about settlement success at this point)
         (success, result) = (true, "");
     }
 
@@ -328,7 +328,7 @@ contract RootBridgeAgentExecutor is Ownable {
      *
      */
     function _bridgeIn(address _recipient, DepositParams memory _dParams, uint24 _fromChain) internal {
-        //Request assets for decoded request.
+        // Request assets for decoded request.
         RootBridgeAgent(payable(msg.sender)).bridgeIn(_recipient, _dParams, _fromChain);
     }
 
@@ -367,10 +367,10 @@ contract RootBridgeAgentExecutor is Ownable {
         uint256[] memory deposits = new uint256[](numOfAssets);
 
         for (uint256 i = 0; i < uint256(uint8(numOfAssets));) {
-            //Cache offset
+            // Cache offset
             uint256 currentIterationOffset = PARAMS_START + i;
 
-            //Parse Params
+            // Parse Params
             hTokens[i] = address(
                 uint160(
                     bytes20(
@@ -422,7 +422,7 @@ contract RootBridgeAgentExecutor is Ownable {
             }
         }
 
-        //Save Deposit Multiple Params
+        // Save Deposit Multiple Params
         dParams = DepositMultipleParams({
             numberOfAssets: numOfAssets,
             depositNonce: nonce,

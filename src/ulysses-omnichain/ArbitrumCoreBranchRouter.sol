@@ -47,17 +47,17 @@ contract ArbitrumCoreBranchRouter is CoreBranchRouter {
 
     ///@inheritdoc CoreBranchRouter
     function addLocalToken(address _underlyingAddress) external payable override {
-        //Get Token Info
+        // Get Token Info
         string memory name = ERC20(_underlyingAddress).name();
         string memory symbol = ERC20(_underlyingAddress).symbol();
 
-        //Encode Data
+        // Encode Data
         bytes memory data = abi.encode(_underlyingAddress, address(0), name, symbol);
 
-        //Pack FuncId
+        // Pack FuncId
         bytes memory packedData = abi.encodePacked(bytes1(0x02), data);
 
-        //Send Cross-Chain request (System Response/Request)
+        // Send Cross-Chain request (System Response/Request)
         IBridgeAgent(localBridgeAgentAddress).performSystemCallOut(msg.sender, packedData, 0, 0);
     }
 
@@ -81,28 +81,28 @@ contract ArbitrumCoreBranchRouter is CoreBranchRouter {
         address _rootBridgeAgentFactory,
         uint128
     ) internal override {
-        //Check if msg.sender is a valid BridgeAgentFactory
+        // Check if msg.sender is a valid BridgeAgentFactory
         if (!IPort(localPortAddress).isBridgeAgentFactory(_branchBridgeAgentFactory)) {
             revert UnrecognizedBridgeAgentFactory();
         }
 
-        //Create Token
+        // Create Token
         address newBridgeAgent = IBridgeAgentFactory(_branchBridgeAgentFactory).createBridgeAgent(
             _newBranchRouter, _rootBridgeAgent, _rootBridgeAgentFactory
         );
 
-        //Check BridgeAgent Address
+        // Check BridgeAgent Address
         if (!IPort(localPortAddress).isBridgeAgent(newBridgeAgent)) {
             revert UnrecognizedBridgeAgent();
         }
 
-        //Encode Data
+        // Encode Data
         bytes memory data = abi.encode(newBridgeAgent, _rootBridgeAgent);
 
-        //Pack FuncId
+        // Pack FuncId
         bytes memory packedData = abi.encodePacked(bytes1(0x04), data);
 
-        //Send Cross-Chain request
+        // Send Cross-Chain request
         IBridgeAgent(localBridgeAgentAddress).performSystemCallOut(address(this), packedData, 0, 0);
     }
 

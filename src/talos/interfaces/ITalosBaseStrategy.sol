@@ -71,8 +71,8 @@ interface ITalosBaseStrategy is IERC721Receiver {
 
     /// @notice The pool tick spacing
     /// @dev Ticks can only be used at multiples of this value, minimum of 1 and always positive
-    /// e.g.: a tickSpacing of 3 means ticks can be initialized every 3rd tick, i.e., ..., -6, -3, 0, 3, 6, ...
-    /// This value is an int24 to avoid casting even though it is always positive.
+    ///      e.g.: a tickSpacing of 3 means ticks can be initialized every 3rd tick, i.e., ..., -6, -3, 0, 3, 6, ...
+    ///      This value is an int24 to avoid casting even though it is always positive.
     /// @return The tick spacing
     function tickSpacing() external view returns (int24);
 
@@ -80,8 +80,8 @@ interface ITalosBaseStrategy is IERC721Receiver {
     /// @return poolFee
     function poolFee() external view returns (uint24);
 
-    /// @notice A Uniswap pool facilitates swapping and automated market-making between any two assets that strictly conform
-    /// to the ERC20 specification
+    /// @notice A Uniswap pool facilitates swapping and automated market-making
+    ///         between any two assets that strictly conform to the ERC20 specification
     /// @return The address of the Uniswap V3 Pool
     function pool() external view returns (IUniswapV3Pool);
 
@@ -161,15 +161,15 @@ interface ITalosBaseStrategy is IERC721Receiver {
     /**
      * @notice Updates Optimizer's positions. Can only be called by the strategy manager.
      * @dev Finds base position and limit position for imbalanced token
-     * mints all amounts to this position (including earned fees)
+     *      mints all amounts to this position (including earned fees)
      */
     function rerange() external;
 
     /**
      * @notice Updates Optimizer's positions. Can only be called by the strategy manager.
      * @dev Swaps imbalanced token. Finds base position and limit position for the imbalanced token if
-     * we don't have balance during the swap because of price impact.
-     * mints all amounts to this position (including earned fees)
+     *      we don't have balance during the swap because of price impact.
+     *      mints all amounts to this position (including earned fees)
      */
     function rebalance() external;
 
@@ -282,9 +282,9 @@ interface ITalosBaseStrategy is IERC721Receiver {
     /// @notice Error emitted when the receiver is zero address
     error ReceiverIsZeroAddress();
 
-    // Token 0 amount is bigger than accrued protocol fees
+    /// @notice Token 0 amount is bigger than accrued protocol fees
     error Token0AmountIsBiggerThanProtocolFees();
 
-    // Token 1 amount is bigger than accrued protocol fees
+    /// @notice Token 1 amount is bigger than accrued protocol fees
     error Token1AmountIsBiggerThanProtocolFees();
 }

@@ -28,7 +28,7 @@ contract BoostAggregatorFactory is IBoostAggregatorFactory {
     BoostAggregator[] public boostAggregators;
 
     /// @inheritdoc IBoostAggregatorFactory
-    mapping(BoostAggregator => uint256) public boostAggregatorIds;
+    mapping(BoostAggregator aggregator => uint256 aggregatorId) public boostAggregatorIds;
 
     /**
      * @notice Construct a new Boost Aggregator Factory contract.

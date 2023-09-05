@@ -23,7 +23,7 @@ abstract contract PartnerUtilityManager is UtilityManager, IPartnerUtilityManage
     ERC20Votes public immutable partnerGovernance;
 
     /// @inheritdoc IPartnerUtilityManager
-    mapping(address => uint256) public userClaimedPartnerGovernance;
+    mapping(address user => uint256 claimedPartnerGovernance) public userClaimedPartnerGovernance;
 
     /**
      * @notice Constructs the Utility Manager Contract.
@@ -75,7 +75,7 @@ abstract contract PartnerUtilityManager is UtilityManager, IPartnerUtilityManage
     function forfeitWeight(uint256 amount) public virtual override {
         super.forfeitWeight(amount);
 
-        //Save partnerVault to memory
+        // Save partnerVault to memory
         address _partnerVault = partnerVault;
 
         /// @dev Vault applies outstanding weight.
@@ -88,7 +88,7 @@ abstract contract PartnerUtilityManager is UtilityManager, IPartnerUtilityManage
     function forfeitBoost(uint256 amount) public virtual override {
         super.forfeitBoost(amount);
 
-        //Save partnerVault to memory
+        // Save partnerVault to memory
         address _partnerVault = partnerVault;
 
         /// @dev Vault applies outstanding boost.
@@ -101,7 +101,7 @@ abstract contract PartnerUtilityManager is UtilityManager, IPartnerUtilityManage
     function forfeitGovernance(uint256 amount) public virtual override {
         super.forfeitGovernance(amount);
 
-        //Save partnerVault to memory
+        // Save partnerVault to memory
         address _partnerVault = partnerVault;
 
         /// @dev Vault applies outstanding governance.

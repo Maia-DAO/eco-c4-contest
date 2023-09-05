@@ -66,7 +66,7 @@ contract BranchBridgeAgentExecutor is Ownable {
         onlyOwner
         returns (bool success, bytes memory result)
     {
-        //Execute remote request
+        // Execute remote request
         (success, result) = IRouter(_router).anyExecuteNoSettlement(_data[25:_data.length - PARAMS_GAS_OUT]);
     }
 
@@ -84,7 +84,7 @@ contract BranchBridgeAgentExecutor is Ownable {
         onlyOwner
         returns (bool success, bytes memory result)
     {
-        //Clear Token / Execute Settlement
+        // Clear Token / Execute Settlement
         SettlementParams memory sParams = SettlementParams({
             settlementNonce: uint32(bytes4(_data[PARAMS_START_SIGNED:25])),
             recipient: _recipient,
@@ -94,13 +94,13 @@ contract BranchBridgeAgentExecutor is Ownable {
             deposit: uint256(bytes32(_data[97:PARAMS_SETTLEMENT_OFFSET]))
         });
 
-        //Bridge In Assets
+        // Bridge In Assets
         BranchBridgeAgent(payable(msg.sender)).clearToken(
             sParams.recipient, sParams.hToken, sParams.token, sParams.amount, sParams.deposit
         );
 
         if (_data.length - PARAMS_GAS_OUT > PARAMS_SETTLEMENT_OFFSET) {
-            //Execute remote request
+            // Execute remote request
             unchecked {
                 (success, result) = IRouter(_router).anyExecuteSettlement(
                     _data[PARAMS_SETTLEMENT_OFFSET:_data.length - PARAMS_GAS_OUT], sParams
@@ -125,18 +125,18 @@ contract BranchBridgeAgentExecutor is Ownable {
         onlyOwner
         returns (bool success, bytes memory result)
     {
-        //Parse Values
+        // Parse Values
         uint256 assetsOffset = uint8(bytes1(_data[PARAMS_START_SIGNED])) * PARAMS_TKN_SET_SIZE;
         uint256 settlementEndOffset = PARAMS_START_SIGNED + PARAMS_TKN_START + assetsOffset;
 
-        //Bridge In Assets and Save Deposit Params
+        // Bridge In Assets and Save Deposit Params
         SettlementMultipleParams memory sParams = BranchBridgeAgent(payable(msg.sender)).clearTokens(
             _data[PARAMS_START_SIGNED:settlementEndOffset], _recipient
         );
 
         // Execute Calldata if any
         if (_data.length - PARAMS_GAS_OUT > settlementEndOffset) {
-            //Try to execute remote request
+            // Try to execute remote request
             unchecked {
                 (success, result) = IRouter(_router).anyExecuteSettlementMultiple(
                     _data[PARAMS_END_SIGNED_OFFSET + assetsOffset:_data.length - PARAMS_GAS_OUT], sParams

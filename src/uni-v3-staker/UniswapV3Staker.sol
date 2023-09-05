@@ -32,31 +32,31 @@ contract UniswapV3Staker is IUniswapV3Staker, Multicallable {
     //////////////////////////////////////////////////////////////*/
 
     /// @inheritdoc IUniswapV3Staker
-    mapping(address => IUniswapV3Pool) public gaugePool;
+    mapping(address gauge => IUniswapV3Pool pool) public gaugePool;
 
     /// @inheritdoc IUniswapV3Staker
-    mapping(IUniswapV3Pool => UniswapV3Gauge) public gauges;
+    mapping(IUniswapV3Pool pool => UniswapV3Gauge gauge) public gauges;
 
     /// @inheritdoc IUniswapV3Staker
-    mapping(IUniswapV3Pool => address) public bribeDepots;
+    mapping(IUniswapV3Pool pool => address depot) public bribeDepots;
 
     /// @inheritdoc IUniswapV3Staker
-    mapping(IUniswapV3Pool => uint24) public poolsMinimumWidth;
+    mapping(IUniswapV3Pool pool => uint24 minimumWidth) public poolsMinimumWidth;
 
     /// @inheritdoc IUniswapV3Staker
-    mapping(bytes32 => Incentive) public override incentives;
+    mapping(bytes32 incentiveId => Incentive incentiveInfo) public override incentives;
 
     /// @inheritdoc IUniswapV3Staker
-    mapping(uint256 => Deposit) public override deposits;
+    mapping(uint256 tokenId => Deposit depositInfo) public override deposits;
 
     /// @notice stakes[user][pool] => tokenId of attached position of user per pool
-    mapping(address => mapping(IUniswapV3Pool => uint256)) private _userAttachements;
+    mapping(address user => mapping(IUniswapV3Pool pool => uint256 tokenId)) private _userAttachements;
 
     /// @dev stakes[tokenId][incentiveHash] => Stake
-    mapping(uint256 => mapping(bytes32 => Stake)) private _stakes;
+    mapping(uint256 tokenId => mapping(bytes32 incentiveId => Stake stakeInfo)) private _stakes;
 
     /// @dev stakedIncentives[tokenId] => incentiveIds
-    mapping(uint256 => IncentiveKey) private stakedIncentiveKey;
+    mapping(uint256 tokenId => IncentiveKey incentiveKey) private stakedIncentiveKey;
 
     /// @inheritdoc IUniswapV3Staker
     function stakes(uint256 tokenId, bytes32 incentiveId)
@@ -79,10 +79,10 @@ contract UniswapV3Staker is IUniswapV3Staker, Multicallable {
     }
 
     /// @inheritdoc IUniswapV3Staker
-    mapping(address => uint256) public override rewards;
+    mapping(address user => uint256 rewardAmount) public override rewards;
 
     /// @inheritdoc IUniswapV3Staker
-    mapping(uint256 => uint256) public tokenIdRewards;
+    mapping(uint256 tokenId => uint256 rewardAmount) public tokenIdRewards;
 
     /*//////////////////////////////////////////////////////////////
                                IMMUTABLES

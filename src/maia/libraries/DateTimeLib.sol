@@ -40,7 +40,7 @@ library DateTimeLib {
         uint256 epochDay = timestamp / 1 days;
 
         assembly ("memory-safe") {
-            epochDay := add(epochDay, 719468)
+            epochDay := add(epochDay, 719_468)
             let doe := mod(epochDay, 146097)
             let yoe := div(sub(sub(add(doe, div(doe, 36524)), div(doe, 1460)), eq(doe, 146096)), 365)
             let doy := sub(doe, sub(add(mul(365, yoe), shr(2, yoe)), div(yoe, 100)))

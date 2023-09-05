@@ -21,18 +21,18 @@ abstract contract UtilityManager is IUtilityManager {
     //////////////////////////////////////////////////////////////*/
 
     /// @inheritdoc IUtilityManager
-    bHermesGauges public immutable gaugeWeight;
+    bHermesGauges public immutable override gaugeWeight;
     /// @inheritdoc IUtilityManager
-    bHermesBoost public immutable gaugeBoost;
+    bHermesBoost public immutable override gaugeBoost;
     /// @inheritdoc IUtilityManager
-    ERC20Votes public immutable governance;
+    ERC20Votes public immutable override governance;
 
     /// @inheritdoc IUtilityManager
-    mapping(address user => uint256 claimedWeight) public userClaimedWeight;
+    mapping(address user => uint256 claimedWeight) public override userClaimedWeight;
     /// @inheritdoc IUtilityManager
-    mapping(address user => uint256 claimedBoost) public userClaimedBoost;
+    mapping(address user => uint256 claimedBoost) public override userClaimedBoost;
     /// @inheritdoc IUtilityManager
-    mapping(address user => uint256 claimedGovernance) public userClaimedGovernance;
+    mapping(address user => uint256 claimedGovernance) public override userClaimedGovernance;
 
     /**
      * @notice Constructs the UtilityManager contract.
@@ -51,28 +51,28 @@ abstract contract UtilityManager is IUtilityManager {
     //////////////////////////////////////////////////////////////*/
 
     /// @inheritdoc IUtilityManager
-    function forfeitOutstanding() public virtual {
+    function forfeitOutstanding() public virtual override {
         forfeitWeight(userClaimedWeight[msg.sender]);
         forfeitBoost(userClaimedBoost[msg.sender]);
         forfeitGovernance(userClaimedGovernance[msg.sender]);
     }
 
     /// @inheritdoc IUtilityManager
-    function forfeitMultiple(uint256 amount) public virtual {
+    function forfeitMultiple(uint256 amount) public virtual override {
         forfeitWeight(amount);
         forfeitBoost(amount);
         forfeitGovernance(amount);
     }
 
     /// @inheritdoc IUtilityManager
-    function forfeitMultipleAmounts(uint256 weight, uint256 boost, uint256 _governance) public virtual {
+    function forfeitMultipleAmounts(uint256 weight, uint256 boost, uint256 _governance) public virtual override {
         forfeitWeight(weight);
         forfeitBoost(boost);
         forfeitGovernance(_governance);
     }
 
     /// @inheritdoc IUtilityManager
-    function forfeitWeight(uint256 amount) public virtual {
+    function forfeitWeight(uint256 amount) public virtual override {
         if (amount == 0) return;
         userClaimedWeight[msg.sender] -= amount;
         address(gaugeWeight).safeTransferFrom(msg.sender, address(this), amount);
@@ -81,7 +81,7 @@ abstract contract UtilityManager is IUtilityManager {
     }
 
     /// @inheritdoc IUtilityManager
-    function forfeitBoost(uint256 amount) public virtual {
+    function forfeitBoost(uint256 amount) public virtual override {
         if (amount == 0) return;
         userClaimedBoost[msg.sender] -= amount;
         address(gaugeBoost).safeTransferFrom(msg.sender, address(this), amount);
@@ -90,7 +90,7 @@ abstract contract UtilityManager is IUtilityManager {
     }
 
     /// @inheritdoc IUtilityManager
-    function forfeitGovernance(uint256 amount) public virtual {
+    function forfeitGovernance(uint256 amount) public virtual override {
         if (amount == 0) return;
         userClaimedGovernance[msg.sender] -= amount;
         address(governance).safeTransferFrom(msg.sender, address(this), amount);
@@ -99,21 +99,21 @@ abstract contract UtilityManager is IUtilityManager {
     }
 
     /// @inheritdoc IUtilityManager
-    function claimMultiple(uint256 amount) public virtual {
+    function claimMultiple(uint256 amount) public virtual override {
         claimWeight(amount);
         claimBoost(amount);
         claimGovernance(amount);
     }
 
     /// @inheritdoc IUtilityManager
-    function claimMultipleAmounts(uint256 weight, uint256 boost, uint256 _governance) public virtual {
+    function claimMultipleAmounts(uint256 weight, uint256 boost, uint256 _governance) public virtual override {
         claimWeight(weight);
         claimBoost(boost);
         claimGovernance(_governance);
     }
 
     /// @inheritdoc IUtilityManager
-    function claimWeight(uint256 amount) public virtual checkWeight(amount) {
+    function claimWeight(uint256 amount) public virtual override checkWeight(amount) {
         if (amount == 0) return;
         userClaimedWeight[msg.sender] += amount;
         address(gaugeWeight).safeTransfer(msg.sender, amount);
@@ -122,7 +122,7 @@ abstract contract UtilityManager is IUtilityManager {
     }
 
     /// @inheritdoc IUtilityManager
-    function claimBoost(uint256 amount) public virtual checkBoost(amount) {
+    function claimBoost(uint256 amount) public virtual override checkBoost(amount) {
         if (amount == 0) return;
         userClaimedBoost[msg.sender] += amount;
         address(gaugeBoost).safeTransfer(msg.sender, amount);
@@ -131,7 +131,7 @@ abstract contract UtilityManager is IUtilityManager {
     }
 
     /// @inheritdoc IUtilityManager
-    function claimGovernance(uint256 amount) public virtual checkGovernance(amount) {
+    function claimGovernance(uint256 amount) public virtual override checkGovernance(amount) {
         if (amount == 0) return;
         userClaimedGovernance[msg.sender] += amount;
         address(governance).safeTransfer(msg.sender, amount);

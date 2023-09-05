@@ -38,7 +38,7 @@ contract FlywheelBribeRewards is Ownable, FlywheelAcummulatedRewards, IFlywheelB
     }
 
     /// @inheritdoc IFlywheelBribeRewards
-    function setRewardsDepot(address strategy, RewardsDepot rewardsDepot) external onlyOwner {
+    function setRewardsDepot(address strategy, RewardsDepot rewardsDepot) external override onlyOwner {
         rewardsDepots[ERC20(strategy)] = rewardsDepot;
 
         emit AddRewardsDepot(strategy, rewardsDepot);

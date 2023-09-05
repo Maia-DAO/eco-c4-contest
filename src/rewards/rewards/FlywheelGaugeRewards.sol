@@ -67,7 +67,7 @@ contract FlywheelGaugeRewards is IFlywheelGaugeRewards {
     //////////////////////////////////////////////////////////////*/
 
     /// @inheritdoc IFlywheelGaugeRewards
-    function queueRewardsForCycle() external returns (uint256 totalQueuedForCycle) {
+    function queueRewardsForCycle() external override returns (uint256 totalQueuedForCycle) {
         /// @dev Update minter cycle and queue rewards if needed.
         /// This will make this call fail if it is a new epoch,
         /// because the minter calls this function, the first call would fail with "CycleError()".
@@ -104,7 +104,7 @@ contract FlywheelGaugeRewards is IFlywheelGaugeRewards {
     }
 
     /// @inheritdoc IFlywheelGaugeRewards
-    function queueRewardsForCyclePaginated(uint256 numRewards) external {
+    function queueRewardsForCyclePaginated(uint256 numRewards) external override {
         /// @dev Update minter cycle and queue rewards if needed.
         /// This will make this call fail if it is a new epoch,
         /// because the minter calls this function, the first call would fail with "CycleError()".
@@ -207,7 +207,7 @@ contract FlywheelGaugeRewards is IFlywheelGaugeRewards {
     }
 
     /// @inheritdoc IFlywheelGaugeRewards
-    function getAccruedRewards() external returns (uint256 accruedRewards) {
+    function getAccruedRewards() external override returns (uint256 accruedRewards) {
         /// @dev Update minter cycle and queue rewards if needed.
         minter.updatePeriod();
 

@@ -73,7 +73,7 @@ contract FlywheelBoosterGaugeWeight is Ownable, IFlywheelBooster {
     ///////////////////////////////////////////////////////////////*/
 
     /// @inheritdoc IFlywheelBooster
-    function optIn(ERC20 strategy, FlywheelCore flywheel) external {
+    function optIn(ERC20 strategy, FlywheelCore flywheel) external override {
         if (userGaugeflywheelId[msg.sender][strategy][flywheel] != 0) revert AlreadyOptedIn();
         if (!bHermesGauges(owner()).isGauge(address(strategy))) revert InvalidGauge();
         if (bribesFactory.bribeFlywheelIds(flywheel) == 0) revert InvalidFlywheel();
@@ -88,7 +88,7 @@ contract FlywheelBoosterGaugeWeight is Ownable, IFlywheelBooster {
     }
 
     /// @inheritdoc IFlywheelBooster
-    function optOut(ERC20 strategy, FlywheelCore flywheel) external {
+    function optOut(ERC20 strategy, FlywheelCore flywheel) external override {
         FlywheelCore[] storage bribeFlywheels = userGaugeFlywheels[msg.sender][strategy];
 
         uint256 userFlywheelId = userGaugeflywheelId[msg.sender][strategy][flywheel];
@@ -112,12 +112,12 @@ contract FlywheelBoosterGaugeWeight is Ownable, IFlywheelBooster {
     ///////////////////////////////////////////////////////////////*/
 
     /// @inheritdoc IFlywheelBooster
-    function accrueBribesPositiveDelta(address user, ERC20 strategy, uint256 delta) external onlyOwner {
+    function accrueBribesPositiveDelta(address user, ERC20 strategy, uint256 delta) external override onlyOwner {
         _accrueBribes(user, strategy, delta, _add);
     }
 
     /// @inheritdoc IFlywheelBooster
-    function accrueBribesNegativeDelta(address user, ERC20 strategy, uint256 delta) external onlyOwner {
+    function accrueBribesNegativeDelta(address user, ERC20 strategy, uint256 delta) external override onlyOwner {
         _accrueBribes(user, strategy, delta, _subtract);
     }
 

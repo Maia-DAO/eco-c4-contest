@@ -61,7 +61,7 @@ abstract contract BaseV2GaugeFactory is Ownable, IBaseV2GaugeFactory {
     }
 
     /// @inheritdoc IBaseV2GaugeFactory
-    function getGauges() external view returns (BaseV2Gauge[] memory) {
+    function getGauges() external view override returns (BaseV2Gauge[] memory) {
         return gauges;
     }
 
@@ -70,7 +70,7 @@ abstract contract BaseV2GaugeFactory is Ownable, IBaseV2GaugeFactory {
     //////////////////////////////////////////////////////////////*/
 
     /// @inheritdoc IBaseV2GaugeFactory
-    function newEpoch() external {
+    function newEpoch() external override {
         BaseV2Gauge[] storage _gauges = gauges;
 
         uint256 length = _gauges.length;
@@ -84,7 +84,7 @@ abstract contract BaseV2GaugeFactory is Ownable, IBaseV2GaugeFactory {
     }
 
     /// @inheritdoc IBaseV2GaugeFactory
-    function newEpoch(uint256 start, uint256 end) external {
+    function newEpoch(uint256 start, uint256 end) external override {
         BaseV2Gauge[] storage _gauges = gauges;
 
         uint256 length = _gauges.length;
@@ -127,7 +127,7 @@ abstract contract BaseV2GaugeFactory is Ownable, IBaseV2GaugeFactory {
     function _newGauge(address strategy, bytes memory data) internal virtual returns (BaseV2Gauge gauge);
 
     /// @inheritdoc IBaseV2GaugeFactory
-    function removeGauge(BaseV2Gauge gauge) external onlyOwner {
+    function removeGauge(BaseV2Gauge gauge) external override onlyOwner {
         if (!activeGauges[gauge] || gauges[gaugeIds[gauge]] != gauge) revert InvalidGauge();
         delete gauges[gaugeIds[gauge]];
         delete gaugeIds[gauge];

@@ -36,9 +36,9 @@ abstract contract TalosBaseStrategy is Ownable, ERC20, ReentrancyGuard, ITalosBa
     /// @inheritdoc ITalosBaseStrategy
     uint256 public override tokenId;
     /// @inheritdoc ITalosBaseStrategy
-    uint256 public protocolFees0;
+    uint256 public override protocolFees0;
     /// @inheritdoc ITalosBaseStrategy
-    uint256 public protocolFees1;
+    uint256 public override protocolFees1;
 
     /// @inheritdoc ITalosBaseStrategy
     uint128 public override liquidity;
@@ -51,7 +51,7 @@ abstract contract TalosBaseStrategy is Ownable, ERC20, ReentrancyGuard, ITalosBa
     int24 public override tickUpper;
 
     /// @inheritdoc ITalosBaseStrategy
-    bool public initialized;
+    bool public override initialized;
 
     /*//////////////////////////////////////////////////////////////
                                IMMUTABLES
@@ -106,7 +106,7 @@ abstract contract TalosBaseStrategy is Ownable, ERC20, ReentrancyGuard, ITalosBa
         uint256 amount0Min,
         uint256 amount1Min,
         uint256 deadline
-    ) external virtual checkDeviation returns (uint256 shares, uint256 amount0, uint256 amount1) {
+    ) external virtual override checkDeviation returns (uint256 shares, uint256 amount0, uint256 amount1) {
         if (initialized) revert AlreadyInitialized();
         initialized = true;
 
@@ -364,7 +364,7 @@ abstract contract TalosBaseStrategy is Ownable, ERC20, ReentrancyGuard, ITalosBa
     }
 
     /// @inheritdoc ITalosBaseStrategy
-    function uniswapV3SwapCallback(int256 amount0, int256 amount1, bytes calldata _data) external {
+    function uniswapV3SwapCallback(int256 amount0, int256 amount1, bytes calldata _data) external override {
         if (msg.sender != address(pool)) revert CallerIsNotPool();
         if (amount0 == 0) if (amount1 == 0) revert AmountsAreZero();
 
@@ -426,7 +426,7 @@ abstract contract TalosBaseStrategy is Ownable, ERC20, ReentrancyGuard, ITalosBa
     //////////////////////////////////////////////////////////////*/
 
     /// @inheritdoc ITalosBaseStrategy
-    function collectProtocolFees(uint256 amount0, uint256 amount1) external nonReentrant onlyOwner {
+    function collectProtocolFees(uint256 amount0, uint256 amount1) external override nonReentrant onlyOwner {
         uint256 _protocolFees0 = protocolFees0;
         uint256 _protocolFees1 = protocolFees1;
 

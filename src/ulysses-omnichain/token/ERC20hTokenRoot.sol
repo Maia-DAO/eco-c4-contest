@@ -10,16 +10,16 @@ import {IERC20hTokenRoot} from "../interfaces/IERC20hTokenRoot.sol";
 /// @title ERC20 hToken Contract
 contract ERC20hTokenRoot is Ownable, ERC20, IERC20hTokenRoot {
     /// @inheritdoc IERC20hTokenRoot
-    uint16 public localChainId;
+    uint16 public override localChainId;
 
     /// @inheritdoc IERC20hTokenRoot
-    address public rootPortAddress;
+    address public override rootPortAddress;
 
     /// @inheritdoc IERC20hTokenRoot
-    address public factoryAddress;
+    address public override factoryAddress;
 
     /// @inheritdoc IERC20hTokenRoot
-    mapping(uint256 chainId => uint256 balance) public getTokenBalance;
+    mapping(uint256 chainId => uint256 balance) public override getTokenBalance;
 
     /**
      * @notice Constructor for the ERC20hTokenRoot Contract.

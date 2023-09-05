@@ -248,7 +248,7 @@ contract RootBridgeAgent is IRootBridgeAgent {
     //////////////////////////////////////////////////////////////*/
 
     /// @inheritdoc IRootBridgeAgent
-    function getSettlementEntry(uint32 _settlementNonce) external view returns (Settlement memory) {
+    function getSettlementEntry(uint32 _settlementNonce) external view override returns (Settlement memory) {
         return getSettlement[_settlementNonce];
     }
 
@@ -257,7 +257,7 @@ contract RootBridgeAgent is IRootBridgeAgent {
     //////////////////////////////////////////////////////////////*/
 
     /// @inheritdoc IRootBridgeAgent
-    function retrySettlement(uint32 _settlementNonce, uint128 _remoteExecutionGas) external payable {
+    function retrySettlement(uint32 _settlementNonce, uint128 _remoteExecutionGas) external payable override {
         // Update User Gas available.
         if (initialGas == 0) {
             userFeeInfo.depositedGas = uint128(msg.value);
@@ -268,7 +268,7 @@ contract RootBridgeAgent is IRootBridgeAgent {
     }
 
     /// @inheritdoc IRootBridgeAgent
-    function redeemSettlement(uint32 _depositNonce) external lock {
+    function redeemSettlement(uint32 _depositNonce) external override lock {
         // Get setttlement storage reference
         Settlement storage settlement = getSettlement[_depositNonce];
 
@@ -296,7 +296,13 @@ contract RootBridgeAgent is IRootBridgeAgent {
     //////////////////////////////////////////////////////////////*/
 
     /// @inheritdoc IRootBridgeAgent
-    function callOut(address _recipient, bytes memory _data, uint24 _toChain) external payable lock requiresRouter {
+    function callOut(address _recipient, bytes memory _data, uint24 _toChain)
+        external
+        payable
+        override
+        lock
+        requiresRouter
+    {
         // Encode Data for call.
         bytes memory data =
             abi.encodePacked(bytes1(0x00), _recipient, settlementNonce++, _data, _manageGasOut(_toChain));
@@ -314,7 +320,7 @@ contract RootBridgeAgent is IRootBridgeAgent {
         uint256 _amount,
         uint256 _deposit,
         uint24 _toChain
-    ) external payable lock requiresRouter {
+    ) external payable override lock requiresRouter {
         // Get destination Local Address from Global Address.
         address localAddress = IPort(localPortAddress).getLocalTokenFromGlobal(_globalAddress, _toChain);
 
@@ -360,7 +366,7 @@ contract RootBridgeAgent is IRootBridgeAgent {
         uint256[] memory _amounts,
         uint256[] memory _deposits,
         uint24 _toChain
-    ) external payable lock requiresRouter {
+    ) external payable override lock requiresRouter {
         // Check if valid length
         if (_globalAddresses.length > MAX_TOKENS_LENGTH) revert InvalidInputParams();
 
@@ -419,6 +425,7 @@ contract RootBridgeAgent is IRootBridgeAgent {
     /// @inheritdoc IRootBridgeAgent
     function bridgeIn(address _recipient, DepositParams memory _dParams, uint24 _fromChain)
         public
+        override
         requiresAgentExecutor
     {
         // Check Deposit info from Cross Chain Parameters.
@@ -439,6 +446,7 @@ contract RootBridgeAgent is IRootBridgeAgent {
     /// @inheritdoc IRootBridgeAgent
     function bridgeInMultiple(address _recipient, DepositMultipleParams memory _dParams, uint24 _fromChain)
         external
+        override
         requiresAgentExecutor
     {
         for (uint256 i = 0; i < _dParams.hTokens.length;) {
@@ -909,6 +917,7 @@ contract RootBridgeAgent is IRootBridgeAgent {
     function anyExecute(bytes calldata data)
         external
         virtual
+        override
         requiresExecutor
         returns (bool success, bytes memory result)
     {
@@ -1226,6 +1235,7 @@ contract RootBridgeAgent is IRootBridgeAgent {
     function anyFallback(bytes calldata data)
         external
         virtual
+        override
         requiresExecutor
         returns (bool success, bytes memory result)
     {
@@ -1265,13 +1275,13 @@ contract RootBridgeAgent is IRootBridgeAgent {
     }
 
     /// @inheritdoc IRootBridgeAgent
-    function depositGasAnycallConfig() external payable {
+    function depositGasAnycallConfig() external payable override {
         // Deposit Gas
         _replenishGas(msg.value);
     }
 
     /// @inheritdoc IRootBridgeAgent
-    function forceRevert() external requiresLocalBranchBridgeAgent {
+    function forceRevert() external override requiresLocalBranchBridgeAgent {
         _forceRevert();
     }
 
@@ -1294,18 +1304,18 @@ contract RootBridgeAgent is IRootBridgeAgent {
     //////////////////////////////////////////////////////////////*/
 
     /// @inheritdoc IRootBridgeAgent
-    function approveBranchBridgeAgent(uint256 _branchChainId) external requiresManager {
+    function approveBranchBridgeAgent(uint256 _branchChainId) external override requiresManager {
         if (getBranchBridgeAgent[_branchChainId] != address(0)) revert AlreadyAddedBridgeAgent();
         isBranchBridgeAgentAllowed[_branchChainId] = true;
     }
 
     /// @inheritdoc IRootBridgeAgent
-    function syncBranchBridgeAgent(address _newBranchBridgeAgent, uint24 _branchChainId) external requiresPort {
+    function syncBranchBridgeAgent(address _newBranchBridgeAgent, uint24 _branchChainId) external override requiresPort {
         getBranchBridgeAgent[_branchChainId] = _newBranchBridgeAgent;
     }
 
     /// @inheritdoc IRootBridgeAgent
-    function sweep() external {
+    function sweep() external override {
         if (msg.sender != daoAddress) revert NotDao();
         uint256 _accumulatedFees = accumulatedFees - 1;
         accumulatedFees = 1;

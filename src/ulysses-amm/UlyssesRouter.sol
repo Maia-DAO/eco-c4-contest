@@ -15,7 +15,7 @@ contract UlyssesRouter is IUlyssesRouter {
     mapping(uint256 => UlyssesPool) private pools;
 
     /// @inheritdoc IUlyssesRouter
-    UlyssesFactory public ulyssesFactory;
+    UlyssesFactory public override ulyssesFactory;
 
     constructor(UlyssesFactory _ulyssesFactory) {
         ulyssesFactory = _ulyssesFactory;
@@ -46,7 +46,7 @@ contract UlyssesRouter is IUlyssesRouter {
     //////////////////////////////////////////////////////////////*/
 
     /// @inheritdoc IUlyssesRouter
-    function addLiquidity(uint256 amount, uint256 minOutput, uint256 poolId) external returns (uint256) {
+    function addLiquidity(uint256 amount, uint256 minOutput, uint256 poolId) external override returns (uint256) {
         UlyssesPool ulysses = getUlyssesLP(poolId);
 
         amount = ulysses.deposit(amount, msg.sender);
@@ -56,7 +56,7 @@ contract UlyssesRouter is IUlyssesRouter {
     }
 
     /// @inheritdoc IUlyssesRouter
-    function removeLiquidity(uint256 amount, uint256 minOutput, uint256 poolId) external returns (uint256) {
+    function removeLiquidity(uint256 amount, uint256 minOutput, uint256 poolId) external override returns (uint256) {
         UlyssesPool ulysses = getUlyssesLP(poolId);
 
         amount = ulysses.redeem(amount, msg.sender, msg.sender);
@@ -70,7 +70,7 @@ contract UlyssesRouter is IUlyssesRouter {
     //////////////////////////////////////////////////////////////*/
 
     /// @inheritdoc IUlyssesRouter
-    function swap(uint256 amount, uint256 minOutput, Route[] calldata routes) external returns (uint256) {
+    function swap(uint256 amount, uint256 minOutput, Route[] calldata routes) external override returns (uint256) {
         address(getUlyssesLP(routes[0].from).asset()).safeTransferFrom(msg.sender, address(this), amount);
 
         uint256 length = routes.length;

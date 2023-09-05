@@ -436,7 +436,7 @@ contract MulticallRootRouter is IRootRouter, Ownable {
         DepositMultipleParams calldata,
         address userAccount,
         uint24
-    ) external payable requiresExecutor lock returns (bool success, bytes memory result) {
+    ) external payable override requiresExecutor lock returns (bool success, bytes memory result) {
         /// FUNC ID: 1 (multicallNoOutput)
         if (funcId == 0x01) {
             Call[] memory calls = abi.decode(encodedData, (Call[]));

@@ -19,19 +19,19 @@ contract TalosManager is Ownable, AutomationCompatibleInterface, ITalosManager {
     //////////////////////////////////////////////////////////////*/
 
     /// @inheritdoc ITalosManager
-    int24 public immutable ticksFromLowerRebalance;
+    int24 public immutable override ticksFromLowerRebalance;
 
     /// @inheritdoc ITalosManager
-    int24 public immutable ticksFromUpperRebalance;
+    int24 public immutable override ticksFromUpperRebalance;
 
     /// @inheritdoc ITalosManager
-    int24 public immutable ticksFromLowerRerange;
+    int24 public immutable override ticksFromLowerRerange;
 
     /// @inheritdoc ITalosManager
-    int24 public immutable ticksFromUpperRerange;
+    int24 public immutable override ticksFromUpperRerange;
 
     /// @inheritdoc ITalosManager
-    ITalosBaseStrategy public strategy;
+    ITalosBaseStrategy public override strategy;
 
     /**
      * @notice Construct a new Talos Strategy Manager contract.

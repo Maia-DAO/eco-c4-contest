@@ -61,7 +61,7 @@ contract UniswapV3Gauge is Ownable, BaseV2Gauge, IUniswapV3Gauge {
     //////////////////////////////////////////////////////////////*/
 
     /// @inheritdoc IUniswapV3Gauge
-    function setMinimumWidth(uint24 _minimumWidth) external onlyOwner {
+    function setMinimumWidth(uint24 _minimumWidth) external override onlyOwner {
         minimumWidth = _minimumWidth;
 
         emit NewMinimumWidth(_minimumWidth);

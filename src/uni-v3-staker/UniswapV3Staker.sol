@@ -32,16 +32,16 @@ contract UniswapV3Staker is IUniswapV3Staker, Multicallable {
     //////////////////////////////////////////////////////////////*/
 
     /// @inheritdoc IUniswapV3Staker
-    mapping(address gauge => IUniswapV3Pool pool) public gaugePool;
+    mapping(address gauge => IUniswapV3Pool pool) public override gaugePool;
 
     /// @inheritdoc IUniswapV3Staker
-    mapping(IUniswapV3Pool pool => UniswapV3Gauge gauge) public gauges;
+    mapping(IUniswapV3Pool pool => UniswapV3Gauge gauge) public override gauges;
 
     /// @inheritdoc IUniswapV3Staker
-    mapping(IUniswapV3Pool pool => address depot) public bribeDepots;
+    mapping(IUniswapV3Pool pool => address depot) public override bribeDepots;
 
     /// @inheritdoc IUniswapV3Staker
-    mapping(IUniswapV3Pool pool => uint24 minimumWidth) public poolsMinimumWidth;
+    mapping(IUniswapV3Pool pool => uint24 minimumWidth) public override poolsMinimumWidth;
 
     /// @inheritdoc IUniswapV3Staker
     mapping(bytes32 incentiveId => Incentive incentiveInfo) public override incentives;
@@ -82,7 +82,7 @@ contract UniswapV3Staker is IUniswapV3Staker, Multicallable {
     mapping(address user => uint256 rewardAmount) public override rewards;
 
     /// @inheritdoc IUniswapV3Staker
-    mapping(uint256 tokenId => uint256 rewardAmount) public tokenIdRewards;
+    mapping(uint256 tokenId => uint256 rewardAmount) public override tokenIdRewards;
 
     /*//////////////////////////////////////////////////////////////
                                IMMUTABLES
@@ -101,13 +101,13 @@ contract UniswapV3Staker is IUniswapV3Staker, Multicallable {
     uint256 public immutable override maxIncentiveStartLeadTime;
 
     /// @inheritdoc IUniswapV3Staker
-    address public immutable minter;
+    address public immutable override minter;
 
     /// @inheritdoc IUniswapV3Staker
-    address public immutable hermes;
+    address public immutable override hermes;
 
     /// @inheritdoc IUniswapV3Staker
-    bHermesBoost public immutable hermesGaugeBoost;
+    bHermesBoost public immutable override hermesGaugeBoost;
 
     /// @notice Uniswap V3 Staker constructor arguments
     /// @param _factory the Uniswap V3 factory
@@ -140,7 +140,7 @@ contract UniswapV3Staker is IUniswapV3Staker, Multicallable {
     //////////////////////////////////////////////////////////////*/
 
     /// @inheritdoc IUniswapV3Staker
-    function createIncentiveFromGauge(uint256 reward) external {
+    function createIncentiveFromGauge(uint256 reward) external override {
         if (reward == 0) revert IncentiveRewardMustBeGreaterThanZero();
 
         IUniswapV3Pool pool = gaugePool[msg.sender];
@@ -160,7 +160,7 @@ contract UniswapV3Staker is IUniswapV3Staker, Multicallable {
     }
 
     /// @inheritdoc IUniswapV3Staker
-    function createIncentive(IncentiveKey memory key, uint256 reward) external {
+    function createIncentive(IncentiveKey memory key, uint256 reward) external override {
         if (reward == 0) revert IncentiveRewardMustBeGreaterThanZero();
 
         uint96 startTime = IncentiveTime.computeStart(key.startTime);
@@ -190,7 +190,7 @@ contract UniswapV3Staker is IUniswapV3Staker, Multicallable {
     //////////////////////////////////////////////////////////////*/
 
     /// @inheritdoc IUniswapV3Staker
-    function endIncentive(IncentiveKey memory key) external returns (uint256 refund) {
+    function endIncentive(IncentiveKey memory key) external override returns (uint256 refund) {
         if (block.timestamp < IncentiveTime.getEnd(key.startTime)) {
             revert EndIncentiveBeforeEndTime();
         }
@@ -249,7 +249,7 @@ contract UniswapV3Staker is IUniswapV3Staker, Multicallable {
     //////////////////////////////////////////////////////////////*/
 
     /// @inheritdoc IUniswapV3Staker
-    function withdrawToken(uint256 tokenId, address to, bytes memory data) external {
+    function withdrawToken(uint256 tokenId, address to, bytes memory data) external override {
         if (to == address(0)) revert InvalidRecipient();
 
         Deposit storage deposit = deposits[tokenId];
@@ -268,7 +268,7 @@ contract UniswapV3Staker is IUniswapV3Staker, Multicallable {
     //////////////////////////////////////////////////////////////*/
 
     /// @inheritdoc IUniswapV3Staker
-    function claimReward(address to, uint256 amountRequested) external returns (uint256 reward) {
+    function claimReward(address to, uint256 amountRequested) external override returns (uint256 reward) {
         reward = rewards[msg.sender];
         if (amountRequested != 0 && amountRequested < reward) {
             rewards[msg.sender] = reward - amountRequested;
@@ -283,7 +283,7 @@ contract UniswapV3Staker is IUniswapV3Staker, Multicallable {
     }
 
     /// @inheritdoc IUniswapV3Staker
-    function claimAllRewards(address to) external returns (uint256 reward) {
+    function claimAllRewards(address to) external override returns (uint256 reward) {
         reward = rewards[msg.sender];
         delete rewards[msg.sender];
 
@@ -361,13 +361,13 @@ contract UniswapV3Staker is IUniswapV3Staker, Multicallable {
     //////////////////////////////////////////////////////////////*/
 
     /// @inheritdoc IUniswapV3Staker
-    function unstakeToken(uint256 tokenId) external {
+    function unstakeToken(uint256 tokenId) external override {
         IncentiveKey storage incentiveId = stakedIncentiveKey[tokenId];
         if (incentiveId.startTime != 0) _unstakeToken(incentiveId, tokenId, true);
     }
 
     /// @inheritdoc IUniswapV3Staker
-    function unstakeToken(IncentiveKey memory key, uint256 tokenId) external {
+    function unstakeToken(IncentiveKey memory key, uint256 tokenId) external override {
         _unstakeToken(key, tokenId, true);
     }
 
@@ -534,7 +534,7 @@ contract UniswapV3Staker is IUniswapV3Staker, Multicallable {
     //////////////////////////////////////////////////////////////*/
 
     /// @inheritdoc IUniswapV3Staker
-    function updateGauges(IUniswapV3Pool uniswapV3Pool) external {
+    function updateGauges(IUniswapV3Pool uniswapV3Pool) external override {
         address uniswapV3Gauge = address(uniswapV3GaugeFactory.strategyGauges(address(uniswapV3Pool)));
 
         address currentGauge = address(gauges[uniswapV3Pool]);
@@ -571,7 +571,7 @@ contract UniswapV3Staker is IUniswapV3Staker, Multicallable {
     }
 
     /// @inheritdoc IUniswapV3Staker
-    function updateBribeDepot(IUniswapV3Pool uniswapV3Pool) public {
+    function updateBribeDepot(IUniswapV3Pool uniswapV3Pool) public override {
         address newDepot = address(gauges[uniswapV3Pool].multiRewardsDepot());
         if (newDepot != bribeDepots[uniswapV3Pool]) {
             bribeDepots[uniswapV3Pool] = newDepot;
@@ -581,7 +581,7 @@ contract UniswapV3Staker is IUniswapV3Staker, Multicallable {
     }
 
     /// @inheritdoc IUniswapV3Staker
-    function updatePoolMinimumWidth(IUniswapV3Pool uniswapV3Pool) public {
+    function updatePoolMinimumWidth(IUniswapV3Pool uniswapV3Pool) public override {
         uint24 minimumWidth = gauges[uniswapV3Pool].minimumWidth();
         if (minimumWidth != poolsMinimumWidth[uniswapV3Pool]) {
             poolsMinimumWidth[uniswapV3Pool] = minimumWidth;

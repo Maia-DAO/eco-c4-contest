@@ -16,19 +16,19 @@ contract BoostAggregatorFactory is IBoostAggregatorFactory {
     //////////////////////////////////////////////////////////////*/
 
     /// @inheritdoc IBoostAggregatorFactory
-    UniswapV3Staker public immutable uniswapV3Staker;
+    UniswapV3Staker public immutable override uniswapV3Staker;
 
     /// @inheritdoc IBoostAggregatorFactory
-    ERC20 public immutable hermes;
+    ERC20 public immutable override hermes;
 
     // divisioner for protocol fee
     uint256 private constant DIVISIONER = 10000;
 
     /// @inheritdoc IBoostAggregatorFactory
-    BoostAggregator[] public boostAggregators;
+    BoostAggregator[] public override boostAggregators;
 
     /// @inheritdoc IBoostAggregatorFactory
-    mapping(BoostAggregator aggregator => uint256 aggregatorId) public boostAggregatorIds;
+    mapping(BoostAggregator aggregator => uint256 aggregatorId) public override boostAggregatorIds;
 
     /**
      * @notice Construct a new Boost Aggregator Factory contract.
@@ -51,11 +51,12 @@ contract BoostAggregatorFactory is IBoostAggregatorFactory {
     //////////////////////////////////////////////////////////////*/
 
     /// @inheritdoc IBoostAggregatorFactory
-    function createBoostAggregator(address owner, uint256 maxFee, bytes32 salt) external {
+    function createBoostAggregator(address owner, uint256 maxFee, bytes32 salt) external override {
         if (owner == address(0)) revert InvalidOwner();
         if (maxFee > DIVISIONER) revert InvalidMaxFee();
 
-        BoostAggregator boostAggregator = new BoostAggregator{salt: keccak256(abi.encodePacked(owner, maxFee, salt))}(uniswapV3Staker, hermes, owner, maxFee);
+        BoostAggregator boostAggregator =
+        new BoostAggregator{salt: keccak256(abi.encodePacked(owner, maxFee, salt))}(uniswapV3Staker, hermes, owner, maxFee);
 
         boostAggregatorIds[boostAggregator] = boostAggregators.length;
         boostAggregators.push(boostAggregator);

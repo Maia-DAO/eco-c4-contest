@@ -96,7 +96,7 @@ contract UniswapV3GaugeFactory is BaseV2GaugeFactory, IUniswapV3GaugeFactory {
     //////////////////////////////////////////////////////////////*/
 
     /// @inheritdoc IUniswapV3GaugeFactory
-    function setMinimumWidth(address gauge, uint24 minimumWidth) external onlyOwner {
+    function setMinimumWidth(address gauge, uint24 minimumWidth) external override onlyOwner {
         if (!activeGauges[BaseV2Gauge(gauge)]) revert InvalidGauge();
         UniswapV3Gauge(gauge).setMinimumWidth(minimumWidth);
         uniswapV3Staker.updateGauges(IUniswapV3Pool(UniswapV3Gauge(gauge).strategy()));

@@ -73,7 +73,7 @@ abstract contract ERC20Gauges is ERC20MultiVotes, ReentrancyGuard, IERC20Gauges 
     //////////////////////////////////////////////////////////////*/
 
     /// @inheritdoc IERC20Gauges
-    function getGaugeCycleEnd() external view returns (uint32) {
+    function getGaugeCycleEnd() external view override returns (uint32) {
         return _getGaugeCycleEnd();
     }
 
@@ -86,12 +86,12 @@ abstract contract ERC20Gauges is ERC20MultiVotes, ReentrancyGuard, IERC20Gauges 
     }
 
     /// @inheritdoc IERC20Gauges
-    function getGaugeWeight(address gauge) external view returns (uint112) {
+    function getGaugeWeight(address gauge) external view override returns (uint112) {
         return _getGaugeWeight[gauge].currentWeight;
     }
 
     /// @inheritdoc IERC20Gauges
-    function getStoredGaugeWeight(address gauge) external view returns (uint112) {
+    function getStoredGaugeWeight(address gauge) external view override returns (uint112) {
         if (_deprecatedGauges.contains(gauge)) return 0;
         return _getStoredWeight(_getGaugeWeight[gauge], _getGaugeCycleEnd());
     }
@@ -101,22 +101,22 @@ abstract contract ERC20Gauges is ERC20MultiVotes, ReentrancyGuard, IERC20Gauges 
     }
 
     /// @inheritdoc IERC20Gauges
-    function totalWeight() external view returns (uint112) {
+    function totalWeight() external view override returns (uint112) {
         return _totalWeight.currentWeight;
     }
 
     /// @inheritdoc IERC20Gauges
-    function storedTotalWeight() external view returns (uint112) {
+    function storedTotalWeight() external view override returns (uint112) {
         return _getStoredWeight(_totalWeight, _getGaugeCycleEnd());
     }
 
     /// @inheritdoc IERC20Gauges
-    function gauges() external view returns (address[] memory) {
+    function gauges() external view override returns (address[] memory) {
         return _gauges.values();
     }
 
     /// @inheritdoc IERC20Gauges
-    function gauges(uint256 offset, uint256 num) external view returns (address[] memory values) {
+    function gauges(uint256 offset, uint256 num) external view override returns (address[] memory values) {
         values = new address[](num);
         for (uint256 i = 0; i < num;) {
             unchecked {
@@ -127,37 +127,42 @@ abstract contract ERC20Gauges is ERC20MultiVotes, ReentrancyGuard, IERC20Gauges 
     }
 
     /// @inheritdoc IERC20Gauges
-    function isGauge(address gauge) external view returns (bool) {
+    function isGauge(address gauge) external view override returns (bool) {
         return _gauges.contains(gauge) && !_deprecatedGauges.contains(gauge);
     }
 
     /// @inheritdoc IERC20Gauges
-    function numGauges() external view returns (uint256) {
+    function numGauges() external view override returns (uint256) {
         return _gauges.length();
     }
 
     /// @inheritdoc IERC20Gauges
-    function deprecatedGauges() external view returns (address[] memory) {
+    function deprecatedGauges() external view override returns (address[] memory) {
         return _deprecatedGauges.values();
     }
 
     /// @inheritdoc IERC20Gauges
-    function numDeprecatedGauges() external view returns (uint256) {
+    function numDeprecatedGauges() external view override returns (uint256) {
         return _deprecatedGauges.length();
     }
 
     /// @inheritdoc IERC20Gauges
-    function userGauges(address user) external view returns (address[] memory) {
+    function userGauges(address user) external view override returns (address[] memory) {
         return _userGauges[user].values();
     }
 
     /// @inheritdoc IERC20Gauges
-    function isUserGauge(address user, address gauge) external view returns (bool) {
+    function isUserGauge(address user, address gauge) external view override returns (bool) {
         return _userGauges[user].contains(gauge);
     }
 
     /// @inheritdoc IERC20Gauges
-    function userGauges(address user, uint256 offset, uint256 num) external view returns (address[] memory values) {
+    function userGauges(address user, uint256 offset, uint256 num)
+        external
+        view
+        override
+        returns (address[] memory values)
+    {
         values = new address[](num);
         EnumerableSet.AddressSet storage userGaugesSet = _userGauges[user];
         for (uint256 i = 0; i < num;) {
@@ -169,7 +174,7 @@ abstract contract ERC20Gauges is ERC20MultiVotes, ReentrancyGuard, IERC20Gauges 
     }
 
     /// @inheritdoc IERC20Gauges
-    function numUserGauges(address user) external view returns (uint256) {
+    function numUserGauges(address user) external view override returns (uint256) {
         return _userGauges[user].length();
     }
 
@@ -179,7 +184,7 @@ abstract contract ERC20Gauges is ERC20MultiVotes, ReentrancyGuard, IERC20Gauges 
     }
 
     /// @inheritdoc IERC20Gauges
-    function calculateGaugeAllocation(address gauge, uint256 quantity) external view returns (uint256) {
+    function calculateGaugeAllocation(address gauge, uint256 quantity) external view override returns (uint256) {
         if (_deprecatedGauges.contains(gauge)) return 0;
         uint32 currentCycle = _getGaugeCycleEnd();
 
@@ -335,6 +340,7 @@ abstract contract ERC20Gauges is ERC20MultiVotes, ReentrancyGuard, IERC20Gauges 
     /// @inheritdoc IERC20Gauges
     function decrementGauges(address[] calldata gaugeList, uint112[] calldata weights)
         external
+        override
         nonReentrant
         returns (uint112 newUserWeight)
     {
@@ -409,7 +415,7 @@ abstract contract ERC20Gauges is ERC20MultiVotes, ReentrancyGuard, IERC20Gauges 
     mapping(address contractAddress => bool canExceedMaxGauges) public override canContractExceedMaxGauges;
 
     /// @inheritdoc IERC20Gauges
-    function addGauge(address gauge) external onlyOwner returns (uint112) {
+    function addGauge(address gauge) external override onlyOwner returns (uint112) {
         return _addGauge(gauge);
     }
 
@@ -432,7 +438,7 @@ abstract contract ERC20Gauges is ERC20MultiVotes, ReentrancyGuard, IERC20Gauges 
     }
 
     /// @inheritdoc IERC20Gauges
-    function removeGauge(address gauge) external onlyOwner {
+    function removeGauge(address gauge) external override onlyOwner {
         _removeGauge(gauge);
     }
 
@@ -456,13 +462,13 @@ abstract contract ERC20Gauges is ERC20MultiVotes, ReentrancyGuard, IERC20Gauges 
     }
 
     /// @inheritdoc IERC20Gauges
-    function replaceGauge(address oldGauge, address newGauge) external onlyOwner {
+    function replaceGauge(address oldGauge, address newGauge) external override onlyOwner {
         _removeGauge(oldGauge);
         _addGauge(newGauge);
     }
 
     /// @inheritdoc IERC20Gauges
-    function setMaxGauges(uint256 newMax) external onlyOwner {
+    function setMaxGauges(uint256 newMax) external override onlyOwner {
         uint256 oldMax = maxGauges;
         maxGauges = newMax;
 
@@ -470,7 +476,7 @@ abstract contract ERC20Gauges is ERC20MultiVotes, ReentrancyGuard, IERC20Gauges 
     }
 
     /// @inheritdoc IERC20Gauges
-    function setContractExceedMaxGauges(address account, bool canExceedMax) external onlyOwner {
+    function setContractExceedMaxGauges(address account, bool canExceedMax) external override onlyOwner {
         if (canExceedMax) if (account.code.length == 0) revert Errors.NonContractError(); // can only approve contracts
 
         canContractExceedMaxGauges[account] = canExceedMax;

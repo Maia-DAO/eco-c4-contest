@@ -109,7 +109,7 @@ contract UlyssesPool is UlyssesERC4626, Ownable, IUlyssesPool {
     }
 
     /// @inheritdoc IUlyssesPool
-    function getBandwidth(uint256 destinationId) external view returns (uint256) {
+    function getBandwidth(uint256 destinationId) external view override returns (uint256) {
         /**
          * @dev bandwidthStateList first element has always 0 bandwidth
          *      so this line will never fail and return 0 instead
@@ -118,12 +118,12 @@ contract UlyssesPool is UlyssesERC4626, Ownable, IUlyssesPool {
     }
 
     /// @inheritdoc IUlyssesPool
-    function getBandwidthStateList() external view returns (BandwidthState[] memory) {
+    function getBandwidthStateList() external view override returns (BandwidthState[] memory) {
         return bandwidthStateList;
     }
 
     /// @inheritdoc IUlyssesPool
-    function getProtocolFees() public view returns (uint256) {
+    function getProtocolFees() public view override returns (uint256) {
         uint256 balance = asset.balanceOf(address(this));
         uint256 assets;
 
@@ -147,7 +147,7 @@ contract UlyssesPool is UlyssesERC4626, Ownable, IUlyssesPool {
     //////////////////////////////////////////////////////////////*/
 
     /// @inheritdoc IUlyssesPool
-    function claimProtocolFees() external nonReentrant returns (uint256 claimed) {
+    function claimProtocolFees() external override nonReentrant returns (uint256 claimed) {
         claimed = getProtocolFees();
 
         if (claimed > 0) {
@@ -156,7 +156,13 @@ contract UlyssesPool is UlyssesERC4626, Ownable, IUlyssesPool {
     }
 
     /// @inheritdoc IUlyssesPool
-    function addNewBandwidth(uint256 poolId, uint8 weight) external nonReentrant onlyOwner returns (uint256 index) {
+    function addNewBandwidth(uint256 poolId, uint8 weight)
+        external
+        override
+        nonReentrant
+        onlyOwner
+        returns (uint256 index)
+    {
         if (weight == 0) revert InvalidWeight();
 
         UlyssesPool destination = factory.pools(poolId);
@@ -220,7 +226,7 @@ contract UlyssesPool is UlyssesERC4626, Ownable, IUlyssesPool {
     }
 
     /// @inheritdoc IUlyssesPool
-    function setWeight(uint256 poolId, uint8 weight) external nonReentrant onlyOwner {
+    function setWeight(uint256 poolId, uint8 weight) external override nonReentrant onlyOwner {
         if (weight == 0) revert InvalidWeight();
 
         uint256 poolIndex = destinations[poolId];
@@ -305,7 +311,7 @@ contract UlyssesPool is UlyssesERC4626, Ownable, IUlyssesPool {
     }
 
     /// @inheritdoc IUlyssesPool
-    function setFees(Fees calldata _fees) external nonReentrant onlyOwner {
+    function setFees(Fees calldata _fees) external override nonReentrant onlyOwner {
         // Lower fee must be lower than 1%
         if (_fees.lambda1 > MAX_LAMBDA1) revert InvalidFee();
         // Sum of both fees must be 50%
@@ -320,7 +326,7 @@ contract UlyssesPool is UlyssesERC4626, Ownable, IUlyssesPool {
     }
 
     /// @inheritdoc IUlyssesPool
-    function setProtocolFee(uint256 _protocolFee) external nonReentrant {
+    function setProtocolFee(uint256 _protocolFee) external override nonReentrant {
         if (msg.sender != factory.owner()) revert Unauthorized();
 
         // Revert if the protocol fee is larger than 1%
@@ -1090,7 +1096,7 @@ contract UlyssesPool is UlyssesERC4626, Ownable, IUlyssesPool {
     //////////////////////////////////////////////////////////////*/
 
     /// @inheritdoc IUlyssesPool
-    function swapIn(uint256 assets, uint256 poolId) external nonReentrant returns (uint256 output) {
+    function swapIn(uint256 assets, uint256 poolId) external override nonReentrant returns (uint256 output) {
         // Get bandwidth state index from poolId
         uint256 index = destinations[poolId]; // Saves an extra SLOAD if poolId is valid
 
@@ -1144,7 +1150,7 @@ contract UlyssesPool is UlyssesERC4626, Ownable, IUlyssesPool {
     }
 
     /// @inheritdoc IUlyssesPool
-    function swapFromPool(uint256 assets, address user) external nonReentrant returns (uint256 output) {
+    function swapFromPool(uint256 assets, address user) external override nonReentrant returns (uint256 output) {
         // Get bandwidth state index from msg.sender
         uint256 index = destinationIds[msg.sender]; // Saves an extra SLOAD if msg.sender is valid
 

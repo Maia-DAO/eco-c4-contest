@@ -18,10 +18,10 @@ contract VirtualAccount is IVirtualAccount, ERC1155Receiver {
     using SafeTransferLib for address;
 
     /// @inheritdoc IVirtualAccount
-    address public immutable userAddress;
+    address public immutable override userAddress;
 
     /// @inheritdoc IVirtualAccount
-    address public localPortAddress;
+    address public override localPortAddress;
 
     constructor(address _userAddress, address _localPortAddress) {
         userAddress = _userAddress;
@@ -39,23 +39,24 @@ contract VirtualAccount is IVirtualAccount, ERC1155Receiver {
     //////////////////////////////////////////////////////////////*/
 
     /// @inheritdoc IVirtualAccount
-    function withdrawNative(uint256 _amount) external requiresApprovedCaller {
+    function withdrawNative(uint256 _amount) external override requiresApprovedCaller {
         msg.sender.safeTransferETH(_amount);
     }
 
     /// @inheritdoc IVirtualAccount
-    function withdrawERC20(address _token, uint256 _amount) external requiresApprovedCaller {
+    function withdrawERC20(address _token, uint256 _amount) external override requiresApprovedCaller {
         _token.safeTransfer(msg.sender, _amount);
     }
 
     /// @inheritdoc IVirtualAccount
-    function withdrawERC721(address _token, uint256 _tokenId) external requiresApprovedCaller {
+    function withdrawERC721(address _token, uint256 _tokenId) external override requiresApprovedCaller {
         ERC721(_token).transferFrom(address(this), msg.sender, _tokenId);
     }
 
     /// @inheritdoc IVirtualAccount
     function call(Call[] calldata calls)
         external
+        override
         requiresApprovedCaller
         returns (uint256 blockNumber, bytes[] memory returnData)
     {

@@ -188,7 +188,7 @@ contract BranchBridgeAgent is IBranchBridgeAgent {
     //////////////////////////////////////////////////////////////*/
 
     /// @inheritdoc IBranchBridgeAgent
-    function getDepositEntry(uint32 _depositNonce) external view returns (Deposit memory) {
+    function getDepositEntry(uint32 _depositNonce) external view override returns (Deposit memory) {
         return getDeposit[_depositNonce];
     }
 
@@ -197,7 +197,13 @@ contract BranchBridgeAgent is IBranchBridgeAgent {
     //////////////////////////////////////////////////////////////*/
 
     /// @inheritdoc IBranchBridgeAgent
-    function callOut(bytes calldata _params, uint128 _remoteExecutionGas) external payable lock requiresFallbackGas {
+    function callOut(bytes calldata _params, uint128 _remoteExecutionGas)
+        external
+        payable
+        override
+        lock
+        requiresFallbackGas
+    {
         // Wrap the gas allocated for omnichain execution.
         wrappedNativeToken.deposit{value: msg.value}();
 
@@ -209,6 +215,7 @@ contract BranchBridgeAgent is IBranchBridgeAgent {
     function callOutAndBridge(bytes calldata _params, DepositInput memory _dParams, uint128 _remoteExecutionGas)
         external
         payable
+        override
         lock
         requiresFallbackGas
     {
@@ -224,7 +231,7 @@ contract BranchBridgeAgent is IBranchBridgeAgent {
         bytes calldata _params,
         DepositMultipleInput memory _dParams,
         uint128 _remoteExecutionGas
-    ) external payable lock requiresFallbackGas {
+    ) external payable override lock requiresFallbackGas {
         // Wrap the gas allocated for omnichain execution.
         wrappedNativeToken.deposit{value: msg.value}();
 
@@ -236,6 +243,7 @@ contract BranchBridgeAgent is IBranchBridgeAgent {
     function callOutSigned(bytes calldata _params, uint128 _remoteExecutionGas)
         external
         payable
+        override
         lock
         requiresFallbackGas
     {
@@ -255,6 +263,7 @@ contract BranchBridgeAgent is IBranchBridgeAgent {
     function callOutSignedAndBridge(bytes calldata _params, DepositInput memory _dParams, uint128 _remoteExecutionGas)
         external
         payable
+        override
         lock
         requiresFallbackGas
     {
@@ -293,7 +302,7 @@ contract BranchBridgeAgent is IBranchBridgeAgent {
         bytes calldata _params,
         DepositMultipleInput memory _dParams,
         uint128 _remoteExecutionGas
-    ) external payable lock requiresFallbackGas {
+    ) external payable override lock requiresFallbackGas {
         // Normalize Deposits
         uint256[] memory _deposits = new uint256[](_dParams.hTokens.length);
 
@@ -339,7 +348,7 @@ contract BranchBridgeAgent is IBranchBridgeAgent {
         bytes calldata _params,
         uint128 _remoteExecutionGas,
         uint24 _toChain
-    ) external payable lock requiresFallbackGas {
+    ) external payable override lock requiresFallbackGas {
         // Check if deposit belongs to message sender
         if (getDeposit[_depositNonce].owner != msg.sender) revert NotDepositOwner();
 
@@ -435,6 +444,7 @@ contract BranchBridgeAgent is IBranchBridgeAgent {
     function retrySettlement(uint32 _settlementNonce, uint128 _gasToBoostSettlement)
         external
         payable
+        override
         lock
         requiresFallbackGas
     {
@@ -447,7 +457,7 @@ contract BranchBridgeAgent is IBranchBridgeAgent {
     }
 
     /// @inheritdoc IBranchBridgeAgent
-    function retrieveDeposit(uint32 _depositNonce) external payable lock requiresFallbackGas {
+    function retrieveDeposit(uint32 _depositNonce) external payable override lock requiresFallbackGas {
         // Check if deposit belongs to message sender
         if (getDeposit[_depositNonce].owner != msg.sender) revert NotDepositOwner();
 
@@ -467,7 +477,7 @@ contract BranchBridgeAgent is IBranchBridgeAgent {
     }
 
     /// @inheritdoc IBranchBridgeAgent
-    function redeemDeposit(uint32 _depositNonce) external lock {
+    function redeemDeposit(uint32 _depositNonce) external override lock {
         // Update Deposit
         if (getDeposit[_depositNonce].status != DepositStatus.Failed) {
             revert DepositRedeemUnavailable();
@@ -485,7 +495,7 @@ contract BranchBridgeAgent is IBranchBridgeAgent {
         bytes calldata _params,
         uint128 _gasToBridgeOut,
         uint128 _remoteExecutionGas
-    ) external payable lock requiresRouter {
+    ) external payable override lock requiresRouter {
         // Get remote call execution deposited gas.
         (uint128 gasToBridgeOut, bool isRemote) =
             (remoteCallDepositedGas > 0 ? (_gasToBridgeOut, true) : (msg.value.toUint128(), false));
@@ -510,7 +520,7 @@ contract BranchBridgeAgent is IBranchBridgeAgent {
         bytes calldata _params,
         uint128 _gasToBridgeOut,
         uint128 _remoteExecutionGas
-    ) external payable lock requiresRouter {
+    ) external payable override lock requiresRouter {
         // Get remote call execution deposited gas.
         (uint128 gasToBridgeOut, bool isRemote) =
             (remoteCallDepositedGas > 0 ? (_gasToBridgeOut, true) : (msg.value.toUint128(), false));
@@ -532,7 +542,7 @@ contract BranchBridgeAgent is IBranchBridgeAgent {
         DepositInput memory _dParams,
         uint128 _gasToBridgeOut,
         uint128 _remoteExecutionGas
-    ) external payable lock requiresRouter {
+    ) external payable override lock requiresRouter {
         // Get remote call execution deposited gas.
         (uint128 gasToBridgeOut, bool isRemote) =
             (remoteCallDepositedGas > 0 ? (_gasToBridgeOut, true) : (msg.value.toUint128(), false));
@@ -554,7 +564,7 @@ contract BranchBridgeAgent is IBranchBridgeAgent {
         DepositMultipleInput memory _dParams,
         uint128 _gasToBridgeOut,
         uint128 _remoteExecutionGas
-    ) external payable lock requiresRouter {
+    ) external payable override lock requiresRouter {
         // Get remote call execution deposited gas.
         (uint128 gasToBridgeOut, bool isRemote) =
             (remoteCallDepositedGas > 0 ? (_gasToBridgeOut, true) : (msg.value.toUint128(), false));
@@ -576,6 +586,7 @@ contract BranchBridgeAgent is IBranchBridgeAgent {
     /// @inheritdoc IBranchBridgeAgent
     function clearToken(address _recipient, address _hToken, address _token, uint256 _amount, uint256 _deposit)
         external
+        override
         requiresAgentExecutor
     {
         _clearToken(_recipient, _hToken, _token, _amount, _deposit);
@@ -1133,6 +1144,7 @@ contract BranchBridgeAgent is IBranchBridgeAgent {
     function anyExecute(bytes calldata data)
         external
         virtual
+        override
         requiresExecutor
         returns (bool success, bytes memory result)
     {
@@ -1242,6 +1254,7 @@ contract BranchBridgeAgent is IBranchBridgeAgent {
     function anyFallback(bytes calldata data)
         external
         virtual
+        override
         requiresExecutor
         returns (bool success, bytes memory result)
     {
@@ -1321,12 +1334,12 @@ contract BranchBridgeAgent is IBranchBridgeAgent {
     }
 
     /// @inheritdoc IBranchBridgeAgent
-    function depositGasAnycallConfig() external payable {
+    function depositGasAnycallConfig() external payable override {
         _replenishGas(msg.value);
     }
 
     /// @inheritdoc IBranchBridgeAgent
-    function forceRevert() external requiresAgentExecutor {
+    function forceRevert() external override requiresAgentExecutor {
         _forceRevert();
     }
 

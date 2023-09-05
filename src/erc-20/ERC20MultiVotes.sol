@@ -29,33 +29,33 @@ abstract contract ERC20MultiVotes is ERC20, Ownable, IERC20MultiVotes {
     mapping(address user => Checkpoint[] checkpointList) private _checkpoints;
 
     /// @inheritdoc IERC20MultiVotes
-    function checkpoints(address account, uint32 pos) public view virtual returns (Checkpoint memory) {
+    function checkpoints(address account, uint32 pos) public view virtual override returns (Checkpoint memory) {
         return _checkpoints[account][pos];
     }
 
     /// @inheritdoc IERC20MultiVotes
-    function numCheckpoints(address account) public view virtual returns (uint32) {
+    function numCheckpoints(address account) public view virtual override returns (uint32) {
         return _checkpoints[account].length.toUint32();
     }
 
     /// @inheritdoc IERC20MultiVotes
-    function freeVotes(address account) public view virtual returns (uint256) {
+    function freeVotes(address account) public view virtual override returns (uint256) {
         return balanceOf[account] - userDelegatedVotes[account];
     }
 
     /// @inheritdoc IERC20MultiVotes
-    function getVotes(address account) public view virtual returns (uint256) {
+    function getVotes(address account) public view virtual override returns (uint256) {
         uint256 pos = _checkpoints[account].length;
         return pos == 0 ? 0 : _checkpoints[account][pos - 1].votes;
     }
 
     /// @inheritdoc IERC20MultiVotes
-    function userUnusedVotes(address user) public view virtual returns (uint256) {
+    function userUnusedVotes(address user) public view virtual override returns (uint256) {
         return getVotes(user);
     }
 
     /// @inheritdoc IERC20MultiVotes
-    function getPriorVotes(address account, uint256 blockNumber) public view virtual returns (uint256) {
+    function getPriorVotes(address account, uint256 blockNumber) public view virtual override returns (uint256) {
         if (blockNumber >= block.number) revert BlockError();
         return _checkpointsLookup(_checkpoints[account], blockNumber);
     }
@@ -93,7 +93,7 @@ abstract contract ERC20MultiVotes is ERC20, Ownable, IERC20MultiVotes {
     mapping(address contractAddress => bool canExceedMaxGauges) public override canContractExceedMaxDelegates;
 
     /// @inheritdoc IERC20MultiVotes
-    function setMaxDelegates(uint256 newMax) external onlyOwner {
+    function setMaxDelegates(uint256 newMax) external override onlyOwner {
         uint256 oldMax = maxDelegates;
         maxDelegates = newMax;
 
@@ -101,7 +101,7 @@ abstract contract ERC20MultiVotes is ERC20, Ownable, IERC20MultiVotes {
     }
 
     /// @inheritdoc IERC20MultiVotes
-    function setContractExceedMaxDelegates(address account, bool canExceedMax) external onlyOwner {
+    function setContractExceedMaxDelegates(address account, bool canExceedMax) external override onlyOwner {
         if (canExceedMax && account.code.length == 0) revert Errors.NonContractError(); // can only approve contracts
 
         canContractExceedMaxDelegates[account] = canExceedMax;
@@ -123,32 +123,32 @@ abstract contract ERC20MultiVotes is ERC20, Ownable, IERC20MultiVotes {
     mapping(address user => EnumerableSet.AddressSet delegatesSet) private _delegates;
 
     /// @inheritdoc IERC20MultiVotes
-    function delegatesVotesCount(address delegator, address delegatee) public view virtual returns (uint256) {
+    function delegatesVotesCount(address delegator, address delegatee) public view virtual override returns (uint256) {
         return _delegatesVotesCount[delegator][delegatee];
     }
 
     /// @inheritdoc IERC20MultiVotes
-    function delegates(address delegator) public view returns (address[] memory) {
+    function delegates(address delegator) public view override returns (address[] memory) {
         return _delegates[delegator].values();
     }
 
     /// @inheritdoc IERC20MultiVotes
-    function delegateCount(address delegator) public view returns (uint256) {
+    function delegateCount(address delegator) public view override returns (uint256) {
         return _delegates[delegator].length();
     }
 
     /// @inheritdoc IERC20MultiVotes
-    function incrementDelegation(address delegatee, uint256 amount) public virtual {
+    function incrementDelegation(address delegatee, uint256 amount) public virtual override {
         _incrementDelegation(msg.sender, delegatee, amount);
     }
 
     /// @inheritdoc IERC20MultiVotes
-    function undelegate(address delegatee, uint256 amount) public virtual {
+    function undelegate(address delegatee, uint256 amount) public virtual override {
         _undelegate(msg.sender, delegatee, amount);
     }
 
     /// @inheritdoc IERC20MultiVotes
-    function delegate(address newDelegatee) external virtual {
+    function delegate(address newDelegatee) external virtual override {
         _delegate(msg.sender, newDelegatee);
     }
 

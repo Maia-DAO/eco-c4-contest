@@ -165,7 +165,7 @@ contract BranchPort is Ownable, IBranchPort {
     //////////////////////////////////////////////////////////////*/
 
     /// @inheritdoc IBranchPort
-    function manage(address _token, uint256 _amount) external requiresPortStrategy(_token) {
+    function manage(address _token, uint256 _amount) external override requiresPortStrategy(_token) {
         uint256 _strategyTokenDebt = getStrategyTokenDebt[_token];
 
         if (_amount > _excessReserves(_strategyTokenDebt, _token)) revert InsufficientReserves();
@@ -181,7 +181,7 @@ contract BranchPort is Ownable, IBranchPort {
     }
 
     /// @inheritdoc IBranchPort
-    function replenishReserves(address _strategy, address _token, uint256 _amount) external lock {
+    function replenishReserves(address _strategy, address _token, uint256 _amount) external override lock {
         uint256 portStrategyTokenDebt = getPortStrategyTokenDebt[_strategy][_token];
 
         if (portStrategyTokenDebt < _amount) revert NoDebtToRepay();
@@ -221,6 +221,7 @@ contract BranchPort is Ownable, IBranchPort {
     function withdraw(address _recipient, address _underlyingAddress, uint256 _deposit)
         public
         virtual
+        override
         lock
         requiresBridgeAgent
     {
@@ -258,7 +259,11 @@ contract BranchPort is Ownable, IBranchPort {
     }
 
     /// @inheritdoc IBranchPort
-    function bridgeIn(address _recipient, address _localAddress, uint256 _amount) external requiresBridgeAgent {
+    function bridgeIn(address _recipient, address _localAddress, uint256 _amount)
+        external
+        override
+        requiresBridgeAgent
+    {
         _bridgeIn(_recipient, _localAddress, _amount);
     }
 
@@ -269,7 +274,7 @@ contract BranchPort is Ownable, IBranchPort {
         address[] memory _underlyingAddresses,
         uint256[] memory _amounts,
         uint256[] memory _deposits
-    ) external requiresBridgeAgent {
+    ) external override requiresBridgeAgent {
         // Loop through token inputs
         for (uint256 i = 0; i < _localAddresses.length;) {
             // Check if hTokens are being bridged in
@@ -297,7 +302,7 @@ contract BranchPort is Ownable, IBranchPort {
         address _underlyingAddress,
         uint256 _amount,
         uint256 _deposit
-    ) external lock requiresBridgeAgent {
+    ) external override lock requiresBridgeAgent {
         _bridgeOut(_depositor, _localAddress, _underlyingAddress, _amount, _deposit);
     }
 
@@ -308,7 +313,7 @@ contract BranchPort is Ownable, IBranchPort {
         address[] memory _underlyingAddresses,
         uint256[] memory _amounts,
         uint256[] memory _deposits
-    ) external lock requiresBridgeAgent {
+    ) external override lock requiresBridgeAgent {
         // Sanity Check input arrays
         if (_localAddresses.length > 255) revert InvalidInputArrays();
         if (_localAddresses.length != _underlyingAddresses.length) revert InvalidInputArrays();
@@ -330,7 +335,7 @@ contract BranchPort is Ownable, IBranchPort {
     //////////////////////////////////////////////////////////////*/
 
     /// @inheritdoc IBranchPort
-    function addBridgeAgent(address _bridgeAgent) external requiresBridgeAgentFactory {
+    function addBridgeAgent(address _bridgeAgent) external override requiresBridgeAgentFactory {
         if (isBridgeAgent[_bridgeAgent]) revert AlreadyAddedBridgeAgent();
 
         isBridgeAgent[_bridgeAgent] = true;
@@ -342,14 +347,14 @@ contract BranchPort is Ownable, IBranchPort {
     //////////////////////////////////////////////////////////////*/
 
     /// @inheritdoc IBranchPort
-    function setCoreRouter(address _newCoreRouter) external requiresCoreRouter {
+    function setCoreRouter(address _newCoreRouter) external override requiresCoreRouter {
         require(coreBranchRouterAddress != address(0), "CoreRouter address is zero");
         require(_newCoreRouter != address(0), "New CoreRouter address is zero");
         coreBranchRouterAddress = _newCoreRouter;
     }
 
     /// @inheritdoc IBranchPort
-    function addBridgeAgentFactory(address _newBridgeAgentFactory) external requiresCoreRouter {
+    function addBridgeAgentFactory(address _newBridgeAgentFactory) external override requiresCoreRouter {
         if (isBridgeAgentFactory[_newBridgeAgentFactory]) revert AlreadyAddedBridgeAgentFactory();
 
         isBridgeAgentFactory[_newBridgeAgentFactory] = true;
@@ -359,21 +364,21 @@ contract BranchPort is Ownable, IBranchPort {
     }
 
     /// @inheritdoc IBranchPort
-    function toggleBridgeAgentFactory(address _newBridgeAgentFactory) external requiresCoreRouter {
+    function toggleBridgeAgentFactory(address _newBridgeAgentFactory) external override requiresCoreRouter {
         isBridgeAgentFactory[_newBridgeAgentFactory] = !isBridgeAgentFactory[_newBridgeAgentFactory];
 
         emit BridgeAgentFactoryToggled(_newBridgeAgentFactory);
     }
 
     /// @inheritdoc IBranchPort
-    function toggleBridgeAgent(address _bridgeAgent) external requiresCoreRouter {
+    function toggleBridgeAgent(address _bridgeAgent) external override requiresCoreRouter {
         isBridgeAgent[_bridgeAgent] = !isBridgeAgent[_bridgeAgent];
 
         emit BridgeAgentToggled(_bridgeAgent);
     }
 
     /// @inheritdoc IBranchPort
-    function addStrategyToken(address _token, uint256 _minimumReservesRatio) external requiresCoreRouter {
+    function addStrategyToken(address _token, uint256 _minimumReservesRatio) external override requiresCoreRouter {
         if (_minimumReservesRatio >= DIVISIONER || _minimumReservesRatio < MIN_RESERVE_RATIO) {
             revert InvalidMinimumReservesRatio();
         }
@@ -386,7 +391,7 @@ contract BranchPort is Ownable, IBranchPort {
     }
 
     /// @inheritdoc IBranchPort
-    function toggleStrategyToken(address _token) external requiresCoreRouter {
+    function toggleStrategyToken(address _token) external override requiresCoreRouter {
         isStrategyToken[_token] = !isStrategyToken[_token];
 
         emit StrategyTokenToggled(_token);
@@ -395,6 +400,7 @@ contract BranchPort is Ownable, IBranchPort {
     /// @inheritdoc IBranchPort
     function addPortStrategy(address _portStrategy, address _token, uint256 _dailyManagementLimit)
         external
+        override
         requiresCoreRouter
     {
         if (!isStrategyToken[_token]) revert UnrecognizedStrategyToken();
@@ -406,7 +412,7 @@ contract BranchPort is Ownable, IBranchPort {
     }
 
     /// @inheritdoc IBranchPort
-    function togglePortStrategy(address _portStrategy, address _token) external requiresCoreRouter {
+    function togglePortStrategy(address _portStrategy, address _token) external override requiresCoreRouter {
         isPortStrategy[_portStrategy][_token] = !isPortStrategy[_portStrategy][_token];
 
         emit PortStrategyToggled(_portStrategy, _token);
@@ -415,6 +421,7 @@ contract BranchPort is Ownable, IBranchPort {
     /// @inheritdoc IBranchPort
     function updatePortStrategy(address _portStrategy, address _token, uint256 _dailyManagementLimit)
         external
+        override
         requiresCoreRouter
     {
         strategyDailyLimitAmount[_portStrategy][_token] = _dailyManagementLimit;

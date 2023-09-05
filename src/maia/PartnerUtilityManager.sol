@@ -17,13 +17,13 @@ abstract contract PartnerUtilityManager is UtilityManager, IPartnerUtilityManage
     //////////////////////////////////////////////////////////////*/
 
     /// @inheritdoc IPartnerUtilityManager
-    address public partnerVault;
+    address public override partnerVault;
 
     /// @inheritdoc IPartnerUtilityManager
-    ERC20Votes public immutable partnerGovernance;
+    ERC20Votes public immutable override partnerGovernance;
 
     /// @inheritdoc IPartnerUtilityManager
-    mapping(address user => uint256 claimedPartnerGovernance) public userClaimedPartnerGovernance;
+    mapping(address user => uint256 claimedPartnerGovernance) public override userClaimedPartnerGovernance;
 
     /**
      * @notice Constructs the Utility Manager Contract.
@@ -64,6 +64,7 @@ abstract contract PartnerUtilityManager is UtilityManager, IPartnerUtilityManage
     function forfeitMultipleAmounts(uint256 weight, uint256 boost, uint256 _governance, uint256 _partnerGovernance)
         public
         virtual
+        override
     {
         forfeitWeight(weight);
         forfeitBoost(boost);
@@ -111,7 +112,7 @@ abstract contract PartnerUtilityManager is UtilityManager, IPartnerUtilityManage
     }
 
     /// @inheritdoc IPartnerUtilityManager
-    function forfeitPartnerGovernance(uint256 amount) public {
+    function forfeitPartnerGovernance(uint256 amount) public override {
         userClaimedPartnerGovernance[msg.sender] -= amount;
         /// @dev partnerGovernance is kept in this contract and not sent to vaults to avoid governance attacks.
         address(partnerGovernance).safeTransferFrom(msg.sender, address(this), amount);
@@ -129,6 +130,7 @@ abstract contract PartnerUtilityManager is UtilityManager, IPartnerUtilityManage
     function claimMultipleAmounts(uint256 weight, uint256 boost, uint256 _governance, uint256 _partnerGovernance)
         public
         virtual
+        override
     {
         claimWeight(weight);
         claimBoost(boost);
@@ -168,7 +170,7 @@ abstract contract PartnerUtilityManager is UtilityManager, IPartnerUtilityManage
     }
 
     /// @inheritdoc IPartnerUtilityManager
-    function claimPartnerGovernance(uint256 amount) public checkPartnerGovernance(amount) {
+    function claimPartnerGovernance(uint256 amount) public override checkPartnerGovernance(amount) {
         if (amount == 0) return;
         userClaimedPartnerGovernance[msg.sender] += amount;
         address(partnerGovernance).safeTransfer(msg.sender, amount);

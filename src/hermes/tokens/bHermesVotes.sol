@@ -14,7 +14,7 @@ import {IbHermesUnderlying} from "../interfaces/IbHermesUnderlying.sol";
  */
 contract bHermesVotes is ERC20MultiVotes, IbHermesUnderlying {
     /// @inheritdoc IbHermesUnderlying
-    address public immutable bHermes;
+    address public immutable override bHermes;
 
     constructor(address _owner) ERC20("bHermes Votes", "bHERMES-V", 18) {
         _initializeOwner(_owner);
@@ -22,7 +22,7 @@ contract bHermesVotes is ERC20MultiVotes, IbHermesUnderlying {
     }
 
     /// @inheritdoc IbHermesUnderlying
-    function mint(address to, uint256 amount) external onlybHermes {
+    function mint(address to, uint256 amount) external override onlybHermes {
         _mint(to, amount);
     }
 

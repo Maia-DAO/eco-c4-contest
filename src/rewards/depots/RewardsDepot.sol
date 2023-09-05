@@ -10,7 +10,7 @@ abstract contract RewardsDepot is IRewardsDepot {
     using SafeTransferLib for address;
 
     ///  @inheritdoc IRewardsDepot
-    function getRewards() external virtual returns (uint256);
+    function getRewards() external virtual override returns (uint256);
 
     /// @notice Transfer balance of token to rewards contract
     function transferRewards(address _asset, address _rewardsContract) internal returns (uint256 balance) {

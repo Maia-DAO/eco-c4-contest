@@ -23,18 +23,18 @@ contract BribesFactory is Ownable, IBribesFactory {
     //////////////////////////////////////////////////////////////*/
 
     /// @inheritdoc IBribesFactory
-    uint256 public immutable rewardsCycleLength;
+    uint256 public immutable override rewardsCycleLength;
 
     FlywheelBoosterGaugeWeight private immutable flywheelGaugeWeightBooster;
 
     /// @inheritdoc IBribesFactory
-    FlywheelCore[] public bribeFlywheels;
+    FlywheelCore[] public override bribeFlywheels;
 
     /// @inheritdoc IBribesFactory
-    mapping(FlywheelCore bribeflywheel => uint256 id) public bribeFlywheelIds;
+    mapping(FlywheelCore bribeflywheel => uint256 id) public override bribeFlywheelIds;
 
     /// @inheritdoc IBribesFactory
-    mapping(address tokenAddress => FlywheelCore flywheel) public tokenToFlywheel;
+    mapping(address tokenAddress => FlywheelCore flywheel) public override tokenToFlywheel;
 
     /**
      * @notice Creates a new bribes factory
@@ -48,7 +48,7 @@ contract BribesFactory is Ownable, IBribesFactory {
     }
 
     /// @inheritdoc IBribesFactory
-    function getBribeFlywheels() external view returns (FlywheelCore[] memory) {
+    function getBribeFlywheels() external view override returns (FlywheelCore[] memory) {
         return bribeFlywheels;
     }
 
@@ -57,7 +57,7 @@ contract BribesFactory is Ownable, IBribesFactory {
     //////////////////////////////////////////////////////////////*/
 
     /// @inheritdoc IBribesFactory
-    function addGaugetoFlywheel(address gauge, address bribeToken) external returns (FlywheelCore flywheel) {
+    function addGaugetoFlywheel(address gauge, address bribeToken) external override returns (FlywheelCore flywheel) {
         if (!bHermesGauges(owner()).isGauge(gauge)) revert InvalidGauge();
 
         flywheel = tokenToFlywheel[bribeToken];
@@ -77,7 +77,7 @@ contract BribesFactory is Ownable, IBribesFactory {
     //////////////////////////////////////////////////////////////*/
 
     /// @inheritdoc IBribesFactory
-    function createBribeFlywheel(address bribeToken) public returns (FlywheelCore flywheel) {
+    function createBribeFlywheel(address bribeToken) public override returns (FlywheelCore flywheel) {
         if (address(tokenToFlywheel[bribeToken]) != address(0)) revert BribeFlywheelAlreadyExists();
         if (bribeToken == address(0)) revert InvalidBribeToken();
 

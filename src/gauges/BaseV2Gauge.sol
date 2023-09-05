@@ -54,7 +54,8 @@ abstract contract BaseV2Gauge is IBaseV2Gauge {
 
         epoch = (block.timestamp / WEEK) * WEEK;
 
-        multiRewardsDepot = new MultiRewardsDepot{salt: keccak256(abi.encodePacked(this))}(address(BaseV2GaugeFactory(msg.sender).bribesFactory()));
+        multiRewardsDepot =
+        new MultiRewardsDepot{salt: keccak256(abi.encodePacked(this))}(address(BaseV2GaugeFactory(msg.sender).bribesFactory()));
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -62,7 +63,7 @@ abstract contract BaseV2Gauge is IBaseV2Gauge {
     //////////////////////////////////////////////////////////////*/
 
     /// @inheritdoc IBaseV2Gauge
-    function newEpoch() external {
+    function newEpoch() external override {
         uint256 _newEpoch = (block.timestamp / WEEK) * WEEK;
 
         if (epoch < _newEpoch) {
@@ -80,12 +81,12 @@ abstract contract BaseV2Gauge is IBaseV2Gauge {
     function _distribute(uint256 amount) internal virtual;
 
     /// @inheritdoc IBaseV2Gauge
-    function attachUser(address user) external onlyStrategy {
+    function attachUser(address user) external override onlyStrategy {
         hermesGaugeBoost.attach(user);
     }
 
     /// @inheritdoc IBaseV2Gauge
-    function detachUser(address user) external onlyStrategy {
+    function detachUser(address user) external override onlyStrategy {
         hermesGaugeBoost.detach(user);
     }
 

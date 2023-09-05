@@ -41,6 +41,7 @@ contract ArbitrumBranchPort is BranchPort, IArbitrumBranchPort {
     ///@inheritdoc IArbitrumBranchPort
     function depositToPort(address _depositor, address _recipient, address _underlyingAddress, uint256 _deposit)
         external
+        override
         lock
         requiresBridgeAgent
     {
@@ -63,6 +64,7 @@ contract ArbitrumBranchPort is BranchPort, IArbitrumBranchPort {
     ///@inheritdoc IArbitrumBranchPort
     function withdrawFromPort(address _depositor, address _recipient, address _globalAddress, uint256 _deposit)
         external
+        override
         lock
         requiresBridgeAgent
     {

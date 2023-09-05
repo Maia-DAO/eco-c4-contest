@@ -47,12 +47,12 @@ contract PartnerManagerFactory is Ownable, IPartnerManagerFactory {
     }
 
     /// @inheritdoc IPartnerManagerFactory
-    function getPartners() external view returns (PartnerManager[] memory) {
+    function getPartners() external view override returns (PartnerManager[] memory) {
         return partners;
     }
 
     /// @inheritdoc IPartnerManagerFactory
-    function getVaults() external view returns (IBaseVault[] memory) {
+    function getVaults() external view override returns (IBaseVault[] memory) {
         return vaults;
     }
 
@@ -61,7 +61,7 @@ contract PartnerManagerFactory is Ownable, IPartnerManagerFactory {
     //////////////////////////////////////////////////////////////*/
 
     /// @inheritdoc IPartnerManagerFactory
-    function addPartner(PartnerManager newPartnerManager) external onlyOwner {
+    function addPartner(PartnerManager newPartnerManager) external override onlyOwner {
         if (partners[partnerIds[newPartnerManager]] == newPartnerManager) revert InvalidPartnerManager();
         uint256 id = partners.length;
         partners.push(newPartnerManager);
@@ -71,7 +71,7 @@ contract PartnerManagerFactory is Ownable, IPartnerManagerFactory {
     }
 
     /// @inheritdoc IPartnerManagerFactory
-    function addVault(IBaseVault newVault) external onlyOwner {
+    function addVault(IBaseVault newVault) external override onlyOwner {
         if (vaults[vaultIds[newVault]] == newVault) revert InvalidVault();
         uint256 id = vaults.length;
         vaults.push(newVault);
@@ -85,7 +85,7 @@ contract PartnerManagerFactory is Ownable, IPartnerManagerFactory {
     //////////////////////////////////////////////////////////////*/
 
     /// @inheritdoc IPartnerManagerFactory
-    function removePartner(PartnerManager partnerManager) external onlyOwner {
+    function removePartner(PartnerManager partnerManager) external override onlyOwner {
         if (partners[partnerIds[partnerManager]] != partnerManager) revert InvalidPartnerManager();
         delete partners[partnerIds[partnerManager]];
         delete partnerIds[partnerManager];
@@ -94,7 +94,7 @@ contract PartnerManagerFactory is Ownable, IPartnerManagerFactory {
     }
 
     /// @inheritdoc IPartnerManagerFactory
-    function removeVault(IBaseVault vault) external onlyOwner {
+    function removeVault(IBaseVault vault) external override onlyOwner {
         if (vaults[vaultIds[vault]] != vault) revert InvalidVault();
         delete vaults[vaultIds[vault]];
         delete vaultIds[vault];

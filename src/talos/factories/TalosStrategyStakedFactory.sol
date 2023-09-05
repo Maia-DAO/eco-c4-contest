@@ -23,13 +23,13 @@ contract TalosStrategyStakedFactory is TalosBaseStrategyFactory, ITalosStrategyS
     //////////////////////////////////////////////////////////////*/
 
     /// @inheritdoc ITalosStrategyStakedFactory
-    BoostAggregatorFactory public immutable boostAggregatorFactory;
+    BoostAggregatorFactory public immutable override boostAggregatorFactory;
 
     /// @inheritdoc ITalosStrategyStakedFactory
-    FlywheelCoreInstant public immutable flywheel;
+    FlywheelCoreInstant public immutable override flywheel;
 
     /// @inheritdoc ITalosStrategyStakedFactory
-    FlywheelInstantRewards public immutable rewards;
+    FlywheelInstantRewards public immutable override rewards;
 
     /**
      * @notice Construct a new Talos Strategy Staked Factory

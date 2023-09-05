@@ -82,12 +82,12 @@ abstract contract ERC4626PartnerManager is PartnerUtilityManager, Ownable, ERC46
     //////////////////////////////////////////////////////////////*/
 
     /// @inheritdoc IERC4626PartnerManager
-    function updateUnderlyingBalance() public virtual {
+    function updateUnderlyingBalance() public virtual override {
         bHermesToken.claimOutstanding();
     }
 
     /// @inheritdoc IERC4626PartnerManager
-    function claimOutstanding() public virtual {
+    function claimOutstanding() public virtual override {
         /// @dev e.g. bHermesRate value 1100 if need to set 1.1X
         uint256 balance = balanceOf[msg.sender].mulWad(bHermesRate);
         /// @dev Never overflows since balandeOf >= userClaimed.
@@ -202,7 +202,7 @@ abstract contract ERC4626PartnerManager is PartnerUtilityManager, Ownable, ERC46
     //////////////////////////////////////////////////////////////*/
 
     /// @inheritdoc IERC4626PartnerManager
-    function migratePartnerVault(address newPartnerVault) external onlyOwner {
+    function migratePartnerVault(address newPartnerVault) external override onlyOwner {
         if (factory.vaultIds(IBaseVault(newPartnerVault)) == 0) revert UnrecognizedVault();
 
         address oldPartnerVault = partnerVault;
@@ -237,7 +237,7 @@ abstract contract ERC4626PartnerManager is PartnerUtilityManager, Ownable, ERC46
     //////////////////////////////////////////////////////////////*/
 
     /// @inheritdoc IERC4626PartnerManager
-    function increaseConversionRate(uint256 newRate) external onlyOwner {
+    function increaseConversionRate(uint256 newRate) external override onlyOwner {
         uint256 _bHermesRate = bHermesRate;
         if (newRate <= _bHermesRate) revert InvalidRate();
 

@@ -33,7 +33,7 @@ contract BaseV2GaugeManager is Ownable, IBaseV2GaugeManager {
     BaseV2GaugeFactory[] public gaugeFactories;
 
     /// @inheritdoc IBaseV2GaugeManager
-    mapping(BaseV2GaugeFactory gaugeFactory => uint256 gaugeFactoryId ) public gaugeFactoryIds;
+    mapping(BaseV2GaugeFactory gaugeFactory => uint256 gaugeFactoryId) public gaugeFactoryIds;
 
     /// @inheritdoc IBaseV2GaugeManager
     mapping(BaseV2GaugeFactory gaugeFactory => bool isActive) public activeGaugeFactories;
@@ -62,7 +62,7 @@ contract BaseV2GaugeManager is Ownable, IBaseV2GaugeManager {
     //////////////////////////////////////////////////////////////*/
 
     /// @inheritdoc IBaseV2GaugeManager
-    function newEpoch() external {
+    function newEpoch() external override {
         BaseV2GaugeFactory[] storage _gaugeFactories = gaugeFactories;
 
         uint256 length = _gaugeFactories.length;
@@ -76,7 +76,7 @@ contract BaseV2GaugeManager is Ownable, IBaseV2GaugeManager {
     }
 
     /// @inheritdoc IBaseV2GaugeManager
-    function newEpoch(uint256 start, uint256 end) external {
+    function newEpoch(uint256 start, uint256 end) external override {
         BaseV2GaugeFactory[] storage _gaugeFactories = gaugeFactories;
 
         uint256 length = _gaugeFactories.length;
@@ -96,13 +96,13 @@ contract BaseV2GaugeManager is Ownable, IBaseV2GaugeManager {
     //////////////////////////////////////////////////////////////*/
 
     /// @inheritdoc IBaseV2GaugeManager
-    function addGauge(address gauge) external onlyActiveGaugeFactory rewardsAreQueuedForThisCycle {
+    function addGauge(address gauge) external override onlyActiveGaugeFactory rewardsAreQueuedForThisCycle {
         bHermesGaugeWeight.addGauge(gauge);
         bHermesGaugeBoost.addGauge(gauge);
     }
 
     /// @inheritdoc IBaseV2GaugeManager
-    function removeGauge(address gauge) external onlyActiveGaugeFactory rewardsAreQueuedForThisCycle {
+    function removeGauge(address gauge) external override onlyActiveGaugeFactory rewardsAreQueuedForThisCycle {
         bHermesGaugeWeight.removeGauge(gauge);
         bHermesGaugeBoost.removeGauge(gauge);
     }
@@ -112,7 +112,7 @@ contract BaseV2GaugeManager is Ownable, IBaseV2GaugeManager {
     //////////////////////////////////////////////////////////////*/
 
     /// @inheritdoc IBaseV2GaugeManager
-    function addGaugeFactory(BaseV2GaugeFactory gaugeFactory) external onlyOwner {
+    function addGaugeFactory(BaseV2GaugeFactory gaugeFactory) external override onlyOwner {
         if (activeGaugeFactories[gaugeFactory]) revert GaugeFactoryAlreadyExists();
 
         gaugeFactoryIds[gaugeFactory] = gaugeFactories.length;
@@ -123,7 +123,7 @@ contract BaseV2GaugeManager is Ownable, IBaseV2GaugeManager {
     }
 
     /// @inheritdoc IBaseV2GaugeManager
-    function removeGaugeFactory(BaseV2GaugeFactory gaugeFactory) external onlyOwner {
+    function removeGaugeFactory(BaseV2GaugeFactory gaugeFactory) external override onlyOwner {
         if (!activeGaugeFactories[gaugeFactory] || gaugeFactories[gaugeFactoryIds[gaugeFactory]] != gaugeFactory) {
             revert NotActiveGaugeFactory();
         }
@@ -139,7 +139,7 @@ contract BaseV2GaugeManager is Ownable, IBaseV2GaugeManager {
     //////////////////////////////////////////////////////////////*/
 
     /// @inheritdoc IBaseV2GaugeManager
-    function changebHermesGaugeOwner(address newOwner) external onlyAdmin {
+    function changebHermesGaugeOwner(address newOwner) external override onlyAdmin {
         bHermesGaugeWeight.transferOwnership(newOwner);
         bHermesGaugeBoost.transferOwnership(newOwner);
 
@@ -147,7 +147,7 @@ contract BaseV2GaugeManager is Ownable, IBaseV2GaugeManager {
     }
 
     /// @inheritdoc IBaseV2GaugeManager
-    function changeAdmin(address newAdmin) external onlyAdmin {
+    function changeAdmin(address newAdmin) external override onlyAdmin {
         admin = newAdmin;
 
         emit ChangedAdmin(newAdmin);

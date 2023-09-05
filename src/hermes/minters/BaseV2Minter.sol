@@ -74,7 +74,7 @@ contract BaseV2Minter is Ownable, IBaseV2Minter {
     //////////////////////////////////////////////////////////////*/
 
     /// @inheritdoc IBaseV2Minter
-    function initialize(FlywheelGaugeRewards _flywheelGaugeRewards) external {
+    function initialize(FlywheelGaugeRewards _flywheelGaugeRewards) external override {
         if (initializer != msg.sender) revert NotInitializer();
         flywheelGaugeRewards = _flywheelGaugeRewards;
         initializer = address(0);
@@ -82,7 +82,7 @@ contract BaseV2Minter is Ownable, IBaseV2Minter {
     }
 
     /// @inheritdoc IBaseV2Minter
-    function setDao(address _dao) external onlyOwner {
+    function setDao(address _dao) external override onlyOwner {
         /// @dev DAO can be set to address(0) to disable DAO rewards.
         dao = _dao;
         if (_dao == address(0)) daoShare = 0;
@@ -91,7 +91,7 @@ contract BaseV2Minter is Ownable, IBaseV2Minter {
     }
 
     /// @inheritdoc IBaseV2Minter
-    function setDaoShare(uint96 _daoShare) external onlyOwner {
+    function setDaoShare(uint96 _daoShare) external override onlyOwner {
         if (_daoShare > MAX_DAO_SHARE) revert DaoShareTooHigh();
         if (dao == address(0)) revert DaoRewardsAreDisabled();
         daoShare = _daoShare;
@@ -100,7 +100,7 @@ contract BaseV2Minter is Ownable, IBaseV2Minter {
     }
 
     /// @inheritdoc IBaseV2Minter
-    function setTailEmission(uint96 _tailEmission) external onlyOwner {
+    function setTailEmission(uint96 _tailEmission) external override onlyOwner {
         if (_tailEmission > MAX_TAIL_EMISSION) revert TailEmissionTooHigh();
         tailEmission = _tailEmission;
 
@@ -112,12 +112,12 @@ contract BaseV2Minter is Ownable, IBaseV2Minter {
     //////////////////////////////////////////////////////////////*/
 
     /// @inheritdoc IBaseV2Minter
-    function circulatingSupply() public view returns (uint256) {
+    function circulatingSupply() public view override returns (uint256) {
         return HERMES(underlying).totalSupply() - vault.totalAssets();
     }
 
     /// @inheritdoc IBaseV2Minter
-    function weeklyEmission() external view returns (uint256) {
+    function weeklyEmission() external view override returns (uint256) {
         return _weeklyEmission(circulatingSupply());
     }
 
@@ -126,12 +126,12 @@ contract BaseV2Minter is Ownable, IBaseV2Minter {
     }
 
     /// @inheritdoc IBaseV2Minter
-    function calculateGrowth(uint256 _minted) public view returns (uint256) {
+    function calculateGrowth(uint256 _minted) public view override returns (uint256) {
         return (vault.totalAssets() * _minted) / HERMES(underlying).totalSupply();
     }
 
     /// @inheritdoc IBaseV2Minter
-    function updatePeriod() public returns (uint256) {
+    function updatePeriod() public override returns (uint256) {
         uint256 _period = activePeriod;
         // only trigger if new week
         if (block.timestamp >= _period + 1 weeks && initializer == address(0)) {
@@ -176,7 +176,7 @@ contract BaseV2Minter is Ownable, IBaseV2Minter {
     //////////////////////////////////////////////////////////////*/
 
     /// @inheritdoc IBaseV2Minter
-    function getRewards() external returns (uint256 totalQueuedForCycle) {
+    function getRewards() external override returns (uint256 totalQueuedForCycle) {
         if (address(flywheelGaugeRewards) != msg.sender) revert NotFlywheelGaugeRewards();
         totalQueuedForCycle = weekly;
         delete weekly;

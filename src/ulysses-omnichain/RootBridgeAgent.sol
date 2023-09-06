@@ -272,7 +272,7 @@ contract RootBridgeAgent is IRootBridgeAgent {
             }
         }
 
-        //Update User Gas available. 
+        //Update User Gas available.
         if (initialGas == 0) {
             userFeeInfo.depositedGas = uint128(msg.value);
             userFeeInfo.gasToBridgeOut = _remoteExecutionGas;
@@ -1195,7 +1195,11 @@ contract RootBridgeAgent is IRootBridgeAgent {
             // DEPOSIT FLAG: 6 (Call with multiple asset Deposit + msg.sender)
         } else if (flag == 0x06) {
             // Check if tx has already been executed
-            if (executionState[fromChainId][uint32(bytes4(data[PARAMS_START_SIGNED:25]))] != 0) {
+            if (
+                executionState[fromChainId][uint32(
+                    bytes4(data[PARAMS_START_SIGNED + PARAMS_START:PARAMS_START_SIGNED + PARAMS_TKN_START])
+                )] != 0
+            ) {
                 _forceRevert();
                 // Return true to avoid triggering anyFallback in case of `_forceRevert()` failure
                 return (true, "already executed tx");

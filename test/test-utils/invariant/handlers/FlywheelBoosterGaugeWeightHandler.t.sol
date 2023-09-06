@@ -197,7 +197,7 @@ contract FlywheelBoosterGaugeWeightHandler is CommonBase, StdCheats, StdUtils {
             ghost_zeroOptOut++;
             return;
         }
-        booster.optOut(ERC20(currentGauge), FlywheelCore(currentFlywheel));
+        booster.optOut(ERC20(currentGauge), FlywheelCore(currentFlywheel), true);
 
         require(
             booster.userGaugeflywheelId(currentActor, ERC20(currentGauge), FlywheelCore(currentFlywheel)) == 0,

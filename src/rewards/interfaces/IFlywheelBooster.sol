@@ -21,7 +21,7 @@ import {FlywheelCore} from "@rewards/FlywheelCoreStrategy.sol";
  *          SECURITY NOTE: Similar to how Core needs to be notified any time the strategy user composition changes,
  *          the booster would need to be notified of any conditions which change the boosted balances atomically.
  *          This prevents gaming of the reward calculation function by using manipulated balances when accruing.
- * 
+ *
  *          NOTE: Gets total and user voting power allocated to each strategy.
  *
  *          ⣿⡇⣿⣿⣿⠛⠁⣴⣿⡿⠿⠧⠹⠿⠘⣿⣿⣿⡇⢸⡻⣿⣿⣿⣿⣿⣿⣿
@@ -112,8 +112,9 @@ interface IFlywheelBooster {
      * @notice opt-out of a flywheel for a strategy
      *   @param strategy the strategy to opt-out of
      *   @param flywheel the flywheel to opt-out of
+     *   @param accrue whether or not to accrue rewards before opting out
      */
-    function optOut(ERC20 strategy, FlywheelCore flywheel) external;
+    function optOut(ERC20 strategy, FlywheelCore flywheel, bool accrue) external;
 
     /*///////////////////////////////////////////////////////////////
                        bHERMES GAUGE WEIGHT ACCRUAL

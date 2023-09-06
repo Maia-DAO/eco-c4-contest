@@ -88,14 +88,14 @@ contract FlywheelBoosterGaugeWeight is Ownable, IFlywheelBooster {
     }
 
     /// @inheritdoc IFlywheelBooster
-    function optOut(ERC20 strategy, FlywheelCore flywheel) external override {
+    function optOut(ERC20 strategy, FlywheelCore flywheel, bool accrue) external override {
         FlywheelCore[] storage bribeFlywheels = userGaugeFlywheels[msg.sender][strategy];
 
         uint256 userFlywheelId = userGaugeflywheelId[msg.sender][strategy][flywheel];
 
         if (userFlywheelId == 0) revert NotOptedIn();
 
-        flywheel.accrue(strategy, msg.sender);
+        if (accrue) flywheel.accrue(strategy, msg.sender);
 
         flywheelStrategyGaugeWeight[strategy][flywheel] = flywheelStrategyGaugeWeight[strategy][flywheel]
             - bHermesGauges(owner()).getUserGaugeWeight(msg.sender, address(strategy));

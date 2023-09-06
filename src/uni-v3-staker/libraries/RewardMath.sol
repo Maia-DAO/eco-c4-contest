@@ -43,7 +43,8 @@ library RewardMath {
             // calculate boosted seconds insisde
             // 40% of original value + 60% of ((staked duration * boost amount) / boost total supply)
             boostedSecondsInsideX128 = uint160(
-                ((secondsInsideX128 * 4) / 10) + (6 * (((stakedDuration << 128) * boostAmount) / boostTotalSupply)) / 10
+                ((secondsInsideX128 << 2) / 10)
+                    + (6 * (((stakedDuration << 128) * boostAmount) / boostTotalSupply)) / 10
             );
 
             // calculate boosted seconds inside, can't be larger than the original reward amount
@@ -52,7 +53,7 @@ library RewardMath {
             }
         } else {
             // if no boost supply, then just use 40% of original value
-            boostedSecondsInsideX128 = (secondsInsideX128 * 4) / 10;
+            boostedSecondsInsideX128 = (secondsInsideX128 << 2) / 10;
         }
     }
 

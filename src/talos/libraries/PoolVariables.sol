@@ -20,7 +20,7 @@ library PoolVariables {
     using FixedPointMathLib for uint256;
     using FixedPointMathLib for uint128;
 
-    uint24 private constant GLOBAL_DIVISIONER = 1e6; // for basis point (0.0001%)
+    uint24 private constant GLOBAL_DIVISIONER = 2 * 1e6; // for basis point (0.0001%)
 
     /// @notice Shows current Optimizer's balances
     /// @param totalAmount0 Current token0 Optimizer's balance
@@ -266,11 +266,11 @@ library PoolVariables {
         // Calculations strive to achieve a one to one ratio
         // always positive. "overflow" safe conversion cuz we are dividing by 2
         amountSpecified = zeroForOne
-            ? int256((cache.amount0Desired - cache.amount0) / 2)
-            : int256((cache.amount1Desired - cache.amount1) / 2);
+            ? int256((cache.amount0Desired - cache.amount0) >> 1)
+            : int256((cache.amount1Desired - cache.amount1) >> 1);
 
         // Calculate Price limit depending on price impact
-        uint160 exactSqrtPriceImpact = (sqrtPriceX96 * _strategy.priceImpactPercentage()) / (2 * GLOBAL_DIVISIONER);
+        uint160 exactSqrtPriceImpact = (sqrtPriceX96 * _strategy.priceImpactPercentage()) / GLOBAL_DIVISIONER;
         sqrtPriceLimitX96 = zeroForOne ? sqrtPriceX96 - exactSqrtPriceImpact : sqrtPriceX96 + exactSqrtPriceImpact;
     }
 

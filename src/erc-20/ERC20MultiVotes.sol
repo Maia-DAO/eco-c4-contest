@@ -79,7 +79,7 @@ abstract contract ERC20MultiVotes is ERC20, Ownable, IERC20MultiVotes {
 
     function _average(uint256 a, uint256 b) internal pure returns (uint256) {
         // (a + b) / 2 can overflow.
-        return (a & b) + (a ^ b) / 2;
+        return (a & b) + ((a ^ b) >> 1);
     }
 
     /*///////////////////////////////////////////////////////////////

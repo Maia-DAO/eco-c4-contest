@@ -5,8 +5,9 @@ pragma solidity ^0.8.0;
  * @title  An ERC20 with an embedded attachment mechanism to keep track of boost allocations to gauges.
  *  @author Maia DAO (https://github.com/Maia-DAO)
  *  @notice This contract is meant to be used to represent a token that can boost holders' rewards in other contracts.
- *          Holders can have their boost attached to gauges and cannot transfer their bHermes until they remove their boost.
- *          Only gauges can attach and detach boost from a user. The current user's boost and total supply are stored when attaching.
+ *          Holders can have their boost attached to gauges and cannot transfer their BurntHermes until they detach it.
+ *          Only gauges can attach and detach boost from a user.
+ *          The current user's boost and total supply are stored when attaching.
  *          The boost is then detached when the user removes their boost or when the gauge is removed.
  *          A "gauge" is represented by an address that distributes rewards to users periodically or continuously.
  *
@@ -23,7 +24,9 @@ pragma solidity ^0.8.0;
  *  @dev    SECURITY NOTES: decrementGaugeAllBoost can run out of gas.
  *          Gauges should be removed individually until decrementGaugeAllBoost can be called.
  *
- *          After having the boost attached, getUserBoost() will return the maximum boost a user had allocated to all gauges.
+ *          After having the boost attached:
+ *           - getUserBoost() will return the maximum boost a user had allocated to all gauges.
+ *             Which may be more than the current boost if there was boost removed and updateUserBoost() was not called.
  *
  *          Boost state is preserved on the gauge and user level even when a gauge is removed, in case it is re-added.
  */
@@ -33,9 +36,9 @@ interface IERC20Boost {
     //////////////////////////////////////////////////////////////*/
 
     /**
-     * @notice User allocated boost to a gauge and bHermes total supply.
+     * @notice User allocated boost to a gauge and BurntHermes total supply.
      * @param userGaugeBoost User allocated boost to a gauge.
-     * @param totalGaugeBoost bHermes total supply when a user allocated the boost.
+     * @param totalGaugeBoost BurntHermes total supply when a user allocated the boost.
      */
     struct GaugeState {
         uint128 userGaugeBoost;
@@ -47,11 +50,11 @@ interface IERC20Boost {
     //////////////////////////////////////////////////////////////*/
 
     /**
-     * @notice User allocated boost to a gauge and the bHermes total supply.
+     * @notice User allocated boost to a gauge and the BurntHermes total supply.
      * @param user User address.
      * @param gauge Gauge address.
      * @return userGaugeBoost User allocated boost to a gauge.
-     * @return totalGaugeBoost The bHermes total supply when a user allocated the boost.
+     * @return totalGaugeBoost The BurntHermes total supply when a user allocated the boost.
      */
     function getUserGaugeBoost(address user, address gauge)
         external
@@ -213,16 +216,16 @@ interface IERC20Boost {
     event RemoveGauge(address indexed gauge);
 
     /// @notice emmitted when a user attaches boost to a gauge.
-    event Attach(address indexed user, address indexed gauge, uint256 boost);
+    event Attach(address indexed user, address indexed gauge, uint256 indexed boost);
 
     /// @notice emmitted when a user detaches boost from a gauge.
     event Detach(address indexed user, address indexed gauge);
 
     /// @notice emmitted when a user updates their boost.
-    event UpdateUserBoost(address indexed user, uint256 updatedBoost);
+    event UpdateUserBoost(address indexed user, uint256 indexed updatedBoost);
 
     /// @notice emmitted when a user decrements their gauge boost.
-    event DecrementUserGaugeBoost(address indexed user, address indexed gauge, uint256 UpdatedBoost);
+    event DecrementUserGaugeBoost(address indexed user, address indexed gauge, uint256 indexed UpdatedBoost);
 
     /*///////////////////////////////////////////////////////////////
                             ERRORS

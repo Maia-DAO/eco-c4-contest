@@ -45,7 +45,7 @@ contract MultiRewardsDepot is Ownable, RewardsDepot, IMultiRewardsDepot {
 
     /// @inheritdoc IMultiRewardsDepot
     function addAsset(address rewardsContract, address asset) external onlyOwner {
-        if (_assets[rewardsContract] != address(0) || _rewardsContracts[asset] != address(0)) revert ErrorAddingAsset();
+        if (_rewardsContracts[asset] != address(0)) revert ErrorAddingAsset();
         _rewardsContracts[asset] = rewardsContract;
         _assets[rewardsContract] = asset;
 

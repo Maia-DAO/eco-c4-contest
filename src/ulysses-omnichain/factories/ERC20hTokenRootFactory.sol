@@ -13,7 +13,7 @@ contract ERC20hTokenRootFactory is Ownable, IERC20hTokenRootFactory {
     using SafeTransferLib for address;
 
     /// @notice Local Network Identifier.
-    uint256 public immutable localChainId;
+    uint16 public immutable localChainId;
 
     /// @notice Root Port Address.
     address public immutable rootPortAddress;
@@ -21,16 +21,15 @@ contract ERC20hTokenRootFactory is Ownable, IERC20hTokenRootFactory {
     /// @notice Root Core Router Address, in charge of the addition of new tokens to the system.
     address public coreRootRouterAddress;
 
+    /// @notice Array of all hTokens created.
     ERC20hTokenRoot[] public hTokens;
-
-    uint256 public hTokensLenght;
 
     /**
      * @notice Constructor for ERC20 hToken Contract
      *     @param _localChainId Local Network Identifier.
      *     @param _rootPortAddress Root Port Address
      */
-    constructor(uint256 _localChainId, address _rootPortAddress) {
+    constructor(uint16 _localChainId, address _rootPortAddress) {
         require(_rootPortAddress != address(0), "Root Port Address cannot be 0");
         localChainId = _localChainId;
         rootPortAddress = _rootPortAddress;
@@ -53,7 +52,7 @@ contract ERC20hTokenRootFactory is Ownable, IERC20hTokenRootFactory {
      */
     function createToken(string memory _name, string memory _symbol)
         external
-        requiresCoreRouter
+        requiresCoreRouterOrPort
         returns (ERC20hTokenRoot newToken)
     {
         newToken = new ERC20hTokenRoot(
@@ -64,16 +63,17 @@ contract ERC20hTokenRootFactory is Ownable, IERC20hTokenRootFactory {
             _symbol
         );
         hTokens.push(newToken);
-        hTokensLenght++;
     }
 
     /*///////////////////////////////////////////////////////////////
                                 MODIFIERS
     //////////////////////////////////////////////////////////////*/
     /// @notice Modifier that verifies msg sender is the RootInterface Contract from Root Chain.
-    modifier requiresCoreRouter() {
-        if (msg.sender != coreRootRouterAddress && msg.sender != rootPortAddress) {
-            revert UnrecognizedCoreRouter();
+    modifier requiresCoreRouterOrPort() {
+        if (msg.sender != coreRootRouterAddress) {
+            if (msg.sender != rootPortAddress) {
+                revert UnrecognizedCoreRouterOrPort();
+            }
         }
         _;
     }

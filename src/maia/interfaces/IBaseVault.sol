@@ -1,11 +1,10 @@
 // SPDX-License-Identifier: MIT
-
 pragma solidity ^0.8.0;
 
 /**
  * @title Base Vault Contract.
  * @author Maia DAO (https://github.com/Maia-DAO)
- *  @notice This contract allows for the management of bHermes utility tokens.
+ *  @notice This contract allows for the management of BurntHermes utility tokens.
  *          Should be able to retrieve applied tokens at any time and transfer
  *          back to its owner(s).
  *

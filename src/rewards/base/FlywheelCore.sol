@@ -27,7 +27,7 @@ abstract contract FlywheelCore is Ownable, IFlywheelCore {
     ERC20[] public override allStrategies;
 
     /// @inheritdoc IFlywheelCore
-    mapping(ERC20 => uint256) public override strategyIds;
+    mapping(ERC20 strategy => uint256 strategyIds) public override strategyIds;
 
     /// @inheritdoc IFlywheelCore
     address public override flywheelRewards;
@@ -59,15 +59,15 @@ abstract contract FlywheelCore is Ownable, IFlywheelCore {
     //////////////////////////////////////////////////////////////*/
 
     /// @inheritdoc IFlywheelCore
-    mapping(address => uint256) public override rewardsAccrued;
+    mapping(address user => uint256 userRewards) public override rewardsAccrued;
 
     /// @inheritdoc IFlywheelCore
-    function accrue(address user) external returns (uint256) {
+    function accrue(address user) external override returns (uint256) {
         return _accrue(ERC20(msg.sender), user);
     }
 
     /// @inheritdoc IFlywheelCore
-    function accrue(ERC20 strategy, address user) external returns (uint256) {
+    function accrue(ERC20 strategy, address user) external override returns (uint256) {
         return _accrue(strategy, user);
     }
 
@@ -81,7 +81,7 @@ abstract contract FlywheelCore is Ownable, IFlywheelCore {
     }
 
     /// @inheritdoc IFlywheelCore
-    function accrue(ERC20 strategy, address user, address secondUser) public returns (uint256, uint256) {
+    function accrue(ERC20 strategy, address user, address secondUser) public override returns (uint256, uint256) {
         uint256 index = strategyIndex[strategy];
 
         if (index == 0) return (0, 0);
@@ -91,13 +91,13 @@ abstract contract FlywheelCore is Ownable, IFlywheelCore {
     }
 
     /// @inheritdoc IFlywheelCore
-    function claimRewards(address user) external {
+    function claimRewards(address user) external override {
         uint256 accrued = rewardsAccrued[user];
 
         if (accrued != 0) {
-            rewardsAccrued[user] = 0;
+            delete rewardsAccrued[user];
 
-            rewardToken.safeTransferFrom(address(flywheelRewards), user, accrued);
+            rewardToken.safeTransferFrom(flywheelRewards, user, accrued);
 
             emit ClaimRewards(user, accrued);
         }
@@ -108,7 +108,7 @@ abstract contract FlywheelCore is Ownable, IFlywheelCore {
     //////////////////////////////////////////////////////////////*/
 
     /// @inheritdoc IFlywheelCore
-    function addStrategyForRewards(ERC20 strategy) external onlyOwner {
+    function addStrategyForRewards(ERC20 strategy) external override onlyOwner {
         _addStrategyForRewards(strategy);
     }
 
@@ -122,19 +122,19 @@ abstract contract FlywheelCore is Ownable, IFlywheelCore {
     }
 
     /// @inheritdoc IFlywheelCore
-    function setFlywheelRewards(address newFlywheelRewards) external onlyOwner {
-        uint256 oldRewardBalance = rewardToken.balanceOf(address(flywheelRewards));
+    function setFlywheelRewards(address newFlywheelRewards) external override onlyOwner {
+        uint256 oldRewardBalance = rewardToken.balanceOf(flywheelRewards);
         if (oldRewardBalance > 0 && flywheelRewards != address(0)) {
-            rewardToken.safeTransferFrom(address(flywheelRewards), address(newFlywheelRewards), oldRewardBalance);
+            rewardToken.safeTransferFrom(flywheelRewards, newFlywheelRewards, oldRewardBalance);
         }
 
         flywheelRewards = newFlywheelRewards;
 
-        emit FlywheelRewardsUpdate(address(newFlywheelRewards));
+        emit FlywheelRewardsUpdate(newFlywheelRewards);
     }
 
     /// @inheritdoc IFlywheelCore
-    function setBooster(IFlywheelBooster newBooster) external onlyOwner {
+    function setBooster(IFlywheelBooster newBooster) external override onlyOwner {
         flywheelBooster = newBooster;
 
         emit FlywheelBoosterUpdate(address(newBooster));
@@ -148,10 +148,10 @@ abstract contract FlywheelCore is Ownable, IFlywheelCore {
     uint256 private constant ONE = 1e18;
 
     /// @inheritdoc IFlywheelCore
-    mapping(ERC20 => uint256) public strategyIndex;
+    mapping(ERC20 strategy => uint256 index) public override strategyIndex;
 
     /// @inheritdoc IFlywheelCore
-    mapping(ERC20 => mapping(address => uint256)) public userIndex;
+    mapping(ERC20 strategy => mapping(address user => uint256 index)) public override userIndex;
 
     /// @notice accumulate global rewards on a strategy
     function accrueStrategy(ERC20 strategy, uint256 state) private returns (uint256 rewardsIndex) {
@@ -165,10 +165,12 @@ abstract contract FlywheelCore is Ownable, IFlywheelCore {
                 ? flywheelBooster.boostedTotalSupply(strategy)
                 : strategy.totalSupply();
 
-            uint224 deltaIndex;
+            uint256 deltaIndex;
 
-            if (supplyTokens != 0) {
-                deltaIndex = ((strategyRewardsAccrued * ONE) / supplyTokens).toUint224();
+            if (supplyTokens > 0) {
+                unchecked {
+                    deltaIndex = (strategyRewardsAccrued * ONE) / supplyTokens;
+                }
             }
 
             // accumulate rewards per token onto the index, multiplied by a fixed-point factor

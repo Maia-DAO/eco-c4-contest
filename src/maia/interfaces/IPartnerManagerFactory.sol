@@ -1,9 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import {ERC20} from "solmate/tokens/ERC20.sol";
-
-import {ERC4626PartnerManager as PartnerManager, IBaseVault} from "../tokens/ERC4626PartnerManager.sol";
+import {IBaseVault} from "../interfaces/IBaseVault.sol";
+import {ERC4626PartnerManager as PartnerManager} from "../tokens/ERC4626PartnerManager.sol";
 
 /**
  * @title Factory for managing PartnerManagers
@@ -15,8 +14,8 @@ interface IPartnerManagerFactory {
                             PARTNER MANAGER STATE
     //////////////////////////////////////////////////////////////*/
 
-    /// @notice The bHermes token.
-    function bHermes() external view returns (ERC20);
+    /// @notice The BurntHermes token.
+    function bHermes() external view returns (address);
 
     /// @notice Returns the partner manager at the given index.
     function partners(uint256) external view returns (PartnerManager);
@@ -61,10 +60,10 @@ interface IPartnerManagerFactory {
     //////////////////////////////////////////////////////////////*/
 
     /// @notice Emitted when a new partner manager is added.
-    event AddedPartner(PartnerManager partnerManager, uint256 id);
+    event AddedPartner(PartnerManager indexed partnerManager, uint256 indexed id);
 
     /// @notice Emitted when a new vault is added.
-    event AddedVault(IBaseVault vault, uint256 id);
+    event AddedVault(IBaseVault indexed vault, uint256 indexed id);
 
     /// @notice Emitted when a partner manager is removed.
     event RemovedPartner(PartnerManager indexed partnerManager);

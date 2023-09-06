@@ -14,35 +14,7 @@ import {FlywheelCore} from "@rewards/FlywheelCoreStrategy.sol";
 
 import {IFlywheelBooster} from "../interfaces/IFlywheelBooster.sol";
 
-/**
- * @title Balance Booster Module for Flywheel
- *  @notice Flywheel is a general framework for managing token incentives.
- *          It takes reward streams to various *strategies* such as staking LP tokens and divides them among *users* of those strategies.
- *
- *          The Booster module is an optional module for virtually boosting or otherwise transforming user balances.
- *          If a booster is not configured, the strategies ERC-20 balanceOf/totalSupply will be used instead.
- *
- *          Boosting logic can be associated with referrals, vote-escrow, or other strategies.
- *
- *          SECURITY NOTE: similar to how Core needs to be notified any time the strategy user composition changes, the booster would need to be notified of any conditions which change the boosted balances atomically.
- *          This prevents gaming of the reward calculation function by using manipulated balances when accruing.
- *
- *          NOTE: Gets total and user voting power allocated to each strategy.
- *
- * ⣿⡇⣿⣿⣿⠛⠁⣴⣿⡿⠿⠧⠹⠿⠘⣿⣿⣿⡇⢸⡻⣿⣿⣿⣿⣿⣿⣿
- * ⢹⡇⣿⣿⣿⠄⣞⣯⣷⣾⣿⣿⣧⡹⡆⡀⠉⢹⡌⠐⢿⣿⣿⣿⡞⣿⣿⣿
- * ⣾⡇⣿⣿⡇⣾⣿⣿⣿⣿⣿⣿⣿⣿⣄⢻⣦⡀⠁⢸⡌⠻⣿⣿⣿⡽⣿⣿
- * ⡇⣿⠹⣿⡇⡟⠛⣉⠁⠉⠉⠻⡿⣿⣿⣿⣿⣿⣦⣄⡉⠂⠈⠙⢿⣿⣝⣿
- * ⠤⢿⡄⠹⣧⣷⣸⡇⠄⠄⠲⢰⣌⣾⣿⣿⣿⣿⣿⣿⣶⣤⣤⡀⠄⠈⠻⢮
- * ⠄⢸⣧⠄⢘⢻⣿⡇⢀⣀⠄⣸⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣧⡀⠄⢀
- * ⠄⠈⣿⡆⢸⣿⣿⣿⣬⣭⣴⣿⣿⣿⣿⣿⣿⣿⣯⠝⠛⠛⠙⢿⡿⠃⠄⢸
- * ⠄⠄⢿⣿⡀⣿⣿⣿⣾⣿⣿⣿⣿⣿⣿⣿⣿⣿⣷⣿⣿⣿⣿⡾⠁⢠⡇⢀
- * ⠄⠄⢸⣿⡇⠻⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣏⣫⣻⡟⢀⠄⣿⣷⣾
- * ⠄⠄⢸⣿⡇⠄⠈⠙⠿⣿⣿⣿⣮⣿⣿⣿⣿⣿⣿⣿⣿⡿⢠⠊⢀⡇⣿⣿
- * ⠒⠤⠄⣿⡇⢀⡲⠄⠄⠈⠙⠻⢿⣿⣿⠿⠿⠟⠛⠋⠁⣰⠇⠄⢸⣿⣿⣿
- * ⠄⠄⠄⣿⡇⢬⡻⡇⡄⠄⠄⠄⡰⢖⠔⠉⠄⠄⠄⠄⣼⠏⠄⠄⢸⣿⣿⣿
- * ⠄⠄⠄⣿⡇⠄⠙⢌⢷⣆⡀⡾⡣⠃⠄⠄⠄⠄⠄⣼⡟⠄⠄⠄⠄⢿⣿⣿
- */
+/// @title Balance Booster Module for Flywheel
 contract FlywheelBoosterGaugeWeight is Ownable, IFlywheelBooster {
     /*///////////////////////////////////////////////////////////////
                         FLYWHEEL BOOSTER STATE
@@ -51,20 +23,21 @@ contract FlywheelBoosterGaugeWeight is Ownable, IFlywheelBooster {
     BribesFactory public immutable bribesFactory;
 
     /// @inheritdoc IFlywheelBooster
-    mapping(address user => mapping(ERC20 strategy => FlywheelCore[] flywheel)) public userGaugeFlywheels;
+    mapping(address user => mapping(ERC20 strategy => FlywheelCore[] flywheel)) public override userGaugeFlywheels;
 
     /// @inheritdoc IFlywheelBooster
-    mapping(address user => mapping(ERC20 strategy => mapping(FlywheelCore flywheel => uint256 id))) public
+    mapping(address user => mapping(ERC20 strategy => mapping(FlywheelCore flywheel => uint256 id))) public override
         userGaugeflywheelId;
 
     /// @inheritdoc IFlywheelBooster
-    mapping(ERC20 strategy => mapping(FlywheelCore flywheel => uint256 gaugeWeight)) public flywheelStrategyGaugeWeight;
+    mapping(ERC20 strategy => mapping(FlywheelCore flywheel => uint256 gaugeWeight)) public override
+        flywheelStrategyGaugeWeight;
 
-    constructor(uint256 _rewardsCycleLength) {
-        // Must transfer ownership to bHermesGauges contract after its depolyment.
+    constructor() {
+        // Must transfer ownership to bHermesGauges contract after its deployment.
         _initializeOwner(msg.sender);
 
-        bribesFactory = new BribesFactory(_rewardsCycleLength, msg.sender);
+        bribesFactory = new BribesFactory(msg.sender);
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -72,19 +45,24 @@ contract FlywheelBoosterGaugeWeight is Ownable, IFlywheelBooster {
     ///////////////////////////////////////////////////////////////*/
 
     /// @inheritdoc IFlywheelBooster
-    function getUserGaugeFlywheels(address user, ERC20 strategy) external view returns (FlywheelCore[] memory) {
+    function getUserGaugeFlywheels(address user, ERC20 strategy)
+        external
+        view
+        override
+        returns (FlywheelCore[] memory)
+    {
         return userGaugeFlywheels[user][strategy];
     }
 
     /// @inheritdoc IFlywheelBooster
-    /// @dev Total opt in gauge weight allocated to the strategy
-    function boostedTotalSupply(ERC20 strategy) external view returns (uint256) {
+    /// @dev Total opt-in gauge weight allocated to the strategy
+    function boostedTotalSupply(ERC20 strategy) external view override returns (uint256) {
         return flywheelStrategyGaugeWeight[strategy][FlywheelCore(msg.sender)];
     }
 
     /// @inheritdoc IFlywheelBooster
-    /// @dev User's opt in gauge weight allocated to the strategy
-    function boostedBalanceOf(ERC20 strategy, address user) external view returns (uint256) {
+    /// @dev User's opt-in gauge weight allocated to the strategy
+    function boostedBalanceOf(ERC20 strategy, address user) external view override returns (uint256) {
         return userGaugeflywheelId[user][strategy][FlywheelCore(msg.sender)] == 0
             ? 0
             : bHermesGauges(owner()).getUserGaugeWeight(user, address(strategy));
@@ -95,7 +73,7 @@ contract FlywheelBoosterGaugeWeight is Ownable, IFlywheelBooster {
     ///////////////////////////////////////////////////////////////*/
 
     /// @inheritdoc IFlywheelBooster
-    function optIn(ERC20 strategy, FlywheelCore flywheel) external {
+    function optIn(ERC20 strategy, FlywheelCore flywheel) external override {
         if (userGaugeflywheelId[msg.sender][strategy][flywheel] != 0) revert AlreadyOptedIn();
         if (!bHermesGauges(owner()).isGauge(address(strategy))) revert InvalidGauge();
         if (bribesFactory.bribeFlywheelIds(flywheel) == 0) revert InvalidFlywheel();
@@ -110,36 +88,41 @@ contract FlywheelBoosterGaugeWeight is Ownable, IFlywheelBooster {
     }
 
     /// @inheritdoc IFlywheelBooster
-    function optOut(ERC20 strategy, FlywheelCore flywheel) external {
+    function optOut(ERC20 strategy, FlywheelCore flywheel, bool accrue) external override {
         FlywheelCore[] storage bribeFlywheels = userGaugeFlywheels[msg.sender][strategy];
 
         uint256 userFlywheelId = userGaugeflywheelId[msg.sender][strategy][flywheel];
 
         if (userFlywheelId == 0) revert NotOptedIn();
 
-        flywheel.accrue(strategy, msg.sender);
+        if (accrue) flywheel.accrue(strategy, msg.sender);
 
         flywheelStrategyGaugeWeight[strategy][flywheel] = flywheelStrategyGaugeWeight[strategy][flywheel]
             - bHermesGauges(owner()).getUserGaugeWeight(msg.sender, address(strategy));
 
         uint256 length = bribeFlywheels.length;
-        if (length != userFlywheelId) bribeFlywheels[userFlywheelId - 1] = bribeFlywheels[bribeFlywheels.length - 1];
+        if (length != userFlywheelId) {
+            FlywheelCore lastFlywheel = bribeFlywheels[length - 1];
+
+            bribeFlywheels[userFlywheelId - 1] = lastFlywheel;
+            userGaugeflywheelId[msg.sender][strategy][lastFlywheel] = userFlywheelId;
+        }
 
         bribeFlywheels.pop();
         userGaugeflywheelId[msg.sender][strategy][flywheel] = 0;
     }
 
     /*///////////////////////////////////////////////////////////////
-                       bHERMES GAUGE WEIGHT ACCRUAL
+                    BURNT HERMES GAUGE WEIGHT ACCRUAL
     ///////////////////////////////////////////////////////////////*/
 
     /// @inheritdoc IFlywheelBooster
-    function accrueBribesPositiveDelta(address user, ERC20 strategy, uint256 delta) external onlyOwner {
+    function accrueBribesPositiveDelta(address user, ERC20 strategy, uint256 delta) external override onlyOwner {
         _accrueBribes(user, strategy, delta, _add);
     }
 
     /// @inheritdoc IFlywheelBooster
-    function accrueBribesNegativeDelta(address user, ERC20 strategy, uint256 delta) external onlyOwner {
+    function accrueBribesNegativeDelta(address user, ERC20 strategy, uint256 delta) external override onlyOwner {
         _accrueBribes(user, strategy, delta, _subtract);
     }
 

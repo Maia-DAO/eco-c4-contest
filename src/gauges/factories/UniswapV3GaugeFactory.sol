@@ -2,8 +2,6 @@
 
 pragma solidity ^0.8.0;
 
-import {Ownable} from "solady/auth/Ownable.sol";
-
 import {ERC20} from "solmate/tokens/ERC20.sol";
 
 import {bHermesBoost} from "@hermes/tokens/bHermesBoost.sol";
@@ -43,7 +41,7 @@ contract UniswapV3GaugeFactory is BaseV2GaugeFactory, IUniswapV3GaugeFactory {
     /**
      * @notice Creates a new Uniswap V3 Gauge Factory
      * @param _gaugeManager Gauge Factory manager
-     * @param _bHermesBoost bHermes Boost Token
+     * @param _bHermesBoost BurntHermes Boost Token
      * @param _factory Uniswap V3 Factory
      * @param _nonfungiblePositionManager Uniswap V3 Nonfungible Position Manager
      * @param _flywheelGaugeRewards Flywheel Gauge Rewards
@@ -76,7 +74,7 @@ contract UniswapV3GaugeFactory is BaseV2GaugeFactory, IUniswapV3GaugeFactory {
     //////////////////////////////////////////////////////////////*/
 
     /// @notice Creates a new Uniswap V3 Gauge
-    function newGauge(address strategy, bytes memory data) internal override returns (BaseV2Gauge) {
+    function _newGauge(address strategy, bytes memory data) internal override returns (BaseV2Gauge) {
         uint24 minimumWidth = abi.decode(data, (uint24));
         return new UniswapV3Gauge{salt: keccak256(abi.encodePacked(strategy, strategyNonces[strategy]++))}(
                 flywheelGaugeRewards,
@@ -89,7 +87,7 @@ contract UniswapV3GaugeFactory is BaseV2GaugeFactory, IUniswapV3GaugeFactory {
 
     /// @notice Adds Gauge to UniswapV3Staker
     /// @dev Updates the UniswapV3 staker with bribe and minimum width information
-    function afterCreateGauge(address strategy, bytes memory) internal override {
+    function _afterCreateGauge(address strategy, bytes memory) internal override {
         uniswapV3Staker.updateGauges(IUniswapV3Pool(strategy));
     }
 
@@ -98,7 +96,7 @@ contract UniswapV3GaugeFactory is BaseV2GaugeFactory, IUniswapV3GaugeFactory {
     //////////////////////////////////////////////////////////////*/
 
     /// @inheritdoc IUniswapV3GaugeFactory
-    function setMinimumWidth(address gauge, uint24 minimumWidth) external onlyOwner {
+    function setMinimumWidth(address gauge, uint24 minimumWidth) external override onlyOwner {
         if (!activeGauges[BaseV2Gauge(gauge)]) revert InvalidGauge();
         UniswapV3Gauge(gauge).setMinimumWidth(minimumWidth);
         uniswapV3Staker.updateGauges(IUniswapV3Pool(UniswapV3Gauge(gauge).strategy()));

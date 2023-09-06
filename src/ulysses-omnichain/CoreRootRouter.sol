@@ -9,11 +9,12 @@ import {WETH9} from "./interfaces/IWETH9.sol";
 
 import {IERC20hTokenRootFactory as IFactory} from "./interfaces/IERC20hTokenRootFactory.sol";
 import {IRootRouter} from "./interfaces/IRootRouter.sol";
-import {IRootBridgeAgent as IBridgeAgent} from "./interfaces/IRootBridgeAgent.sol";
+import {
+    DepositParams, DepositMultipleParams, IRootBridgeAgent as IBridgeAgent
+} from "./interfaces/IRootBridgeAgent.sol";
 import {IRootPort as IPort} from "./interfaces/IRootPort.sol";
 import {IVirtualAccount, Call} from "./interfaces/IVirtualAccount.sol";
 
-import {DepositParams, DepositMultipleParams} from "./interfaces/IRootBridgeAgent.sol";
 import {ERC20hTokenRoot} from "./token/ERC20hTokenRoot.sol";
 
 /**
@@ -36,8 +37,8 @@ import {ERC20hTokenRoot} from "./token/ERC20hTokenRoot.sol";
  *
  */
 contract CoreRootRouter is IRootRouter, Ownable {
-    /// @notice Local Wrapped Native Token
-    WETH9 public immutable wrappedNativeToken;
+    /// @notice Boolean to indicate if the contract is in set up mode.
+    bool internal _setup;
 
     /// @notice Address for Local Port Address where funds deposited from this chain are kept, managed and supplied to different Port Strategies.
     uint24 public immutable rootChainId;
@@ -53,14 +54,21 @@ contract CoreRootRouter is IRootRouter, Ownable {
     /// @notice Uni V3 Factory Address
     address public hTokenFactoryAddress;
 
+    /// @notice Local Wrapped Native Token
+    WETH9 public immutable wrappedNativeToken;
+
     constructor(uint24 _rootChainId, address _wrappedNativeToken, address _rootPortAddress) {
         rootChainId = _rootChainId;
         wrappedNativeToken = WETH9(_wrappedNativeToken);
         rootPortAddress = _rootPortAddress;
+
         _initializeOwner(msg.sender);
+        _setup = true;
     }
 
     function initialize(address _bridgeAgentAddress, address _hTokenFactory) external onlyOwner {
+        require(_setup, "Contract is already initialized");
+        _setup = false;
         bridgeAgentAddress = payable(_bridgeAgentAddress);
         bridgeAgentExecutorAddress = IBridgeAgent(_bridgeAgentAddress).bridgeAgentExecutorAddress();
         hTokenFactoryAddress = _hTokenFactory;
@@ -91,28 +99,28 @@ contract CoreRootRouter is IRootRouter, Ownable {
             revert UnauthorizedCallerNotManager();
         }
 
-        //Check if valid chain
+        // Check if valid chain
         if (!IPort(rootPortAddress).isChainId(_toChain)) revert InvalidChainId();
 
-        //Check if chain already added to bridge agent
+        // Check if chain already added to bridge agent
         if (IBridgeAgent(_rootBridgeAgent).getBranchBridgeAgent(_toChain) != address(0)) revert InvalidChainId();
 
-        //Check if Branch Bridge Agent is allowed by Root Bridge Agent
+        // Check if Branch Bridge Agent is allowed by Root Bridge Agent
         if (!IBridgeAgent(_rootBridgeAgent).isBranchBridgeAgentAllowed(_toChain)) revert UnauthorizedChainId();
 
-        //Root Bridge Agent Factory Address
+        // Root Bridge Agent Factory Address
         address rootBridgeAgentFactory = IBridgeAgent(_rootBridgeAgent).factoryAddress();
 
-        //Encode CallData
+        // Encode CallData
         bytes memory data = abi.encode(
             _newBranchRouter, _branchBridgeAgentFactory, _rootBridgeAgent, rootBridgeAgentFactory, _remoteExecutionGas
         );
 
-        //Pack funcId into data
+        // Pack funcId into data
         bytes memory packedData = abi.encodePacked(bytes1(0x02), data);
 
-        //Add new global token to branch chain
-        IBridgeAgent(bridgeAgentAddress).callOut{value: msg.value}(_gasReceiver, packedData, _toChain);
+        // Add new global token to branch chain
+        IBridgeAgent(bridgeAgentAddress).callOut{value: msg.value}(_gasReceiver, packedData, _toChain, false);
     }
 
     /**
@@ -149,21 +157,21 @@ contract CoreRootRouter is IRootRouter, Ownable {
             revert UnrecognizedGlobalToken();
         }
 
-        //Verify that it does not exist
+        // Verify that it does not exist
         if (IPort(rootPortAddress).isGlobalToken(_globalAddress, _toChain)) {
             revert TokenAlreadyAdded();
         }
 
-        //Encode CallData
+        // Encode CallData
         bytes memory data = abi.encode(
             _globalAddress, ERC20(_globalAddress).name(), ERC20(_globalAddress).symbol(), _remoteExecutionGas
         );
 
-        //Pack funcId into data
+        // Pack funcId into data
         bytes memory packedData = abi.encodePacked(bytes1(0x01), data);
 
         //Add new global token to branch chain
-        IBridgeAgent(bridgeAgentAddress).callOut(_gasReceiver, packedData, _toChain);
+        IBridgeAgent(bridgeAgentAddress).callOut(_gasReceiver, packedData, _toChain, false);
     }
 
     /**
@@ -189,10 +197,10 @@ contract CoreRootRouter is IRootRouter, Ownable {
                 || IPort(rootPortAddress).isUnderlyingToken(_underlyingAddress, _fromChain)
         ) revert TokenAlreadyAdded();
 
-        //Create new global token
+        // Create new global token
         address newToken = address(IFactory(hTokenFactoryAddress).createToken(_name, _symbol));
 
-        //Update Registry
+        // Update Registry
         IPort(rootPortAddress).setAddresses(
             newToken, (_fromChain == rootChainId) ? newToken : _localAddress, _underlyingAddress, _fromChain
         );
@@ -234,14 +242,14 @@ contract CoreRootRouter is IRootRouter, Ownable {
             revert UnrecognizedBridgeAgentFactory();
         }
 
-        //Encode CallData
+        // Encode CallData
         bytes memory data = abi.encode(_branchBridgeAgentFactory);
 
-        //Pack funcId into data
+        // Pack funcId into data
         bytes memory packedData = abi.encodePacked(bytes1(0x03), data);
 
-        //Add new global token to branch chain
-        IBridgeAgent(bridgeAgentAddress).callOut{value: msg.value}(_gasReceiver, packedData, _toChain);
+        // Add new global token to branch chain
+        IBridgeAgent(bridgeAgentAddress).callOut{value: msg.value}(_gasReceiver, packedData, _toChain, false);
     }
 
     /**
@@ -255,14 +263,14 @@ contract CoreRootRouter is IRootRouter, Ownable {
         payable
         onlyOwner
     {
-        //Encode CallData
+        // Encode CallData
         bytes memory data = abi.encode(_branchBridgeAgent);
 
-        //Pack funcId into data
+        // Pack funcId into data
         bytes memory packedData = abi.encodePacked(bytes1(0x04), data);
 
-        //Add new global token to branch chain
-        IBridgeAgent(bridgeAgentAddress).callOut{value: msg.value}(_gasReceiver, packedData, _toChain);
+        // Add new global token to branch chain
+        IBridgeAgent(bridgeAgentAddress).callOut{value: msg.value}(_gasReceiver, packedData, _toChain, false);
     }
 
     /**
@@ -278,14 +286,14 @@ contract CoreRootRouter is IRootRouter, Ownable {
         address _gasReceiver,
         uint24 _toChain
     ) external payable onlyOwner {
-        //Encode CallData
+        // Encode CallData
         bytes memory data = abi.encode(_underlyingToken, _minimumReservesRatio);
 
-        //Pack funcId into data
+        // Pack funcId into data
         bytes memory packedData = abi.encodePacked(bytes1(0x05), data);
 
-        //Add new global token to branch chain
-        IBridgeAgent(bridgeAgentAddress).callOut{value: msg.value}(_gasReceiver, packedData, _toChain);
+        // Add new global token to branch chain
+        IBridgeAgent(bridgeAgentAddress).callOut{value: msg.value}(_gasReceiver, packedData, _toChain, false);
     }
 
     /**
@@ -305,14 +313,14 @@ contract CoreRootRouter is IRootRouter, Ownable {
         address _gasReceiver,
         uint24 _toChain
     ) external payable onlyOwner {
-        //Encode CallData
+        // Encode CallData
         bytes memory data = abi.encode(_portStrategy, _underlyingToken, _dailyManagementLimit, _isUpdateDailyLimit);
 
-        //Pack funcId into data
+        // Pack funcId into data
         bytes memory packedData = abi.encodePacked(bytes1(0x06), data);
 
-        //Add new global token to branch chain
-        IBridgeAgent(bridgeAgentAddress).callOut{value: msg.value}(_gasReceiver, packedData, _toChain);
+        // Add new global token to branch chain
+        IBridgeAgent(bridgeAgentAddress).callOut{value: msg.value}(_gasReceiver, packedData, _toChain, false);
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -431,16 +439,6 @@ contract CoreRootRouter is IRootRouter, Ownable {
     /*///////////////////////////////////////////////////////////////
                             MODIFIERS
     ///////////////////////////////////////////////////////////////*/
-
-    uint256 internal _unlocked = 1;
-
-    /// @notice Modifier for a simple re-entrancy check.
-    modifier lock() {
-        require(_unlocked == 1);
-        _unlocked = 2;
-        _;
-        _unlocked = 1;
-    }
 
     /// @notice Modifier verifies the caller is the Bridge Agent Executor.
     modifier requiresExecutor() {

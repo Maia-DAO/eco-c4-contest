@@ -11,14 +11,23 @@ import {IERC20hTokenRootFactory} from "./interfaces/IERC20hTokenRootFactory.sol"
 import {INonfungiblePositionManager} from "@uniswap/v3-periphery/contracts/interfaces/INonfungiblePositionManager.sol";
 import {IRootBridgeAgent as IBridgeAgent} from "./interfaces/IRootBridgeAgent.sol";
 import {IRootBridgeAgentFactory} from "./interfaces/IRootBridgeAgentFactory.sol";
-import {IRootPort, ICoreRootRouter} from "./interfaces/IRootPort.sol";
+import {GasPoolInfo, IRootPort, ICoreRootRouter, VirtualAccount} from "./interfaces/IRootPort.sol";
 
 import {ERC20hTokenRoot} from "./token/ERC20hTokenRoot.sol";
-import {VirtualAccount, GasPoolInfo} from "./interfaces/IRootPort.sol";
 
 /// @title Root Port - Omnichain Token Management Contract
 contract RootPort is Ownable, IRootPort {
     using SafeTransferLib for address;
+
+    /*///////////////////////////////////////////////////////////////
+                            SETUP STATE
+    //////////////////////////////////////////////////////////////*/
+
+    /// @notice True if setup is still ongoing, false otherwise.
+    bool internal _setup;
+
+    /// @notice True if core setup is still ongoing, false otherwise.
+    bool internal _setupCore;
 
     /*///////////////////////////////////////////////////////////////
                         ROOT PORT STATE
@@ -44,62 +53,58 @@ contract RootPort is Ownable, IRootPort {
     //////////////////////////////////////////////////////////////*/
 
     /// @notice Mapping from user address to Virtual Account.
-    mapping(address => VirtualAccount) public getUserAccount;
+    mapping(address user => VirtualAccount account) public getUserAccount;
 
     /// @notice Holds the mapping from Virtual account to router address => bool.
     /// @notice Stores whether a router is approved to spend a virtual account.
-    mapping(VirtualAccount => mapping(address => bool)) public isRouterApproved;
+    mapping(VirtualAccount acount => mapping(address router => bool allowed)) public isRouterApproved;
 
     /*///////////////////////////////////////////////////////////////
                         BRIDGE AGENTS
     //////////////////////////////////////////////////////////////*/
 
     /// @notice Mapping from address to Bridge Agent.
-    mapping(uint256 => bool) public isChainId;
+    mapping(uint256 chainId => bool isActive) public isChainId;
 
     /// @notice Mapping from address to isBridgeAgent (bool).
-    mapping(address => bool) public isBridgeAgent;
+    mapping(address bridgeAgent => bool isActive) public isBridgeAgent;
 
     /// @notice Bridge Agents deployed in root chain.
     address[] public bridgeAgents;
 
-    /// @notice Number of bridgeAgents deployed in current chain.
-    uint256 public bridgeAgentsLenght;
-
     /// @notice Mapping address Bridge Agent => address Bridge Agent Manager
-    mapping(address => address) public getBridgeAgentManager;
+    mapping(address bridgeAgent => address bridgeAgentManager) public getBridgeAgentManager;
 
     /*///////////////////////////////////////////////////////////////
                     BRIDGE AGENT FACTORIES
     //////////////////////////////////////////////////////////////*/
 
     /// @notice Mapping from Underlying Address to isUnderlying (bool).
-    mapping(address => bool) public isBridgeAgentFactory;
+    mapping(address bridgeAgentFactory => bool isActive) public isBridgeAgentFactory;
 
     /// @notice Bridge Agents deployed in root chain.
     address[] public bridgeAgentFactories;
-
-    /// @notice Number of Bridge Agents deployed in current chain.
-    uint256 public bridgeAgentFactoriesLenght;
 
     /*///////////////////////////////////////////////////////////////
                             hTOKENS
     //////////////////////////////////////////////////////////////*/
 
     /// @notice Mapping with all global hTokens deployed in the system.
-    mapping(address => bool) public isGlobalAddress;
+    mapping(address token => bool isGlobalToken) public isGlobalAddress;
 
     /// @notice ChainId -> Local Address -> Global Address
-    mapping(address => mapping(uint256 => address)) public getGlobalTokenFromLocal;
+    mapping(address chainId => mapping(uint256 localAddress => address globalAddress)) public getGlobalTokenFromLocal;
 
     /// @notice ChainId -> Global Address -> Local Address
-    mapping(address => mapping(uint256 => address)) public getLocalTokenFromGlobal;
+    mapping(address chainId => mapping(uint256 globalAddress => address localAddress)) public getLocalTokenFromGlobal;
 
     /// @notice ChainId -> Underlying Address -> Local Address
-    mapping(address => mapping(uint256 => address)) public getLocalTokenFromUnder;
+    mapping(address chainId => mapping(uint256 underlyingAddress => address localAddress)) public
+        getLocalTokenFromUnderlying;
 
     /// @notice Mapping from Local Address to Underlying Address.
-    mapping(address => mapping(uint256 => address)) public getUnderlyingTokenFromLocal;
+    mapping(address chainId => mapping(uint256 localAddress => address underlyingAddress)) public
+        getUnderlyingTokenFromLocal;
 
     /*///////////////////////////////////////////////////////////////
                            GAS POOLS
@@ -121,20 +126,20 @@ contract RootPort is Ownable, IRootPort {
 
         _initializeOwner(msg.sender);
         _setup = true;
+        _setupCore = true;
     }
 
-    bool internal _setup;
-
     function initialize(address _bridgeAgentFactory, address _coreRootRouter) external onlyOwner {
-        require(_setup, "Setup ended.");
         require(_bridgeAgentFactory != address(0), "Bridge Agent Factory cannot be 0 address.");
         require(_coreRootRouter != address(0), "Core Root Router cannot be 0 address.");
+        require(_setup, "Setup ended.");
 
         isBridgeAgentFactory[_bridgeAgentFactory] = true;
         bridgeAgentFactories.push(_bridgeAgentFactory);
-        bridgeAgentFactoriesLenght++;
 
         coreRootRouterAddress = _coreRootRouter;
+
+        _setup = false;
     }
 
     function initializeCore(
@@ -142,23 +147,18 @@ contract RootPort is Ownable, IRootPort {
         address _coreLocalBranchBridgeAgent,
         address _localBranchPortAddress
     ) external onlyOwner {
-        require(_setup, "Setup ended.");
-        require(isBridgeAgent[_coreRootBridgeAgent], "Core Bridge Agent doesn't exist.");
         require(_coreRootBridgeAgent != address(0), "Core Root Bridge Agent cannot be 0 address.");
         require(_coreLocalBranchBridgeAgent != address(0), "Core Local Branch Bridge Agent cannot be 0 address.");
         require(_localBranchPortAddress != address(0), "Local Branch Port Address cannot be 0 address.");
+        require(isBridgeAgent[_coreRootBridgeAgent], "Core Bridge Agent doesn't exist.");
+        require(_setupCore, "Core Setup ended.");
 
         coreRootBridgeAgentAddress = _coreRootBridgeAgent;
         localBranchPortAddress = _localBranchPortAddress;
         IBridgeAgent(_coreRootBridgeAgent).syncBranchBridgeAgent(_coreLocalBranchBridgeAgent, localChainId);
         getBridgeAgentManager[_coreRootBridgeAgent] = owner();
-    }
 
-    /// @notice Function for transfering ownership of the contract to another address.
-    function forefeitOwnership(address _owner) external onlyOwner {
-        require(_owner != address(0), "Owner cannot be 0 address.");
-        _setOwner(address(_owner));
-        _setup = false;
+        _setupCore = false;
     }
 
     /// @notice Function being overrriden to prevent mistakenly renouncing ownership.
@@ -171,7 +171,12 @@ contract RootPort is Ownable, IRootPort {
     //////////////////////////////////////////////////////////////*/
 
     /// @inheritdoc IRootPort
-    function getLocalToken(address _localAddress, uint24 _fromChain, uint24 _toChain) external view returns (address) {
+    function getLocalToken(address _localAddress, uint24 _fromChain, uint24 _toChain)
+        external
+        view
+        override
+        returns (address)
+    {
         return _getLocalToken(_localAddress, _fromChain, _toChain);
     }
 
@@ -191,7 +196,12 @@ contract RootPort is Ownable, IRootPort {
     }
 
     /// @inheritdoc IRootPort
-    function getUnderlyingTokenFromGlobal(address _globalAddress, uint24 _fromChain) external view returns (address) {
+    function getUnderlyingTokenFromGlobal(address _globalAddress, uint24 _fromChain)
+        external
+        view
+        override
+        returns (address)
+    {
         return _getUnderlyingTokenFromGlobal(_globalAddress, _fromChain);
     }
 
@@ -206,7 +216,7 @@ contract RootPort is Ownable, IRootPort {
     }
 
     /// @inheritdoc IRootPort
-    function isGlobalToken(address _globalAddress, uint24 _fromChain) external view returns (bool) {
+    function isGlobalToken(address _globalAddress, uint24 _fromChain) external view override returns (bool) {
         return _isGlobalToken(_globalAddress, _fromChain);
     }
 
@@ -220,7 +230,7 @@ contract RootPort is Ownable, IRootPort {
     }
 
     /// @inheritdoc IRootPort
-    function isLocalToken(address _localAddress, uint24 _fromChain) external view returns (bool) {
+    function isLocalToken(address _localAddress, uint24 _fromChain) external view override returns (bool) {
         return getGlobalTokenFromLocal[_localAddress][_fromChain] != address(0);
     }
 
@@ -235,8 +245,8 @@ contract RootPort is Ownable, IRootPort {
     }
 
     /// @inheritdoc IRootPort
-    function isUnderlyingToken(address _underlyingToken, uint24 _fromChain) external view returns (bool) {
-        return getLocalTokenFromUnder[_underlyingToken][_fromChain] != address(0);
+    function isUnderlyingToken(address _underlyingToken, uint24 _fromChain) external view override returns (bool) {
+        return getLocalTokenFromUnderlying[_underlyingToken][_fromChain] != address(0);
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -246,12 +256,13 @@ contract RootPort is Ownable, IRootPort {
     /// @inheritdoc IRootPort
     function setAddresses(address _globalAddress, address _localAddress, address _underlyingAddress, uint24 _fromChain)
         external
+        override
         requiresCoreRootRouter
     {
         isGlobalAddress[_globalAddress] = true;
         getGlobalTokenFromLocal[_localAddress][_fromChain] = _globalAddress;
         getLocalTokenFromGlobal[_globalAddress][_fromChain] = _localAddress;
-        getLocalTokenFromUnder[_underlyingAddress][_fromChain] = _localAddress;
+        getLocalTokenFromUnderlying[_underlyingAddress][_fromChain] = _localAddress;
         getUnderlyingTokenFromLocal[_localAddress][_fromChain] = _underlyingAddress;
 
         emit LocalTokenAdded(_underlyingAddress, _localAddress, _globalAddress, _fromChain);
@@ -260,6 +271,7 @@ contract RootPort is Ownable, IRootPort {
     /// @inheritdoc IRootPort
     function setLocalAddress(address _globalAddress, address _localAddress, uint24 _fromChain)
         external
+        override
         requiresCoreRootRouter
     {
         getGlobalTokenFromLocal[_localAddress][_fromChain] = _globalAddress;
@@ -275,35 +287,19 @@ contract RootPort is Ownable, IRootPort {
     /// @inheritdoc IRootPort
     function bridgeToRoot(address _recipient, address _hToken, uint256 _amount, uint256 _deposit, uint24 _fromChainId)
         external
+        override
         requiresBridgeAgent
     {
         if (!isGlobalAddress[_hToken]) revert UnrecognizedToken();
 
         if (_amount - _deposit > 0) _hToken.safeTransfer(_recipient, _amount - _deposit);
-        if (_deposit > 0) mint(_recipient, _hToken, _deposit, _fromChainId);
-    }
-
-    /**
-     * @notice Mints new hTokens to the recipient.
-     * @param _to recipient of the newly minted hTokens.
-     * @param _hToken address of the hToken to mint.
-     * @param _amount amount of hTokens to mint.
-     * @param _fromChain The chainId of the chain where the token is deployed.
-     */
-    function mint(address _to, address _hToken, uint256 _amount, uint24 _fromChain) internal {
-        if (!isGlobalAddress[_hToken]) revert UnrecognizedToken();
-        ERC20hTokenRoot(_hToken).mint(_to, _amount, _fromChain);
-    }
-
-    /// @inheritdoc IRootPort
-    function burn(address _from, address _hToken, uint256 _amount, uint24 _fromChain) external requiresBridgeAgent {
-        if (!isGlobalAddress[_hToken]) revert UnrecognizedToken();
-        ERC20hTokenRoot(_hToken).burn(_from, _amount, _fromChain);
+        if (_deposit > 0) if (!ERC20hTokenRoot(_hToken).mint(_recipient, _deposit, _fromChainId)) revert UnableToMint();
     }
 
     /// @inheritdoc IRootPort
     function bridgeToRootFromLocalBranch(address _from, address _hToken, uint256 _amount)
         external
+        override
         requiresLocalBranchPort
     {
         if (!isGlobalAddress[_hToken]) revert UnrecognizedToken();
@@ -321,15 +317,34 @@ contract RootPort is Ownable, IRootPort {
     }
 
     /// @inheritdoc IRootPort
-    function mintToLocalBranch(address _to, address _hToken, uint256 _amount) external requiresLocalBranchPort {
-        mint(_to, _hToken, _amount, localChainId);
+    function burn(address _from, address _hToken, uint256 _amount, uint24 _fromChain)
+        external
+        override
+        requiresBridgeAgent
+    {
+        if (!isGlobalAddress[_hToken]) revert UnrecognizedToken();
+        ERC20hTokenRoot(_hToken).burn(_from, _amount, _fromChain);
     }
 
     /// @inheritdoc IRootPort
-    function burnFromLocalBranch(address _from, address _hToken, uint256 _amount) external requiresLocalBranchPort {
+    function burnFromLocalBranch(address _from, address _hToken, uint256 _amount)
+        external
+        override
+        requiresLocalBranchPort
+    {
         if (!isGlobalAddress[_hToken]) revert UnrecognizedToken();
 
         ERC20hTokenRoot(_hToken).burn(_from, _amount, localChainId);
+    }
+
+    /// @inheritdoc IRootPort
+    function mintToLocalBranch(address _to, address _hToken, uint256 _amount)
+        external
+        override
+        requiresLocalBranchPort
+    {
+        if (!isGlobalAddress[_hToken]) revert UnrecognizedToken();
+        if (!ERC20hTokenRoot(_hToken).mint(_to, _amount, localChainId)) revert UnableToMint();
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -337,7 +352,12 @@ contract RootPort is Ownable, IRootPort {
     //////////////////////////////////////////////////////////////*/
 
     /// @inheritdoc IRootPort
-    function fetchVirtualAccount(address _user) external requiresBridgeAgent returns (VirtualAccount account) {
+    function fetchVirtualAccount(address _user)
+        external
+        override
+        requiresBridgeAgent
+        returns (VirtualAccount account)
+    {
         account = getUserAccount[_user];
         if (address(account) == address(0)) account = addVirtualAccount(_user);
     }
@@ -354,7 +374,11 @@ contract RootPort is Ownable, IRootPort {
     }
 
     /// @inheritdoc IRootPort
-    function toggleVirtualAccountApproved(VirtualAccount _userAccount, address _router) external requiresBridgeAgent {
+    function toggleVirtualAccountApproved(VirtualAccount _userAccount, address _router)
+        external
+        override
+        requiresBridgeAgent
+    {
         isRouterApproved[_userAccount][_router] = !isRouterApproved[_userAccount][_router];
     }
 
@@ -363,13 +387,12 @@ contract RootPort is Ownable, IRootPort {
     //////////////////////////////////////////////////////////////*/
 
     /// @inheritdoc IRootPort
-    function addBridgeAgent(address _manager, address _bridgeAgent) external requiresBridgeAgentFactory {
+    function addBridgeAgent(address _manager, address _bridgeAgent) external override requiresBridgeAgentFactory {
         if (isBridgeAgent[_bridgeAgent]) revert AlreadyAddedBridgeAgent();
 
         bridgeAgents.push(_bridgeAgent);
-        bridgeAgentsLenght++;
         getBridgeAgentManager[_bridgeAgent] = _manager;
-        isBridgeAgent[_bridgeAgent] = !isBridgeAgent[_bridgeAgent];
+        isBridgeAgent[_bridgeAgent] = true;
 
         emit BridgeAgentAdded(_bridgeAgent, _manager);
     }
@@ -379,7 +402,7 @@ contract RootPort is Ownable, IRootPort {
         address _newBranchBridgeAgent,
         address _rootBridgeAgent,
         uint24 _branchChainId
-    ) external requiresCoreRootRouter {
+    ) external override requiresCoreRootRouter {
         if (IBridgeAgent(_rootBridgeAgent).getBranchBridgeAgent(_branchChainId) != address(0)) {
             revert AlreadyAddedBridgeAgent();
         }
@@ -396,25 +419,24 @@ contract RootPort is Ownable, IRootPort {
     //////////////////////////////////////////////////////////////*/
 
     /// @inheritdoc IRootPort
-    function toggleBridgeAgent(address _bridgeAgent) external onlyOwner {
+    function toggleBridgeAgent(address _bridgeAgent) external override onlyOwner {
         isBridgeAgent[_bridgeAgent] = !isBridgeAgent[_bridgeAgent];
 
         emit BridgeAgentToggled(_bridgeAgent);
     }
 
     /// @inheritdoc IRootPort
-    function addBridgeAgentFactory(address _bridgeAgentFactory) external onlyOwner {
+    function addBridgeAgentFactory(address _bridgeAgentFactory) external override onlyOwner {
         if (isBridgeAgentFactory[_bridgeAgentFactory]) revert AlreadyAddedBridgeAgentFactory();
 
         bridgeAgentFactories.push(_bridgeAgentFactory);
-        bridgeAgentFactoriesLenght++;
         isBridgeAgentFactory[_bridgeAgentFactory] = true;
 
         emit BridgeAgentFactoryAdded(_bridgeAgentFactory);
     }
 
     /// @inheritdoc IRootPort
-    function toggleBridgeAgentFactory(address _bridgeAgentFactory) external onlyOwner {
+    function toggleBridgeAgentFactory(address _bridgeAgentFactory) external override onlyOwner {
         isBridgeAgentFactory[_bridgeAgentFactory] = !isBridgeAgentFactory[_bridgeAgentFactory];
 
         emit BridgeAgentFactoryToggled(_bridgeAgentFactory);
@@ -434,7 +456,7 @@ contract RootPort is Ownable, IRootPort {
         address _nonFungiblePositionManagerAddress,
         address _newLocalBranchWrappedNativeTokenAddress,
         address _newUnderlyingBranchWrappedNativeTokenAddress
-    ) external onlyOwner {
+    ) external override onlyOwner {
         address newGlobalToken = address(
             IERC20hTokenRootFactory(ICoreRootRouter(coreRootRouterAddress).hTokenFactoryAddress()).createToken(
                 _wrappedGasTokenName, _wrappedGasTokenSymbol
@@ -452,12 +474,12 @@ contract RootPort is Ownable, IRootPort {
         isGlobalAddress[newGlobalToken] = true;
         getGlobalTokenFromLocal[_newLocalBranchWrappedNativeTokenAddress][_chainId] = newGlobalToken;
         getLocalTokenFromGlobal[newGlobalToken][_chainId] = _newLocalBranchWrappedNativeTokenAddress;
-        getLocalTokenFromUnder[_newUnderlyingBranchWrappedNativeTokenAddress][_chainId] =
+        getLocalTokenFromUnderlying[_newUnderlyingBranchWrappedNativeTokenAddress][_chainId] =
             _newLocalBranchWrappedNativeTokenAddress;
         getUnderlyingTokenFromLocal[_newLocalBranchWrappedNativeTokenAddress][_chainId] =
             _newUnderlyingBranchWrappedNativeTokenAddress;
 
-        //Avoid stack too deep
+        // Avoid stack too deep
         uint24 chainId = _chainId;
 
         address newGasPoolAddress;
@@ -485,18 +507,18 @@ contract RootPort is Ownable, IRootPort {
     }
 
     /// @inheritdoc IRootPort
-    function setGasPoolInfo(uint24 _chainId, GasPoolInfo calldata _gasPoolInfo) external onlyOwner {
+    function setGasPoolInfo(uint24 _chainId, GasPoolInfo calldata _gasPoolInfo) external override onlyOwner {
         getGasPoolInfo[_chainId] = _gasPoolInfo;
 
         emit GasPoolInfoSet(_chainId, _gasPoolInfo);
     }
 
     /// @inheritdoc IRootPort
-    function addEcosystemToken(address _ecoTokenGlobalAddress) external onlyOwner {
+    function addEcosystemToken(address _ecoTokenGlobalAddress) external override onlyOwner {
         if (isGlobalAddress[_ecoTokenGlobalAddress]) revert AlreadyAddedEcosystemToken();
         if (
             getUnderlyingTokenFromLocal[_ecoTokenGlobalAddress][localChainId] != address(0)
-                || getLocalTokenFromUnder[_ecoTokenGlobalAddress][localChainId] != address(0)
+                || getLocalTokenFromUnderlying[_ecoTokenGlobalAddress][localChainId] != address(0)
         ) revert AlreadyAddedEcosystemToken();
 
         isGlobalAddress[_ecoTokenGlobalAddress] = true;

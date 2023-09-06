@@ -52,7 +52,7 @@ contract UniswapV3Gauge is Ownable, BaseV2Gauge, IUniswapV3Gauge {
      *  @dev must be called during the 12-hour offset after an epoch ends
      *       or rewards will be queued for the next epoch.
      */
-    function distribute(uint256 amount) internal override {
+    function _distribute(uint256 amount) internal override {
         IUniswapV3Staker(uniswapV3Staker).createIncentiveFromGauge(amount);
     }
 
@@ -61,7 +61,7 @@ contract UniswapV3Gauge is Ownable, BaseV2Gauge, IUniswapV3Gauge {
     //////////////////////////////////////////////////////////////*/
 
     /// @inheritdoc IUniswapV3Gauge
-    function setMinimumWidth(uint24 _minimumWidth) external onlyOwner {
+    function setMinimumWidth(uint24 _minimumWidth) external override onlyOwner {
         minimumWidth = _minimumWidth;
 
         emit NewMinimumWidth(_minimumWidth);

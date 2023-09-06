@@ -18,7 +18,7 @@ import {MockVault} from "../mock/MockVault.t.sol";
 import {PartnerManagerFactory} from "@maia/factories/PartnerManagerFactory.sol";
 import {PartnerUtilityManager} from "@maia/PartnerUtilityManager.sol";
 
-import {bHermes} from "@hermes/bHermes.sol";
+import {BurntHermes} from "@hermes/BurntHermes.sol";
 import {bHermesVotes as ERC20MultiVotes} from "@hermes/tokens/bHermesVotes.sol";
 
 contract ERC4626PartnerManagerTest is DSTestPlus {
@@ -35,16 +35,16 @@ contract ERC4626PartnerManagerTest is DSTestPlus {
 
     uint256 bHermesRate;
 
-    bHermes public _bHermes;
+    BurntHermes public _bHermes;
 
     function setUp() public {
         hermes = new MockERC20("test hermes", "RTKN", 18);
 
         partnerAsset = new MockERC20("test partnerAsset", "tpartnerAsset", 18);
 
-        _bHermes = new bHermes(hermes, address(this), address(this), 1 weeks, 1 days / 2);
+        _bHermes = new BurntHermes(hermes, address(this), address(this));
 
-        bHermesRate = 1;
+        bHermesRate = 1 ether;
 
         vault = new MockVault();
 
@@ -125,7 +125,7 @@ contract ERC4626PartnerManagerTest is DSTestPlus {
         require(manager.totalSupply() == 100 ether);
     }
 
-    function testConvertToShares() public view{
+    function testConvertToShares() public view {
         require(manager.convertToShares(100 ether) == 100 ether);
     }
 
@@ -135,7 +135,7 @@ contract ERC4626PartnerManagerTest is DSTestPlus {
         require(manager.convertToShares(100 ether) == 100 ether);
     }
 
-    function testConvertToAssets() public view{
+    function testConvertToAssets() public view {
         require(manager.convertToAssets(100 ether) == 100 ether);
     }
 
@@ -145,11 +145,11 @@ contract ERC4626PartnerManagerTest is DSTestPlus {
         require(manager.convertToAssets(100 ether) == 100 ether);
     }
 
-    function testPreviewDeposit() public view{
+    function testPreviewDeposit() public view {
         require(manager.previewDeposit(100 ether) == 100 ether);
     }
 
-    function testPreviewMint() public view{
+    function testPreviewMint() public view {
         require(manager.previewDeposit(100 ether) == 100 ether);
     }
 
@@ -174,6 +174,9 @@ contract ERC4626PartnerManagerTest is DSTestPlus {
 
         _bHermes.transfer(address(manager), 1000 ether);
 
+        console2.log(manager.maxDeposit(address(0)));
+        console2.logUint(1000 * 1e18);
+
         require(manager.maxDeposit(address(0)) == 1000 ether);
     }
 
@@ -185,6 +188,8 @@ contract ERC4626PartnerManagerTest is DSTestPlus {
         _bHermes.deposit(1000 ether, address(this));
 
         _bHermes.transfer(address(manager), 1000 ether);
+
+        console2.log(manager.maxDeposit(address(0)));
 
         require(manager.maxDeposit(address(0)) == 1000 ether);
     }

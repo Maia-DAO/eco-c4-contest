@@ -153,7 +153,7 @@ contract BoostAggregatorTest is TalosTestor {
 
         flywheel.addStrategyForRewards(talosBaseStrategy);
 
-        boostAggregator.addWhitelistedAddress(address(talosBaseStrategy));
+        boostAggregator.addAllowlistedAddress(address(talosBaseStrategy));
     }
 
     /*//////////////////////////////////////////////////////////////
@@ -171,36 +171,36 @@ contract BoostAggregatorTest is TalosTestor {
                         ADD/REMOVE WHITELISTED ADDRESS
     //////////////////////////////////////////////////////////////*/
 
-    // Add whitelisted address test, this call should never fail if called by owner
-    function test_addWhitelistedAddress(address user) public {
-        boostAggregator.addWhitelistedAddress(user);
-        assertTrue(boostAggregator.whitelistedAddresses(user));
+    // Add allowlisted address test, this call should never fail if called by owner
+    function test_addAllowlistedAddress(address user) public {
+        boostAggregator.addAllowlistedAddress(user);
+        assertTrue(boostAggregator.allowlistedAddresses(user));
     }
 
-    // Add whitelisted address fail test, this call should fail if called by non-owner
-    function test_fail_addWhitelistedAddress(address user) public {
+    // Add allowlisted address fail test, this call should fail if called by non-owner
+    function test_fail_addAllowlistedAddress(address user) public {
         if (user != address(this)) hevm.expectRevert(Ownable.Unauthorized.selector);
         hevm.prank(user);
-        boostAggregator.addWhitelistedAddress(user);
+        boostAggregator.addAllowlistedAddress(user);
     }
 
-    // Remove whitelisted address test, this call should never fail if called by owner
-    function test_removeWhitelistedAddress(address user) public {
-        boostAggregator.removeWhitelistedAddress(user);
-        assertFalse(boostAggregator.whitelistedAddresses(user));
+    // Remove allowlisted address test, this call should never fail if called by owner
+    function test_removeAllowlistedAddress(address user) public {
+        boostAggregator.removeAllowlistedAddress(user);
+        assertFalse(boostAggregator.allowlistedAddresses(user));
     }
 
-    // Remove whitelisted address fail test, this call should fail if called by non-owner
-    function test_fail_removeWhitelistedAddress(address user) public {
+    // Remove allowlisted address fail test, this call should fail if called by non-owner
+    function test_fail_removeAllowlistedAddress(address user) public {
         if (user != address(this)) hevm.expectRevert(Ownable.Unauthorized.selector);
         hevm.prank(user);
-        boostAggregator.removeWhitelistedAddress(user);
+        boostAggregator.removeAllowlistedAddress(user);
     }
 
-    // Add then remove whitelisted address test, this call should never fail if called by owner
-    function test_add_then_removeWhitelistedAddress(address user) public {
-        test_addWhitelistedAddress(user);
-        test_removeWhitelistedAddress(user);
+    // Add then remove allowlisted address test, this call should never fail if called by owner
+    function test_add_then_removeAllowlistedAddress(address user) public {
+        test_addAllowlistedAddress(user);
+        test_removeAllowlistedAddress(user);
     }
 
     /*//////////////////////////////////////////////////////////////

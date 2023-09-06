@@ -23,13 +23,13 @@ contract TalosStrategyStakedFactory is TalosBaseStrategyFactory, ITalosStrategyS
     //////////////////////////////////////////////////////////////*/
 
     /// @inheritdoc ITalosStrategyStakedFactory
-    BoostAggregatorFactory public immutable boostAggregatorFactory;
+    BoostAggregatorFactory public immutable override boostAggregatorFactory;
 
     /// @inheritdoc ITalosStrategyStakedFactory
-    FlywheelCoreInstant public immutable flywheel;
+    FlywheelCoreInstant public immutable override flywheel;
 
     /// @inheritdoc ITalosStrategyStakedFactory
-    FlywheelInstantRewards public immutable rewards;
+    FlywheelInstantRewards public immutable override rewards;
 
     /**
      * @notice Construct a new Talos Strategy Staked Factory
@@ -59,7 +59,7 @@ contract TalosStrategyStakedFactory is TalosBaseStrategyFactory, ITalosStrategyS
     //////////////////////////////////////////////////////////////*/
 
     /// @notice Internal function responsible for creating a new Talos Strategy
-    function createTalosV3Strategy(
+    function _createTalosV3Strategy(
         IUniswapV3Pool pool,
         ITalosOptimizer optimizer,
         address strategyManager,
@@ -72,7 +72,7 @@ contract TalosStrategyStakedFactory is TalosBaseStrategyFactory, ITalosStrategyS
         }
 
         strategy =
-            DeployStaked.createTalosV3Strategy(pool, optimizer, boostAggregator, strategyManager, flywheel, owner(), salt);
+            DeployStaked.createTalosV3Staked(pool, optimizer, boostAggregator, strategyManager, flywheel, owner(), salt);
 
         flywheel.addStrategyForRewards(strategy);
     }

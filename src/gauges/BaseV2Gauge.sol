@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
+import {SafeTransferLib} from "solady/utils/SafeTransferLib.sol";
+
 import {ERC20} from "solmate/tokens/ERC20.sol";
 
 import {bHermesBoost} from "@hermes/tokens/bHermesBoost.sol";
@@ -16,6 +18,8 @@ import {IBaseV2Gauge} from "./interfaces/IBaseV2Gauge.sol";
 
 /// @title Base V2 Gauge - Base contract for handling liquidity provider incentives and voter's bribes.
 abstract contract BaseV2Gauge is IBaseV2Gauge {
+    using SafeTransferLib for address;
+
     /*///////////////////////////////////////////////////////////////
                             GAUGE STATE
     //////////////////////////////////////////////////////////////*/
@@ -30,16 +34,10 @@ abstract contract BaseV2Gauge is IBaseV2Gauge {
     FlywheelGaugeRewards public immutable override flywheelGaugeRewards;
 
     /// @inheritdoc IBaseV2Gauge
-    address public override strategy;
+    address public immutable override strategy;
 
     /// @inheritdoc IBaseV2Gauge
-    MultiRewardsDepot public override multiRewardsDepot;
-
-    /// @inheritdoc IBaseV2Gauge
-    uint256 public override epoch;
-
-    /// @notice 1 week in seconds.
-    uint256 internal constant WEEK = 1 weeks;
+    MultiRewardsDepot public immutable override multiRewardsDepot;
 
     /**
      * @notice Constructs the BaseV2Gauge contract.
@@ -52,9 +50,8 @@ abstract contract BaseV2Gauge is IBaseV2Gauge {
         hermesGaugeBoost = BaseV2GaugeFactory(msg.sender).bHermesBoostToken();
         strategy = _strategy;
 
-        epoch = (block.timestamp / WEEK) * WEEK;
-
-        multiRewardsDepot = new MultiRewardsDepot{salt: keccak256(abi.encodePacked(this))}(address(BaseV2GaugeFactory(msg.sender).bribesFactory()));
+        multiRewardsDepot =
+        new MultiRewardsDepot{salt: keccak256(abi.encodePacked(this))}(address(BaseV2GaugeFactory(msg.sender).bribesFactory()));
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -62,30 +59,27 @@ abstract contract BaseV2Gauge is IBaseV2Gauge {
     //////////////////////////////////////////////////////////////*/
 
     /// @inheritdoc IBaseV2Gauge
-    function newEpoch() external {
-        uint256 _newEpoch = (block.timestamp / WEEK) * WEEK;
+    function newEpoch() external override {
+        flywheelGaugeRewards.getAccruedRewards();
 
-        if (epoch < _newEpoch) {
-            epoch = _newEpoch;
+        uint256 accruedRewards = rewardToken.balanceOf(address(this));
 
-            uint256 accruedRewards = flywheelGaugeRewards.getAccruedRewards();
-
-            distribute(accruedRewards);
-
-            emit Distribute(accruedRewards, _newEpoch);
+        if (accruedRewards > 0) {
+            _distribute(accruedRewards);
+            emit Distribute(accruedRewards);
         }
     }
 
     /// @notice Distributes weekly emissions to the strategy.
-    function distribute(uint256 amount) internal virtual;
+    function _distribute(uint256 amount) internal virtual;
 
     /// @inheritdoc IBaseV2Gauge
-    function attachUser(address user) external onlyStrategy {
+    function attachUser(address user) external override onlyStrategy {
         hermesGaugeBoost.attach(user);
     }
 
     /// @inheritdoc IBaseV2Gauge
-    function detachUser(address user) external onlyStrategy {
+    function detachUser(address user) external override onlyStrategy {
         hermesGaugeBoost.detach(user);
     }
 

@@ -36,7 +36,7 @@ interface ICoreBranchRouter {
      */
     function addGlobalToken(
         address _globalAddress,
-        uint256 _toChain,
+        uint24 _toChain,
         uint128 _remoteExecutionGas,
         uint128 _rootExecutionGas
     ) external payable;
@@ -47,10 +47,10 @@ interface ICoreBranchRouter {
      */
     function addLocalToken(address _underlyingAddress) external payable;
 
-    /**
-     * @notice Function to link a new bridge agent to the root bridge agent (which resides in Arbitrum).
-     * @param _newBridgeAgentAddress the address of the new local bridge agent.
-     * @param _rootBridgeAgentAddress the address of the root bridge agent.
-     */
-    function syncBridgeAgent(address _newBridgeAgentAddress, address _rootBridgeAgentAddress) external payable;
+    /*///////////////////////////////////////////////////////////////
+                                ERRORS
+    //////////////////////////////////////////////////////////////*/
+
+    error UnrecognizedBridgeAgent();
+    error UnrecognizedBridgeAgentFactory();
 }

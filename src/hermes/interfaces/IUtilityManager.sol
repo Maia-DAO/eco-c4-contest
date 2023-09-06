@@ -9,34 +9,37 @@ import {bHermesVotes as ERC20Votes} from "../tokens/bHermesVotes.sol";
  * @title Utility Tokens Manager Contract.
  *  @author Maia DAO (https://github.com/Maia-DAO)
  *  @notice When implemented, this contract allows for the management
- *          of bHermes utility tokens.
+ *          of BurntHermes utility tokens.
  */
 interface IUtilityManager {
     /*//////////////////////////////////////////////////////////////
                          UTILITY MANAGER STATE
     //////////////////////////////////////////////////////////////*/
 
-    /// @notice bHermes Underlying Token responsible for allocating gauge weights.
+    /// @notice BurntHermes Underlying Token responsible for allocating gauge weights.
     function gaugeWeight() external view returns (bHermesGauges);
 
-    /// @notice bHermes Underlying Token for user boost accounting.
+    /// @notice BurntHermes Underlying Token for user boost accounting.
     function gaugeBoost() external view returns (bHermesBoost);
 
-    /// @notice bHermes Underlying Token which grants governance rights.
+    /// @notice BurntHermes Underlying Token which grants governance rights.
     function governance() external view returns (ERC20Votes);
 
-    /// @notice Mapping of different user's bHermes Gauge Weight withdrawn from vault.
+    /// @notice Mapping of different user's BurntHermes Gauge Weight withdrawn from vault.
     function userClaimedWeight(address) external view returns (uint256);
 
-    /// @notice Mapping of different user's bHermes Boost withdrawn from vault.
+    /// @notice Mapping of different user's BurntHermes Boost withdrawn from vault.
     function userClaimedBoost(address) external view returns (uint256);
 
-    /// @notice Mapping of different user's bHermes Governance withdrawn from vault.
+    /// @notice Mapping of different user's BurntHermes Governance withdrawn from vault.
     function userClaimedGovernance(address) external view returns (uint256);
 
     /*///////////////////////////////////////////////////////////////
                         UTILITY TOKENS LOGIC
     //////////////////////////////////////////////////////////////*/
+
+    /// @notice Forfeits all claimed utility tokens.
+    function forfeitOutstanding() external;
 
     /// @notice Forfeits the same amounts of multiple utility tokens.
     function forfeitMultiple(uint256 amount) external;
@@ -79,22 +82,22 @@ interface IUtilityManager {
     //////////////////////////////////////////////////////////////*/
 
     /// @notice Emitted when a user forfeits weight.
-    event ForfeitWeight(address indexed user, uint256 amount);
+    event ForfeitWeight(address indexed user, uint256 indexed amount);
 
     /// @notice Emitted when a user forfeits boost.
-    event ForfeitBoost(address indexed user, uint256 amount);
+    event ForfeitBoost(address indexed user, uint256 indexed amount);
 
     /// @notice Emitted when a user forfeits governance.
-    event ForfeitGovernance(address indexed user, uint256 amount);
+    event ForfeitGovernance(address indexed user, uint256 indexed amount);
 
     /// @notice Emitted when a user claims weight.
-    event ClaimWeight(address indexed user, uint256 amount);
+    event ClaimWeight(address indexed user, uint256 indexed amount);
 
     /// @notice Emitted when a user claims boost.
-    event ClaimBoost(address indexed user, uint256 amount);
+    event ClaimBoost(address indexed user, uint256 indexed amount);
 
     /// @notice Emitted when a user claims governance.
-    event ClaimGovernance(address indexed user, uint256 amount);
+    event ClaimGovernance(address indexed user, uint256 indexed amount);
 
     /*///////////////////////////////////////////////////////////////
                                 ERRORS

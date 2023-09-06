@@ -66,7 +66,10 @@ interface IRootPort {
      *  @param _underlyingAddress The address of the underlying token.
      *  @param _fromChain The chainId of the chain where the token is deployed.
      */
-    function getLocalTokenFromUnder(address _underlyingAddress, uint256 _fromChain) external view returns (address);
+    function getLocalTokenFromUnderlying(address _underlyingAddress, uint256 _fromChain)
+        external
+        view
+        returns (address);
 
     /**
      * @notice Function that returns Local Token's Local Address on another chain.
@@ -312,19 +315,19 @@ interface IRootPort {
     event BridgeAgentFactoryAdded(address indexed bridgeAgentFactory);
     event BridgeAgentFactoryToggled(address indexed bridgeAgentFactory);
 
-    event BridgeAgentAdded(address indexed bridgeAgent, address manager);
+    event BridgeAgentAdded(address indexed bridgeAgent, address indexed manager);
     event BridgeAgentToggled(address indexed bridgeAgent);
     event BridgeAgentSynced(address indexed bridgeAgent, address indexed rootBridgeAgent, uint24 indexed fromChain);
 
     event NewChainAdded(uint24 indexed chainId);
-    event GasPoolInfoSet(uint24 indexed chainId, GasPoolInfo gasPoolInfo);
+    event GasPoolInfoSet(uint24 indexed chainId, GasPoolInfo indexed gasPoolInfo);
 
     event VirtualAccountCreated(address indexed user, address account);
 
     event LocalTokenAdded(
-        address indexed underlyingAddress, address localAddress, address globalAddress, uint24 chainId
+        address indexed underlyingAddress, address indexed localAddress, address indexed globalAddress, uint24 chainId
     );
-    event GlobalTokenAdded(address indexed localAddress, address indexed globalAddress, uint24 chainId);
+    event GlobalTokenAdded(address indexed localAddress, address indexed globalAddress, uint24 indexed chainId);
     event EcosystemTokenAdded(address indexed ecoTokenGlobalAddress);
 
     /*///////////////////////////////////////////////////////////////
@@ -335,6 +338,7 @@ interface IRootPort {
     error UnrecognizedBridgeAgent();
 
     error UnrecognizedToken();
+    error UnableToMint();
 
     error AlreadyAddedEcosystemToken();
 
@@ -343,5 +347,4 @@ interface IRootPort {
     error BridgeAgentNotAllowed();
     error UnrecognizedCoreRootRouter();
     error UnrecognizedLocalBranchPort();
-    error UnknowHTokenFactory();
 }

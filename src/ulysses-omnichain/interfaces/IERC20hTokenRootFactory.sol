@@ -25,5 +25,5 @@ interface IERC20hTokenRootFactory {
                                 ERRORS
     //////////////////////////////////////////////////////////////*/
 
-    error UnrecognizedCoreRouter();
+    error UnrecognizedCoreRouterOrPort();
 }

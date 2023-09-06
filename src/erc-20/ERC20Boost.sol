@@ -9,9 +9,6 @@ import {ERC20} from "solmate/tokens/ERC20.sol";
 
 import {EnumerableSet} from "@lib/EnumerableSet.sol";
 
-import {IBaseV2Gauge} from "@gauges/interfaces/IBaseV2Gauge.sol";
-
-import {Errors} from "./interfaces/Errors.sol";
 import {IERC20Boost} from "./interfaces/IERC20Boost.sol";
 
 /// @title An ERC20 with an embedded attachment mechanism to keep track of boost
@@ -25,12 +22,12 @@ abstract contract ERC20Boost is ERC20, Ownable, IERC20Boost {
     //////////////////////////////////////////////////////////////*/
 
     /// @inheritdoc IERC20Boost
-    mapping(address => mapping(address => GaugeState)) public override getUserGaugeBoost;
+    mapping(address user => mapping(address gauge => GaugeState userGaugeState)) public override getUserGaugeBoost;
 
     /// @inheritdoc IERC20Boost
-    mapping(address => uint256) public override getUserBoost;
+    mapping(address user => uint256 boost) public override getUserBoost;
 
-    mapping(address => EnumerableSet.AddressSet) internal _userGauges;
+    mapping(address user => EnumerableSet.AddressSet userGaugeSet) internal _userGauges;
 
     EnumerableSet.AddressSet internal _gauges;
 
@@ -42,12 +39,12 @@ abstract contract ERC20Boost is ERC20, Ownable, IERC20Boost {
     //////////////////////////////////////////////////////////////*/
 
     /// @inheritdoc IERC20Boost
-    function gauges() external view returns (address[] memory) {
+    function gauges() external view override returns (address[] memory) {
         return _gauges.values();
     }
 
     /// @inheritdoc IERC20Boost
-    function gauges(uint256 offset, uint256 num) external view returns (address[] memory values) {
+    function gauges(uint256 offset, uint256 num) external view override returns (address[] memory values) {
         values = new address[](num);
         for (uint256 i = 0; i < num;) {
             unchecked {
@@ -58,53 +55,59 @@ abstract contract ERC20Boost is ERC20, Ownable, IERC20Boost {
     }
 
     /// @inheritdoc IERC20Boost
-    function isGauge(address gauge) external view returns (bool) {
+    function isGauge(address gauge) external view override returns (bool) {
         return _gauges.contains(gauge) && !_deprecatedGauges.contains(gauge);
     }
 
     /// @inheritdoc IERC20Boost
-    function numGauges() external view returns (uint256) {
+    function numGauges() external view override returns (uint256) {
         return _gauges.length();
     }
 
     /// @inheritdoc IERC20Boost
-    function deprecatedGauges() external view returns (address[] memory) {
+    function deprecatedGauges() external view override returns (address[] memory) {
         return _deprecatedGauges.values();
     }
 
     /// @inheritdoc IERC20Boost
-    function numDeprecatedGauges() external view returns (uint256) {
+    function numDeprecatedGauges() external view override returns (uint256) {
         return _deprecatedGauges.length();
     }
 
     /// @inheritdoc IERC20Boost
-    function freeGaugeBoost(address user) public view returns (uint256) {
+    function freeGaugeBoost(address user) public view override returns (uint256) {
         return balanceOf[user] - getUserBoost[user];
     }
 
     /// @inheritdoc IERC20Boost
-    function userGauges(address user) external view returns (address[] memory) {
+    function userGauges(address user) external view override returns (address[] memory) {
         return _userGauges[user].values();
     }
 
     /// @inheritdoc IERC20Boost
-    function isUserGauge(address user, address gauge) external view returns (bool) {
+    function isUserGauge(address user, address gauge) external view override returns (bool) {
         return _userGauges[user].contains(gauge);
     }
 
     /// @inheritdoc IERC20Boost
-    function userGauges(address user, uint256 offset, uint256 num) external view returns (address[] memory values) {
+    function userGauges(address user, uint256 offset, uint256 num)
+        external
+        view
+        override
+        returns (address[] memory values)
+    {
         values = new address[](num);
+        EnumerableSet.AddressSet storage userGaugesSet = _userGauges[user];
         for (uint256 i = 0; i < num;) {
             unchecked {
-                values[i] = _userGauges[user].at(offset + i); // will revert if out of bounds
+                values[i] = userGaugesSet.at(offset + i); // will revert if out of bounds
                 i++;
             }
         }
     }
 
     /// @inheritdoc IERC20Boost
-    function numUserGauges(address user) external view returns (uint256) {
+    function numUserGauges(address user) external view override returns (uint256) {
         return _userGauges[user].length();
     }
 
@@ -113,7 +116,7 @@ abstract contract ERC20Boost is ERC20, Ownable, IERC20Boost {
     //////////////////////////////////////////////////////////////*/
 
     /// @inheritdoc IERC20Boost
-    function attach(address user) external {
+    function attach(address user) external override {
         if (!_gauges.contains(msg.sender) || _deprecatedGauges.contains(msg.sender)) {
             revert InvalidGauge();
         }
@@ -128,8 +131,12 @@ abstract contract ERC20Boost is ERC20, Ownable, IERC20Boost {
             emit UpdateUserBoost(user, userGaugeBoost);
         }
 
-        getUserGaugeBoost[user][msg.sender] =
-            GaugeState({userGaugeBoost: userGaugeBoost, totalGaugeBoost: totalSupply.toUint128()});
+        uint256 _totalSupply = totalSupply;
+        if (_totalSupply > 0) {
+            GaugeState storage userBoost = getUserGaugeBoost[user][msg.sender];
+            userBoost.userGaugeBoost = userGaugeBoost;
+            userBoost.totalGaugeBoost = _totalSupply.toUint128();
+        }
 
         emit Attach(user, msg.sender, userGaugeBoost);
     }
@@ -147,8 +154,8 @@ abstract contract ERC20Boost is ERC20, Ownable, IERC20Boost {
     //////////////////////////////////////////////////////////////*/
 
     /// @inheritdoc IERC20Boost
-    function updateUserBoost(address user) external {
-        uint256 userBoost = 0;
+    function updateUserBoost(address user) external override {
+        uint256 userBoost;
 
         address[] memory gaugeList = _userGauges[user].values();
 
@@ -168,22 +175,25 @@ abstract contract ERC20Boost is ERC20, Ownable, IERC20Boost {
     }
 
     /// @inheritdoc IERC20Boost
-    function decrementGaugeBoost(address gauge, uint256 boost) public {
+    function decrementGaugeBoost(address gauge, uint256 boost) public override {
         GaugeState storage gaugeState = getUserGaugeBoost[msg.sender][gauge];
-        if (_deprecatedGauges.contains(gauge) || boost >= gaugeState.userGaugeBoost) {
+        uint256 _userGaugeBoost = gaugeState.userGaugeBoost;
+
+        if (_deprecatedGauges.contains(gauge) || boost >= _userGaugeBoost) {
             require(_userGauges[msg.sender].remove(gauge)); // Remove from set. Should never fail.
             delete getUserGaugeBoost[msg.sender][gauge];
 
             emit Detach(msg.sender, gauge);
         } else {
-            gaugeState.userGaugeBoost -= boost.toUint128();
+            _userGaugeBoost = _userGaugeBoost - boost;
+            gaugeState.userGaugeBoost = _userGaugeBoost.toUint128();
 
-            emit DecrementUserGaugeBoost(msg.sender, gauge, gaugeState.userGaugeBoost);
+            emit DecrementUserGaugeBoost(msg.sender, gauge, _userGaugeBoost);
         }
     }
 
     /// @inheritdoc IERC20Boost
-    function decrementGaugeAllBoost(address gauge) external {
+    function decrementGaugeAllBoost(address gauge) external override {
         require(_userGauges[msg.sender].remove(gauge)); // Remove from set. Should never fail.
         delete getUserGaugeBoost[msg.sender][gauge];
 
@@ -191,29 +201,33 @@ abstract contract ERC20Boost is ERC20, Ownable, IERC20Boost {
     }
 
     /// @inheritdoc IERC20Boost
-    function decrementAllGaugesBoost(uint256 boost) external {
+    function decrementAllGaugesBoost(uint256 boost) external override {
         decrementGaugesBoostIndexed(boost, 0, _userGauges[msg.sender].length());
     }
 
     /// @inheritdoc IERC20Boost
-    function decrementGaugesBoostIndexed(uint256 boost, uint256 offset, uint256 num) public {
-        address[] memory gaugeList = _userGauges[msg.sender].values();
+    function decrementGaugesBoostIndexed(uint256 boost, uint256 offset, uint256 num) public override {
+        EnumerableSet.AddressSet storage userGaugesSet = _userGauges[msg.sender];
+
+        address[] memory gaugeList = userGaugesSet.values();
 
         uint256 length = gaugeList.length;
         for (uint256 i = 0; i < num && i < length;) {
             address gauge = gaugeList[offset + i];
 
             GaugeState storage gaugeState = getUserGaugeBoost[msg.sender][gauge];
+            uint256 _userGaugeBoost = gaugeState.userGaugeBoost;
 
-            if (_deprecatedGauges.contains(gauge) || boost >= gaugeState.userGaugeBoost) {
-                require(_userGauges[msg.sender].remove(gauge)); // Remove from set. Should never fail.
+            if (_deprecatedGauges.contains(gauge) || boost >= _userGaugeBoost) {
+                require(userGaugesSet.remove(gauge)); // Remove from set. Should never fail.
                 delete getUserGaugeBoost[msg.sender][gauge];
 
                 emit Detach(msg.sender, gauge);
             } else {
-                gaugeState.userGaugeBoost -= boost.toUint128();
+                _userGaugeBoost = _userGaugeBoost - boost;
+                gaugeState.userGaugeBoost = _userGaugeBoost.toUint128();
 
-                emit DecrementUserGaugeBoost(msg.sender, gauge, gaugeState.userGaugeBoost);
+                emit DecrementUserGaugeBoost(msg.sender, gauge, _userGaugeBoost);
             }
 
             unchecked {
@@ -223,16 +237,18 @@ abstract contract ERC20Boost is ERC20, Ownable, IERC20Boost {
     }
 
     /// @inheritdoc IERC20Boost
-    function decrementAllGaugesAllBoost() external {
+    function decrementAllGaugesAllBoost() external override {
+        EnumerableSet.AddressSet storage userGaugesSet = _userGauges[msg.sender];
+
         // Loop through all user gauges, live and deprecated
-        address[] memory gaugeList = _userGauges[msg.sender].values();
+        address[] memory gaugeList = userGaugesSet.values();
 
         // Free gauges until through the entire list
         uint256 size = gaugeList.length;
         for (uint256 i = 0; i < size;) {
             address gauge = gaugeList[i];
 
-            require(_userGauges[msg.sender].remove(gauge)); // Remove from set. Should never fail.
+            require(userGaugesSet.remove(gauge)); // Remove from set. Should never fail.
             delete getUserGaugeBoost[msg.sender][gauge];
 
             emit Detach(msg.sender, gauge);
@@ -242,7 +258,7 @@ abstract contract ERC20Boost is ERC20, Ownable, IERC20Boost {
             }
         }
 
-        getUserBoost[msg.sender] = 0;
+        delete getUserBoost[msg.sender];
 
         emit UpdateUserBoost(msg.sender, 0);
     }
@@ -252,21 +268,19 @@ abstract contract ERC20Boost is ERC20, Ownable, IERC20Boost {
     //////////////////////////////////////////////////////////////*/
 
     /// @inheritdoc IERC20Boost
-    function addGauge(address gauge) external onlyOwner {
+    function addGauge(address gauge) external override onlyOwner {
         _addGauge(gauge);
     }
 
     function _addGauge(address gauge) internal {
-        bool newAdd = _gauges.add(gauge);
-        bool previouslyDeprecated = _deprecatedGauges.remove(gauge);
         // add and fail loud if zero address or already present and not deprecated
-        if (gauge == address(0) || !(newAdd || previouslyDeprecated)) revert InvalidGauge();
+        if (gauge == address(0) || !(_gauges.add(gauge) || _deprecatedGauges.remove(gauge))) revert InvalidGauge();
 
         emit AddGauge(gauge);
     }
 
     /// @inheritdoc IERC20Boost
-    function removeGauge(address gauge) external onlyOwner {
+    function removeGauge(address gauge) external override onlyOwner {
         _removeGauge(gauge);
     }
 
@@ -278,7 +292,7 @@ abstract contract ERC20Boost is ERC20, Ownable, IERC20Boost {
     }
 
     /// @inheritdoc IERC20Boost
-    function replaceGauge(address oldGauge, address newGauge) external onlyOwner {
+    function replaceGauge(address oldGauge, address newGauge) external override onlyOwner {
         _removeGauge(oldGauge);
         _addGauge(newGauge);
     }
@@ -322,7 +336,10 @@ abstract contract ERC20Boost is ERC20, Ownable, IERC20Boost {
         notAttached(from, amount)
         returns (bool)
     {
-        return super.transferFrom(from, to, amount);
+        if (from != msg.sender) {
+            return super.transferFrom(from, to, amount);
+        }
+        return super.transfer(to, amount);
     }
 
     /*///////////////////////////////////////////////////////////////

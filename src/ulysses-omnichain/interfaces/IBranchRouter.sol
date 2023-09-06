@@ -22,7 +22,7 @@ interface IBranchRouter {
                             VIEW / STATE
     //////////////////////////////////////////////////////////////*/
 
-    /// @notice Address for local Branch Bridge Agent who processes requests and ineracts with local port.
+    /// @notice Address for local Branch Bridge Agent who processes requests and interacts with local port.
     function localBridgeAgentAddress() external view returns (address);
 
     /// @notice Local Bridge Agent Executor Address.
@@ -34,7 +34,7 @@ interface IBranchRouter {
 
     /**
      * @notice Function to perform a call to the Root Omnichain Router without token deposit.
-     *   @param params RLP enconded parameters to execute on the root chain.
+     *   @param params encoded parameters to execute on the root chain.
      *   @param rootExecutionGas gas allocated for remote execution.
      *   @dev ACTION ID: 1 (Call without deposit)
      *
@@ -43,7 +43,7 @@ interface IBranchRouter {
 
     /**
      * @notice Function to perform a call to the Root Omnichain Router while depositing a single asset.
-     *   @param params RLP enconded parameters to execute on the root chain.
+     *   @param params encoded parameters to execute on the root chain.
      *   @param dParams additional token deposit parameters.
      *   @param rootExecutionGas gas allocated for remote execution.
      *   @dev ACTION ID: 2 (Call with single deposit)
@@ -55,7 +55,7 @@ interface IBranchRouter {
 
     /**
      * @notice Function to perform a call to the Root Omnichain Router while depositing two or more assets.
-     *   @param params RLP enconded parameters to execute on the root chain.
+     *   @param params encoded parameters to execute on the root chain.
      *   @param dParams additional token deposit parameters.
      *   @param rootExecutionGas gas allocated for remote execution.
      *   @dev ACTION ID: 3 (Call with multiple deposit)
@@ -94,14 +94,14 @@ interface IBranchRouter {
     //////////////////////////////////////////////////////////////*/
 
     /**
-     * @notice Function responsible of executing a branch router response.
-     *     @param data data received from messaging layer.
+     * @notice Function responsible for executing a branch router response.
+     *     @param data data received from the messaging layer.
      */
     function anyExecuteNoSettlement(bytes calldata data) external returns (bool success, bytes memory result);
 
     /**
-     * @dev Function responsible of executing a crosschain request without any deposit.
-     *     @param data data received from messaging layer.
+     * @dev Function responsible for executing a cross-chain request without any deposit.
+     *     @param data data received from the messaging layer.
      *     @param sParams SettlementParams struct.
      */
     function anyExecuteSettlement(bytes calldata data, SettlementParams memory sParams)
@@ -109,8 +109,8 @@ interface IBranchRouter {
         returns (bool success, bytes memory result);
 
     /**
-     * @dev Function responsible of executing a crosschain request which contains cross-chain deposit information attached.
-     *     @param data data received from messaging layer.
+     * @dev Function responsible for executing a cross-chain request that contains cross-chain deposit information attached.
+     *     @param data data received from the messaging layer.
      *     @param sParams SettlementParams struct containing deposit information.
      *
      */

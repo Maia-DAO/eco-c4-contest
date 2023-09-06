@@ -13,9 +13,9 @@ import {bHermesVotes} from "./tokens/bHermesVotes.sol";
 import {UtilityManager} from "./UtilityManager.sol";
 
 /**
- * @title bHermes: Yield bearing, boosting, voting, and gauge enabled Hermes
- *  @notice bHermes is a deposit only ERC-4626 for HERMES tokens which:
- *          mints bHermes utility tokens (Weight, Boost, Governance)
+ * @title BurntHermes: Yield bearing, boosting, voting, and gauge enabled Hermes
+ *  @notice BurntHermes is a deposit only ERC-4626 for HERMES tokens which:
+ *          mints BurntHermes utility tokens (Weight, Boost, Governance)
  *          in exchange for burning HERMES.
  *  ⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣀⡀⠀⣀⣀⠀⢀⣀⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
  *  ⠀⠀⠀⠀⠀⢀⣠⣴⣾⣿⣿⣇⠸⣿⣿⠇⣸⣿⣿⣷⣦⣄⡀⠀⠀⠀⠀⠀⠀
@@ -49,22 +49,16 @@ import {UtilityManager} from "./UtilityManager.sol";
  *      ⢀⣤⣾⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣷⣤⡀
  *      ⢿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⡿
  */
-contract bHermes is UtilityManager, ERC4626DepositOnly {
+contract BurntHermes is UtilityManager, ERC4626DepositOnly {
     using SafeTransferLib for address;
 
-    constructor(
-        ERC20 _hermes,
-        address _owner,
-        address _flywheelBooster,
-        uint32 _gaugeCycleLength,
-        uint32 _incrementFreezeWindow
-    )
+    constructor(ERC20 _hermes, address _owner, address _flywheelBooster)
         UtilityManager(
-            address(new bHermesGauges(_owner, _flywheelBooster, _gaugeCycleLength, _incrementFreezeWindow)),
+            address(new bHermesGauges(_owner, _flywheelBooster)),
             address(new bHermesBoost(_owner)),
             address(new bHermesVotes(_owner))
         )
-        ERC4626DepositOnly(_hermes, "Burned Hermes: Gov + Yield + Boost", "bHermes")
+        ERC4626DepositOnly(_hermes, "Burned Hermes: Gov + Yield + Boost", "BurntHermes")
     {}
 
     /*///////////////////////////////////////////////////////////////
@@ -99,12 +93,14 @@ contract bHermes is UtilityManager, ERC4626DepositOnly {
                             UTILITY MANAGER LOGIC
     //////////////////////////////////////////////////////////////*/
 
-    function claimOutstanding() public virtual {
+    function claimOutstanding() external virtual {
         uint256 balance = balanceOf[msg.sender];
         /// @dev Never overflows since balandeOf >= userClaimed.
-        claimWeight(balance - userClaimedWeight[msg.sender]);
-        claimBoost(balance - userClaimedBoost[msg.sender]);
-        claimGovernance(balance - userClaimedGovernance[msg.sender]);
+        unchecked {
+            claimWeight(balance - userClaimedWeight[msg.sender]);
+            claimBoost(balance - userClaimedBoost[msg.sender]);
+            claimGovernance(balance - userClaimedGovernance[msg.sender]);
+        }
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -127,7 +123,7 @@ contract bHermes is UtilityManager, ERC4626DepositOnly {
     //////////////////////////////////////////////////////////////*/
 
     /**
-     * @notice Mint new bHermes and its underlying tokens: governance, boost and gauge tokens
+     * @notice Mint new BurntHermes and its underlying tokens: governance, boost and gauge tokens
      * @param to address to mint new tokens for
      * @param amount amounts of new tokens to mint
      */
@@ -139,7 +135,7 @@ contract bHermes is UtilityManager, ERC4626DepositOnly {
     }
 
     /**
-     * @notice Transfer bHermes and its underlying tokens.
+     * @notice Transfer BurntHermes and its underlying tokens.
      * @param to address to transfer the tokens to
      * @param amount amounts of tokens to transfer
      */
@@ -155,7 +151,7 @@ contract bHermes is UtilityManager, ERC4626DepositOnly {
     }
 
     /**
-     * @notice Transfer bHermes and its underlying tokens from a specific account
+     * @notice Transfer BurntHermes and its underlying tokens from a specific account
      * @param from address to transfer the tokens from
      * @param to address to transfer the tokens to
      * @param amount amounts of tokens to transfer

@@ -144,19 +144,19 @@ interface IERC20MultiVotes {
     //////////////////////////////////////////////////////////////*/
 
     /// @notice emitted when updating the maximum amount of delegates per user
-    event MaxDelegatesUpdate(uint256 oldMaxDelegates, uint256 newMaxDelegates);
+    event MaxDelegatesUpdate(uint256 indexed oldMaxDelegates, uint256 indexed newMaxDelegates);
 
     /// @notice emitted when updating the canContractExceedMaxDelegates flag for an account
-    event CanContractExceedMaxDelegatesUpdate(address indexed account, bool canContractExceedMaxDelegates);
+    event CanContractExceedMaxDelegatesUpdate(address indexed account, bool indexed canContractExceedMaxDelegates);
 
     /// @dev Emitted when a `delegator` delegates `amount` votes to `delegate`.
-    event Delegation(address indexed delegator, address indexed delegate, uint256 amount);
+    event Delegation(address indexed delegator, address indexed delegate, uint256 indexed amount);
 
     /// @dev Emitted when a `delegator` undelegates `amount` votes from `delegate`.
-    event Undelegation(address indexed delegator, address indexed delegate, uint256 amount);
+    event Undelegation(address indexed delegator, address indexed delegate, uint256 indexed amount);
 
     /// @dev Emitted when a token transfer or delegate change results in changes to an account's voting power.
-    event DelegateVotesChanged(address indexed delegate, uint256 previousBalance, uint256 newBalance);
+    event DelegateVotesChanged(address indexed delegate, uint256 indexed previousBalance, uint256 indexed newBalance);
 
     /// @notice An event thats emitted when an account changes its delegate
     /// @dev this is used for backward compatibility with OZ interfaces for ERC20Votes and ERC20VotesComp.

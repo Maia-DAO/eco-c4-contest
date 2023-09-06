@@ -28,6 +28,7 @@ contract UniswapV3GaugeFactoryTest is DSTestPlus {
 
         hevm.mockCall(flywheelGaugeRewards, abi.encodeWithSignature("minter()"), abi.encode(address(this)));
         hevm.mockCall(flywheelGaugeRewards, abi.encodeWithSignature("rewardToken()"), abi.encode(rewardToken));
+        hevm.mockCall(flywheelGaugeRewards, abi.encodeWithSignature("getAccruedRewards()"), abi.encode(0));
 
         factory = new UniswapV3GaugeFactory(
             BaseV2GaugeManager(gaugeManager),
@@ -56,11 +57,11 @@ contract UniswapV3GaugeFactoryTest is DSTestPlus {
 
         factory.newEpoch();
 
-        address gauge2 = testCreateGauge(strategy2);
+        address newGauge = testCreateGauge(strategy2);
 
-        mockNewEpoch(gauge2);
+        mockNewEpoch(newGauge);
 
-        hevm.expectCall(gauge2, abi.encodeWithSignature("newEpoch()"));
+        hevm.expectCall(newGauge, abi.encodeWithSignature("newEpoch()"));
         factory.newEpoch();
     }
 

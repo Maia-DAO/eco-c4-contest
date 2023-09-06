@@ -61,9 +61,6 @@ interface IBaseV2Gauge {
     /// @notice the gauge's rewards depot
     function multiRewardsDepot() external returns (MultiRewardsDepot);
 
-    /// @notice the current epoch / cycle number
-    function epoch() external returns (uint256);
-
     /*///////////////////////////////////////////////////////////////
                         GAUGE ACTIONS    
     //////////////////////////////////////////////////////////////*/
@@ -87,9 +84,8 @@ interface IBaseV2Gauge {
     /**
      * @notice Emitted when weekly emissions are distributed
      * @param amount amount of tokens distributed
-     * @param epoch current epoch
      */
-    event Distribute(uint256 indexed amount, uint256 indexed epoch);
+    event Distribute(uint256 indexed amount);
 
     /*///////////////////////////////////////////////////////////////
                             ERRORS

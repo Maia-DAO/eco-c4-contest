@@ -3,10 +3,10 @@
 pragma solidity ^0.8.0;
 
 /**
- * @title  Base PortStrategy Contract
+ * @title  Port Strategy Interface
  * @author MaiaDAO
- * @notice Base Contract for interfacing with Brach Port Strategy contracts
- *         whitelisted by the chain's Branch Port to manage a limited amount
+ * @notice Interface to be implemented by Brach Port Strategy contracts
+ *         allowlisted by the chain's Branch Port to manage a limited amount
  *         of one or more Strategy Tokens.
  */
 interface IPortStrategy {

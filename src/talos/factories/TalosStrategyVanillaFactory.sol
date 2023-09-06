@@ -7,7 +7,6 @@ import {INonfungiblePositionManager} from "@uniswap/v3-periphery/contracts/inter
 
 import {TalosBaseStrategy} from "../base/TalosBaseStrategy.sol";
 import {DeployVanilla, TalosStrategyVanilla} from "../TalosStrategyVanilla.sol";
-import {TalosManager} from "../TalosManager.sol";
 
 import {OptimizerFactory} from "./OptimizerFactory.sol";
 import {TalosBaseStrategyFactory} from "./TalosBaseStrategyFactory.sol";
@@ -30,13 +29,15 @@ contract TalosStrategyVanillaFactory is TalosBaseStrategyFactory {
     //////////////////////////////////////////////////////////////*/
 
     /// @notice Internal function responsible for creating a new Talos Strategy
-    function createTalosV3Strategy(
+    function _createTalosV3Strategy(
         IUniswapV3Pool pool,
         ITalosOptimizer optimizer,
         address strategyManager,
         bytes32 salt,
         bytes memory
     ) internal override returns (TalosBaseStrategy) {
-        return DeployVanilla.createTalosV3Vanilla(pool, optimizer, nonfungiblePositionManager, strategyManager, owner(), salt);
+        return DeployVanilla.createTalosV3Vanilla(
+            pool, optimizer, nonfungiblePositionManager, strategyManager, owner(), salt
+        );
     }
 }

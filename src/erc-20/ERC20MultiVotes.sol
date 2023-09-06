@@ -26,36 +26,36 @@ abstract contract ERC20MultiVotes is ERC20, Ownable, IERC20MultiVotes {
     //////////////////////////////////////////////////////////////*/
 
     /// @notice votes checkpoint list per user.
-    mapping(address => Checkpoint[]) private _checkpoints;
+    mapping(address user => Checkpoint[] checkpointList) private _checkpoints;
 
     /// @inheritdoc IERC20MultiVotes
-    function checkpoints(address account, uint32 pos) public view virtual returns (Checkpoint memory) {
+    function checkpoints(address account, uint32 pos) public view virtual override returns (Checkpoint memory) {
         return _checkpoints[account][pos];
     }
 
     /// @inheritdoc IERC20MultiVotes
-    function numCheckpoints(address account) public view virtual returns (uint32) {
+    function numCheckpoints(address account) public view virtual override returns (uint32) {
         return _checkpoints[account].length.toUint32();
     }
 
     /// @inheritdoc IERC20MultiVotes
-    function freeVotes(address account) public view virtual returns (uint256) {
+    function freeVotes(address account) public view virtual override returns (uint256) {
         return balanceOf[account] - userDelegatedVotes[account];
     }
 
     /// @inheritdoc IERC20MultiVotes
-    function getVotes(address account) public view virtual returns (uint256) {
+    function getVotes(address account) public view virtual override returns (uint256) {
         uint256 pos = _checkpoints[account].length;
         return pos == 0 ? 0 : _checkpoints[account][pos - 1].votes;
     }
 
     /// @inheritdoc IERC20MultiVotes
-    function userUnusedVotes(address user) public view virtual returns (uint256) {
+    function userUnusedVotes(address user) public view virtual override returns (uint256) {
         return getVotes(user);
     }
 
     /// @inheritdoc IERC20MultiVotes
-    function getPriorVotes(address account, uint256 blockNumber) public view virtual returns (uint256) {
+    function getPriorVotes(address account, uint256 blockNumber) public view virtual override returns (uint256) {
         if (blockNumber >= block.number) revert BlockError();
         return _checkpointsLookup(_checkpoints[account], blockNumber);
     }
@@ -64,9 +64,9 @@ abstract contract ERC20MultiVotes is ERC20, Ownable, IERC20MultiVotes {
     function _checkpointsLookup(Checkpoint[] storage ckpts, uint256 blockNumber) private view returns (uint256) {
         // We run a binary search to look for the earliest checkpoint taken after `blockNumber`.
         uint256 high = ckpts.length;
-        uint256 low = 0;
+        uint256 low;
         while (low < high) {
-            uint256 mid = average(low, high);
+            uint256 mid = _average(low, high);
             if (ckpts[mid].fromBlock > blockNumber) {
                 high = mid;
             } else {
@@ -77,9 +77,9 @@ abstract contract ERC20MultiVotes is ERC20, Ownable, IERC20MultiVotes {
         return high == 0 ? 0 : ckpts[high - 1].votes;
     }
 
-    function average(uint256 a, uint256 b) internal pure returns (uint256) {
+    function _average(uint256 a, uint256 b) internal pure returns (uint256) {
         // (a + b) / 2 can overflow.
-        return (a & b) + (a ^ b) / 2;
+        return (a & b) + ((a ^ b) >> 1);
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -90,10 +90,10 @@ abstract contract ERC20MultiVotes is ERC20, Ownable, IERC20MultiVotes {
     uint256 public override maxDelegates;
 
     /// @inheritdoc IERC20MultiVotes
-    mapping(address => bool) public override canContractExceedMaxDelegates;
+    mapping(address contractAddress => bool canExceedMaxGauges) public override canContractExceedMaxDelegates;
 
     /// @inheritdoc IERC20MultiVotes
-    function setMaxDelegates(uint256 newMax) external onlyOwner {
+    function setMaxDelegates(uint256 newMax) external override onlyOwner {
         uint256 oldMax = maxDelegates;
         maxDelegates = newMax;
 
@@ -101,7 +101,7 @@ abstract contract ERC20MultiVotes is ERC20, Ownable, IERC20MultiVotes {
     }
 
     /// @inheritdoc IERC20MultiVotes
-    function setContractExceedMaxDelegates(address account, bool canExceedMax) external onlyOwner {
+    function setContractExceedMaxDelegates(address account, bool canExceedMax) external override onlyOwner {
         if (canExceedMax && account.code.length == 0) revert Errors.NonContractError(); // can only approve contracts
 
         canContractExceedMaxDelegates[account] = canExceedMax;
@@ -114,41 +114,41 @@ abstract contract ERC20MultiVotes is ERC20, Ownable, IERC20MultiVotes {
     //////////////////////////////////////////////////////////////*/
 
     /// @notice How many votes a user has delegated to a delegatee.
-    mapping(address => mapping(address => uint256)) private _delegatesVotesCount;
+    mapping(address user => mapping(address delegatee => uint256 votes)) private _delegatesVotesCount;
 
     /// @notice How many votes a user has delegated to him.
-    mapping(address => uint256) public userDelegatedVotes;
+    mapping(address user => uint256 votes) public userDelegatedVotes;
 
     /// @notice The delegatees of a user.
-    mapping(address => EnumerableSet.AddressSet) private _delegates;
+    mapping(address user => EnumerableSet.AddressSet delegatesSet) private _delegates;
 
     /// @inheritdoc IERC20MultiVotes
-    function delegatesVotesCount(address delegator, address delegatee) public view virtual returns (uint256) {
+    function delegatesVotesCount(address delegator, address delegatee) public view virtual override returns (uint256) {
         return _delegatesVotesCount[delegator][delegatee];
     }
 
     /// @inheritdoc IERC20MultiVotes
-    function delegates(address delegator) public view returns (address[] memory) {
+    function delegates(address delegator) public view override returns (address[] memory) {
         return _delegates[delegator].values();
     }
 
     /// @inheritdoc IERC20MultiVotes
-    function delegateCount(address delegator) public view returns (uint256) {
+    function delegateCount(address delegator) public view override returns (uint256) {
         return _delegates[delegator].length();
     }
 
     /// @inheritdoc IERC20MultiVotes
-    function incrementDelegation(address delegatee, uint256 amount) public virtual {
+    function incrementDelegation(address delegatee, uint256 amount) public virtual override {
         _incrementDelegation(msg.sender, delegatee, amount);
     }
 
     /// @inheritdoc IERC20MultiVotes
-    function undelegate(address delegatee, uint256 amount) public virtual {
+    function undelegate(address delegatee, uint256 amount) public virtual override {
         _undelegate(msg.sender, delegatee, amount);
     }
 
     /// @inheritdoc IERC20MultiVotes
-    function delegate(address newDelegatee) external virtual {
+    function delegate(address newDelegatee) external virtual override {
         _delegate(msg.sender, newDelegatee);
     }
 
@@ -187,13 +187,16 @@ abstract contract ERC20MultiVotes is ERC20, Ownable, IERC20MultiVotes {
      */
     function _incrementDelegation(address delegator, address delegatee, uint256 amount) internal virtual {
         // Require freeVotes exceed the delegation size
-        uint256 free = freeVotes(delegator);
-        if (delegatee == address(0) || free < amount || amount == 0) revert DelegationError();
+        if (delegatee == address(0) || freeVotes(delegator) < amount || amount == 0) revert DelegationError();
 
-        bool newDelegate = _delegates[delegator].add(delegatee); // idempotent add
-        if (newDelegate && delegateCount(delegator) > maxDelegates && !canContractExceedMaxDelegates[delegator]) {
-            // if is a new delegate, exceeds max and is not approved to exceed, revert
-            revert DelegationError();
+        // idempotent add
+        if (_delegates[delegator].add(delegatee)) {
+            if (delegateCount(delegator) > maxDelegates) {
+                if (!canContractExceedMaxDelegates[delegator]) {
+                    // if is a new delegate, exceeds max and is not approved to exceed, revert
+                    revert DelegationError();
+                }
+            }
         }
 
         _delegatesVotesCount[delegator][delegatee] += amount;
@@ -214,7 +217,7 @@ abstract contract ERC20MultiVotes is ERC20, Ownable, IERC20MultiVotes {
         /**
          * @dev delegatee needs to have sufficient free votes for delegator to undelegate.
          *         Delegatee needs to be trusted, can be either a contract or an EOA.
-         *         If delegatee does not have any free votes and doesn't change their vote delegator won't be able to undelegate.
+         *         If the delegatee does not have any free votes their vote delegators won't be able to undelegate.
          *         If it is a contract, a possible safety measure is to have an emergency clear votes.
          */
         if (userUnusedVotes(delegatee) < amount) revert UndelegationVoteError();
@@ -302,7 +305,10 @@ abstract contract ERC20MultiVotes is ERC20, Ownable, IERC20MultiVotes {
      */
     function transferFrom(address from, address to, uint256 amount) public virtual override returns (bool) {
         _decrementVotesUntilFree(from, amount);
-        return super.transferFrom(from, to, amount);
+        if (from != msg.sender) {
+            return super.transferFrom(from, to, amount);
+        }
+        return super.transfer(to, amount);
     }
 
     /**
@@ -320,8 +326,10 @@ abstract contract ERC20MultiVotes is ERC20, Ownable, IERC20MultiVotes {
         // cache total for batch updates
         uint256 totalFreed;
 
+        EnumerableSet.AddressSet storage delegateSet = _delegates[user];
+
         // Loop through all delegates
-        address[] memory delegateList = _delegates[user].values();
+        address[] memory delegateList = delegateSet.values();
 
         // Free gauges through the entire list or until underweight
         uint256 size = delegateList.length;
@@ -336,8 +344,8 @@ abstract contract ERC20MultiVotes is ERC20, Ownable, IERC20MultiVotes {
 
                 if (delegateVotes == votesToFree) {
                     // If all votes are freed, remove delegatee from list
-                    require(_delegates[user].remove(delegatee)); // Remove from set. Should never fail.
-                    _delegatesVotesCount[user][delegatee] = 0;
+                    require(delegateSet.remove(delegatee)); // Remove from set. Should never fail.
+                    delete _delegatesVotesCount[user][delegatee];
                 } else {
                     // If not all votes are freed, update the votes count
                     _delegatesVotesCount[user][delegatee] -= votesToFree;
@@ -350,15 +358,15 @@ abstract contract ERC20MultiVotes is ERC20, Ownable, IERC20MultiVotes {
 
         if ((userFreeVotes + totalFreed) < votes) revert UndelegationVoteError();
 
-        userDelegatedVotes[user] -= totalFreed;
+        userDelegatedVotes[user] = userDelegatedVotes[user] - totalFreed;
     }
 
     /*///////////////////////////////////////////////////////////////
                              EIP-712 LOGIC
     //////////////////////////////////////////////////////////////*/
 
-    bytes32 public constant DELEGATION_TYPEHASH =
-        keccak256("Delegation(address delegatee,uint256 nonce,uint256 expiry)");
+    // keccak256("Delegation(address delegatee,uint256 nonce,uint256 expiry)");
+    bytes32 public constant DELEGATION_TYPEHASH = 0xe48329057bfd03d55e49b547132e39cffd9c1820ad7b9d4c5307691425d15adf;
 
     function delegateBySig(address delegatee, uint256 nonce, uint256 expiry, uint8 v, bytes32 r, bytes32 s) public {
         require(block.timestamp <= expiry, "ERC20MultiVotes: signature expired");

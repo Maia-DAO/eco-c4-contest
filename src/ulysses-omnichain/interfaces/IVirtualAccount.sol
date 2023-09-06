@@ -12,7 +12,7 @@ struct Call {
 /**
  * @title  Virtual Account Contract
  * @notice A Virtual Account allows users to manage assets and perform interactions remotely while allowing dApps to keep encapsulated user balance for accounting purposes.
- * @dev    This contract is based off Maker's `Multicall2` contract, executes a set of `Call` objects if any of the perfomed call is invalid the whole batch should revert.
+ * @dev    This contract is based off Maker's `Multicall2` contract, executes a set of `Call` objects if any of the performed calls is invalid the whole batch should revert.
  */
 interface IVirtualAccount is IERC721Receiver {
     /**
@@ -26,6 +26,12 @@ interface IVirtualAccount is IERC721Receiver {
      * @return The address of the local port.
      */
     function localPortAddress() external view returns (address);
+
+    /**
+     * @notice Withdraws native tokens from the VirtualAccount.
+     * @param _amount The amount of tokens to withdraw.
+     */
+    function withdrawNative(uint256 _amount) external;
 
     /**
      * @notice Withdraws ERC20 tokens from the VirtualAccount.

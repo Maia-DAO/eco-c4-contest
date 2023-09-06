@@ -12,7 +12,7 @@ import {ArbitrumBranchBridgeAgent, DeployArbitrumBranchBridgeAgent} from "../Arb
  * @title  Arbitrum Branch Bridge Agent Factory Contract
  * @author MaiaDAO
  * @notice Factory contract for allowing permissionless deployment of
- *         new Arbitrum Branch Bridge Agents which are in charge of 
+ *         new Arbitrum Branch Bridge Agents which are in charge of
  *         managing the deposit and withdrawal of assets between the
  *         branch chains and the omnichain environment.
  */
@@ -52,6 +52,8 @@ contract ArbitrumBranchBridgeAgentFactory is BranchBridgeAgentFactory {
     {}
 
     function initialize(address _coreRootBridgeAgent) external override onlyOwner {
+        require(_coreRootBridgeAgent != address(0), "Core Root Bridge Agent Address cannot be 0");
+
         address newCoreBridgeAgent = address(
             DeployArbitrumBranchBridgeAgent.deploy(
                 wrappedNativeToken,
@@ -65,6 +67,8 @@ contract ArbitrumBranchBridgeAgentFactory is BranchBridgeAgentFactory {
         );
 
         IPort(localPortAddress).addBridgeAgent(newCoreBridgeAgent);
+
+        renounceOwnership();
     }
 
     /*///////////////////////////////////////////////////////////////

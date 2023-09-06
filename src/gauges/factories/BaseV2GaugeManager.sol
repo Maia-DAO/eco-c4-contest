@@ -4,7 +4,7 @@ pragma solidity ^0.8.0;
 
 import {Ownable} from "solady/auth/Ownable.sol";
 
-import {bHermes, bHermesBoost, bHermesGauges} from "@hermes/bHermes.sol";
+import {BurntHermes, bHermesBoost, bHermesGauges} from "@hermes/BurntHermes.sol";
 
 import {FlywheelGaugeRewards} from "@rewards/rewards/FlywheelGaugeRewards.sol";
 
@@ -12,7 +12,7 @@ import {BaseV2GaugeFactory} from "./BaseV2GaugeFactory.sol";
 
 import {IBaseV2GaugeManager} from "../interfaces/IBaseV2GaugeManager.sol";
 
-/// @title Base V2 Gauge Factory Manager - Manages addition/removal of Gauge Factories to bHermes.
+/// @title Base V2 Gauge Factory Manager - Manages addition/removal of Gauge Factories to BurntHermes.
 contract BaseV2GaugeManager is Ownable, IBaseV2GaugeManager {
     /*///////////////////////////////////////////////////////////////
                         GAUGE MANAGER STATE
@@ -33,18 +33,18 @@ contract BaseV2GaugeManager is Ownable, IBaseV2GaugeManager {
     BaseV2GaugeFactory[] public gaugeFactories;
 
     /// @inheritdoc IBaseV2GaugeManager
-    mapping(BaseV2GaugeFactory => uint256) public gaugeFactoryIds;
+    mapping(BaseV2GaugeFactory gaugeFactory => uint256 gaugeFactoryId) public gaugeFactoryIds;
 
     /// @inheritdoc IBaseV2GaugeManager
-    mapping(BaseV2GaugeFactory => bool) public activeGaugeFactories;
+    mapping(BaseV2GaugeFactory gaugeFactory => bool isActive) public activeGaugeFactories;
 
     /**
      * @notice Initializes Base V2 Gauge Factory Manager contract.
-     * @param _bHermes bHermes contract
+     * @param _bHermes BurntHermes contract
      * @param _owner can add BaseV2GaugeFactories.
      * @param _admin can transfer ownership of bHermesWeight and bHermesBoost.
      */
-    constructor(bHermes _bHermes, FlywheelGaugeRewards _rewards, address _owner, address _admin) {
+    constructor(BurntHermes _bHermes, FlywheelGaugeRewards _rewards, address _owner, address _admin) {
         admin = _admin;
         _initializeOwner(_owner);
         rewards = _rewards;
@@ -62,7 +62,7 @@ contract BaseV2GaugeManager is Ownable, IBaseV2GaugeManager {
     //////////////////////////////////////////////////////////////*/
 
     /// @inheritdoc IBaseV2GaugeManager
-    function newEpoch() external {
+    function newEpoch() external override {
         BaseV2GaugeFactory[] storage _gaugeFactories = gaugeFactories;
 
         uint256 length = _gaugeFactories.length;
@@ -76,7 +76,7 @@ contract BaseV2GaugeManager is Ownable, IBaseV2GaugeManager {
     }
 
     /// @inheritdoc IBaseV2GaugeManager
-    function newEpoch(uint256 start, uint256 end) external {
+    function newEpoch(uint256 start, uint256 end) external override {
         BaseV2GaugeFactory[] storage _gaugeFactories = gaugeFactories;
 
         uint256 length = _gaugeFactories.length;
@@ -96,13 +96,13 @@ contract BaseV2GaugeManager is Ownable, IBaseV2GaugeManager {
     //////////////////////////////////////////////////////////////*/
 
     /// @inheritdoc IBaseV2GaugeManager
-    function addGauge(address gauge) external onlyActiveGaugeFactory rewardsAreQueuedForThisCycle {
+    function addGauge(address gauge) external override onlyActiveGaugeFactory rewardsAreQueuedForThisCycle {
         bHermesGaugeWeight.addGauge(gauge);
         bHermesGaugeBoost.addGauge(gauge);
     }
 
     /// @inheritdoc IBaseV2GaugeManager
-    function removeGauge(address gauge) external onlyActiveGaugeFactory rewardsAreQueuedForThisCycle {
+    function removeGauge(address gauge) external override onlyActiveGaugeFactory rewardsAreQueuedForThisCycle {
         bHermesGaugeWeight.removeGauge(gauge);
         bHermesGaugeBoost.removeGauge(gauge);
     }
@@ -112,7 +112,7 @@ contract BaseV2GaugeManager is Ownable, IBaseV2GaugeManager {
     //////////////////////////////////////////////////////////////*/
 
     /// @inheritdoc IBaseV2GaugeManager
-    function addGaugeFactory(BaseV2GaugeFactory gaugeFactory) external onlyOwner {
+    function addGaugeFactory(BaseV2GaugeFactory gaugeFactory) external override onlyOwner {
         if (activeGaugeFactories[gaugeFactory]) revert GaugeFactoryAlreadyExists();
 
         gaugeFactoryIds[gaugeFactory] = gaugeFactories.length;
@@ -123,7 +123,7 @@ contract BaseV2GaugeManager is Ownable, IBaseV2GaugeManager {
     }
 
     /// @inheritdoc IBaseV2GaugeManager
-    function removeGaugeFactory(BaseV2GaugeFactory gaugeFactory) external onlyOwner {
+    function removeGaugeFactory(BaseV2GaugeFactory gaugeFactory) external override onlyOwner {
         if (!activeGaugeFactories[gaugeFactory] || gaugeFactories[gaugeFactoryIds[gaugeFactory]] != gaugeFactory) {
             revert NotActiveGaugeFactory();
         }
@@ -139,7 +139,7 @@ contract BaseV2GaugeManager is Ownable, IBaseV2GaugeManager {
     //////////////////////////////////////////////////////////////*/
 
     /// @inheritdoc IBaseV2GaugeManager
-    function changebHermesGaugeOwner(address newOwner) external onlyAdmin {
+    function changebHermesGaugeOwner(address newOwner) external override onlyAdmin {
         bHermesGaugeWeight.transferOwnership(newOwner);
         bHermesGaugeBoost.transferOwnership(newOwner);
 
@@ -147,10 +147,15 @@ contract BaseV2GaugeManager is Ownable, IBaseV2GaugeManager {
     }
 
     /// @inheritdoc IBaseV2GaugeManager
-    function changeAdmin(address newAdmin) external onlyAdmin {
+    function changeAdmin(address newAdmin) external override onlyAdmin {
         admin = newAdmin;
 
         emit ChangedAdmin(newAdmin);
+    }
+
+    /// @inheritdoc IBaseV2GaugeManager
+    function changeFlywheelBooster(address newFlywheelBooster) external onlyAdmin {
+        bHermesGaugeWeight.setFlywheelBooster(newFlywheelBooster);
     }
 
     /*//////////////////////////////////////////////////////////////
@@ -168,8 +173,10 @@ contract BaseV2GaugeManager is Ownable, IBaseV2GaugeManager {
     }
 
     modifier rewardsAreQueuedForThisCycle() {
-        uint256 gaugeCycleLength = rewards.gaugeCycleLength();
-        uint256 currentCycle = (block.timestamp / gaugeCycleLength) * gaugeCycleLength;
+        uint256 currentCycle;
+        unchecked {
+            currentCycle = (block.timestamp / 1 weeks) * 1 weeks;
+        }
         if (currentCycle > rewards.gaugeCycle()) revert RewardsNotQueued();
         _;
     }

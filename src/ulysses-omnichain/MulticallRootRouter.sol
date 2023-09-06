@@ -5,12 +5,14 @@ import {Ownable} from "solady/auth/Ownable.sol";
 import {SafeTransferLib} from "solady/utils/SafeTransferLib.sol";
 
 import {IMulticall2 as IMulticall} from "./interfaces/IMulticall2.sol";
-import {IRootBridgeAgent as IBridgeAgent} from "./interfaces/IRootBridgeAgent.sol";
+import {
+    DepositParams,
+    DepositMultipleParams,
+    IRootBridgeAgent as IBridgeAgent,
+    Settlement
+} from "./interfaces/IRootBridgeAgent.sol";
 import {IRootRouter} from "./interfaces/IRootRouter.sol";
 import {IVirtualAccount, Call} from "./interfaces/IVirtualAccount.sol";
-
-import {ERC20hTokenRoot} from "./token/ERC20hTokenRoot.sol";
-import {DepositParams, DepositMultipleParams, Settlement} from "./interfaces/IRootBridgeAgent.sol";
 
 struct OutputParams {
     address recipient; // Address to receive the output assets.
@@ -29,7 +31,7 @@ struct OutputMultipleParams {
 /**
  * @title  Multicall Root Router Contract
  * @author MaiaDAO
- * @notice Root Router implementation for interfacing with third party dApps present in the Root Omnichain Environment.
+ * @notice Root Router implementation for interfacing with third-party dApps present in the Root Omnichain Environment.
  * @dev    Func IDs for calling these  functions through messaging layer:
  *
  *         CROSS-CHAIN MESSAGING FUNCIDs
@@ -56,10 +58,14 @@ contract MulticallRootRouter is IRootRouter, Ownable {
     /// @notice Multicall Address
     address public immutable multicallAddress;
 
-    /// @notice Bridge Agent to maneg communcations and cross-chain assets.
+    /// @notice Bridge Agent to manage communications and cross-chain assets.
     address payable public bridgeAgentAddress;
 
+    /// @notice Bridge Agent Executor Address
     address public bridgeAgentExecutorAddress;
+
+    /// @notice Re-entrancy lock modifier state.
+    uint256 internal _unlocked = 1;
 
     constructor(uint256 _localChainId, address _localPortAddress, address _multicallAddress) {
         require(_localPortAddress != address(0), "Local Port Address cannot be 0");
@@ -84,7 +90,7 @@ contract MulticallRootRouter is IRootRouter, Ownable {
     ///////////////////////////////////////////////////////////////*/
 
     /**
-     *   @notice Function to perform a set of actions on the omnichian environment without using the user's Virtual Acccount.
+     *   @notice Function to perform a set of actions on the omnichain environment without using the user's Virtual Acccount.
      *   @param calls to be executed.
      *
      */
@@ -92,7 +98,7 @@ contract MulticallRootRouter is IRootRouter, Ownable {
         internal
         returns (uint256 blockNumber, bytes[] memory returnData)
     {
-        //Call desired functions
+        // Call desired functions
         (blockNumber, returnData) = IMulticall(multicallAddress).aggregate(calls);
     }
 
@@ -116,17 +122,20 @@ contract MulticallRootRouter is IRootRouter, Ownable {
         uint256 depositOut,
         uint24 toChain
     ) internal virtual {
-        //Approve Root Port to spend/send output hTokens.
-        ERC20hTokenRoot(outputToken).approve(bridgeAgentAddress, amountOut);
+        // Save bridge agent address to memory
+        address _bridgeAgentAddress = bridgeAgentAddress;
 
-        //Move output hTokens from Root to Branch and call 'clearToken'.
-        IBridgeAgent(bridgeAgentAddress).callOutAndBridge{value: msg.value}(
-            owner, recipient, "", outputToken, amountOut, depositOut, toChain
+        // Approve Root Port to spend/send output hTokens.
+        outputToken.safeApprove(_bridgeAgentAddress, amountOut);
+
+        // Move output hTokens from Root to Branch and call 'clearToken'.
+        IBridgeAgent(_bridgeAgentAddress).callOutAndBridge{value: msg.value}(
+            owner, recipient, "", outputToken, amountOut, depositOut, toChain, true
         );
     }
 
     /**
-     *  @notice Function to approve token spend before Bridge Agent interaction to Bridge Out of omnichian environment.
+     *  @notice Function to approve token spend before Bridge Agent interaction to Bridge Out of omnichain environment.
      *  @param owner settlement owner.
      *  @param recipient Address to receive the output tokens.
      *  @param outputTokens Addresses of the output hTokens.
@@ -142,18 +151,21 @@ contract MulticallRootRouter is IRootRouter, Ownable {
         uint256[] memory depositsOut,
         uint24 toChain
     ) internal virtual {
-        //For each output token
+        // Save bridge agent address to memory
+        address _bridgeAgentAddress = bridgeAgentAddress;
+
+        // For each output token
         for (uint256 i = 0; i < outputTokens.length;) {
-            //Approve Root Port to spend output hTokens.
-            ERC20hTokenRoot(outputTokens[i]).approve(bridgeAgentAddress, amountsOut[i]);
+            // Approve Root Port to spend output hTokens.
+            outputTokens[i].safeApprove(_bridgeAgentAddress, amountsOut[i]);
             unchecked {
                 ++i;
             }
         }
 
-        //Move output hTokens from Root to Branch and call 'clearTokens'.
-        IBridgeAgent(bridgeAgentAddress).callOutAndBridgeMultiple{value: msg.value}(
-            owner, recipient, "", outputTokens, amountsOut, depositsOut, toChain
+        // Move output hTokens from Root to Branch and call 'clearTokens'.
+        IBridgeAgent(_bridgeAgentAddress).callOutAndBridgeMultiple{value: msg.value}(
+            owner, recipient, "", outputTokens, amountsOut, depositsOut, toChain, true
         );
     }
 
@@ -277,7 +289,7 @@ contract MulticallRootRouter is IRootRouter, Ownable {
         if (funcId == 0x01) {
             Call[] memory calls = abi.decode(encodedData, (Call[]));
 
-            //Call desired functions
+            // Call desired functions
             IVirtualAccount(userAccount).call(calls);
 
             /// FUNC ID: 2 (multicallSingleOutput)
@@ -285,7 +297,7 @@ contract MulticallRootRouter is IRootRouter, Ownable {
             (Call[] memory calls, OutputParams memory outputParams, uint24 toChain) =
                 abi.decode(encodedData, (Call[], OutputParams, uint24));
 
-            //Call desired functions
+            // Call desired functions
             IVirtualAccount(userAccount).call(calls);
 
             // Withdraw assets from Virtual Account
@@ -305,7 +317,7 @@ contract MulticallRootRouter is IRootRouter, Ownable {
             (Call[] memory calls, OutputMultipleParams memory outputParams, uint24 toChain) =
                 abi.decode(encodedData, (Call[], OutputMultipleParams, uint24));
 
-            //Call desired functions
+            // Call desired functions
             IVirtualAccount(userAccount).call(calls);
 
             for (uint256 i = 0; i < outputParams.outputTokens.length;) {
@@ -353,7 +365,7 @@ contract MulticallRootRouter is IRootRouter, Ownable {
         if (funcId == 0x01) {
             Call[] memory calls = abi.decode(encodedData, (Call[]));
 
-            //Call desired functions
+            // Call desired functions
             IVirtualAccount(userAccount).call(calls);
 
             /// FUNC ID: 2 (multicallSingleOutput)
@@ -361,7 +373,7 @@ contract MulticallRootRouter is IRootRouter, Ownable {
             (Call[] memory calls, OutputParams memory outputParams, uint24 toChain) =
                 abi.decode(encodedData, (Call[], OutputParams, uint24));
 
-            //Call desired functions
+            // Call desired functions
             IVirtualAccount(userAccount).call(calls);
 
             // Withdraw assets from Virtual Account
@@ -381,7 +393,7 @@ contract MulticallRootRouter is IRootRouter, Ownable {
             (Call[] memory calls, OutputMultipleParams memory outputParams, uint24 toChain) =
                 abi.decode(encodedData, (Call[], OutputMultipleParams, uint24));
 
-            //Call desired functions
+            // Call desired functions
             IVirtualAccount(userAccount).call(calls);
 
             for (uint256 i = 0; i < outputParams.outputTokens.length;) {
@@ -424,12 +436,12 @@ contract MulticallRootRouter is IRootRouter, Ownable {
         DepositMultipleParams calldata,
         address userAccount,
         uint24
-    ) external payable requiresExecutor lock returns (bool success, bytes memory result) {
+    ) external payable override requiresExecutor lock returns (bool success, bytes memory result) {
         /// FUNC ID: 1 (multicallNoOutput)
         if (funcId == 0x01) {
             Call[] memory calls = abi.decode(encodedData, (Call[]));
 
-            //Call desired functions
+            // Call desired functions
             IVirtualAccount(userAccount).call(calls);
 
             /// FUNC ID: 2 (multicallSingleOutput)
@@ -437,7 +449,7 @@ contract MulticallRootRouter is IRootRouter, Ownable {
             (Call[] memory calls, OutputParams memory outputParams, uint24 toChain) =
                 abi.decode(encodedData, (Call[], OutputParams, uint24));
 
-            //Call desired functions
+            // Call desired functions
             IVirtualAccount(userAccount).call(calls);
 
             // Withdraw assets from Virtual Account
@@ -457,7 +469,7 @@ contract MulticallRootRouter is IRootRouter, Ownable {
             (Call[] memory calls, OutputMultipleParams memory outputParams, uint24 toChain) =
                 abi.decode(encodedData, (Call[], OutputMultipleParams, uint24));
 
-            //Call desired functions
+            // Call desired functions
             IVirtualAccount(userAccount).call(calls);
 
             for (uint256 i = 0; i < outputParams.outputTokens.length;) {
@@ -487,8 +499,6 @@ contract MulticallRootRouter is IRootRouter, Ownable {
     /*///////////////////////////////////////////////////////////////
                             MODIFIERS
     ////////////////////////////////////////////////////////////*/
-
-    uint256 internal _unlocked = 1;
 
     /// @notice Modifier for a simple re-entrancy check.
     modifier lock() {

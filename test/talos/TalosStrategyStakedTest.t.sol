@@ -151,7 +151,7 @@ contract TalosStrategyStakedTest is TalosTestor {
 
         flywheel.addStrategyForRewards(talosBaseStrategy);
 
-        boostAggregator.addWhitelistedAddress(address(talosBaseStrategy));
+        boostAggregator.addAllowlistedAddress(address(talosBaseStrategy));
     }
 
     //////////////////////////////////////////////////////////////////

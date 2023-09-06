@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.0;
 // Rewards logic inspired by Uniswap V3 Contracts (Uniswap/v3-staker/contracts/libraries/IncentiveId.sol)
+pragma solidity ^0.8.0;
 
 import {IUniswapV3Staker} from "@v3-staker/interfaces/IUniswapV3Staker.sol";
 
@@ -14,6 +14,10 @@ library IncentiveId {
     /// @param key The components used to compute the incentive identifier
     /// @return incentiveId The identifier for the incentive
     function compute(IUniswapV3Staker.IncentiveKey memory key) internal pure returns (bytes32 incentiveId) {
-        return keccak256(abi.encode(key));
+        assembly ("memory-safe") {
+            mstore(0x00, mload(key))
+            mstore(0x20, mload(add(key, 0x20)))
+            incentiveId := keccak256(0x00, 0x40)
+        }
     }
 }

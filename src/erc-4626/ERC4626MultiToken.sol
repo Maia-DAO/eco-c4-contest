@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity >=0.8.0;
+pragma solidity ^0.8.0;
 
 import {FixedPointMathLib} from "solady/utils/FixedPointMathLib.sol";
 import {SafeTransferLib} from "solady/utils/SafeTransferLib.sol";
@@ -20,19 +20,19 @@ abstract contract ERC4626MultiToken is ERC20, ReentrancyGuard, IERC4626MultiToke
     //////////////////////////////////////////////////////////////*/
 
     /// @inheritdoc IERC4626MultiToken
-    address[] public assets;
+    address[] public override assets;
 
     /// @inheritdoc IERC4626MultiToken
-    uint256[] public weights;
+    uint256[] public override weights;
 
     /// @inheritdoc IERC4626MultiToken
-    mapping(address => uint256) public assetId;
+    mapping(address => uint256) public override assetId;
 
     /// @inheritdoc IERC4626MultiToken
-    uint256 public totalWeights;
+    uint256 public override totalWeights;
 
     /// @inheritdoc IERC4626MultiToken
-    function getAssets() external view returns (address[] memory) {
+    function getAssets() external view override returns (address[] memory) {
         return assets;
     }
 
@@ -93,6 +93,7 @@ abstract contract ERC4626MultiToken is ERC20, ReentrancyGuard, IERC4626MultiToke
     function deposit(uint256[] calldata assetsAmounts, address receiver)
         public
         virtual
+        override
         nonReentrant
         returns (uint256 shares)
     {
@@ -113,6 +114,7 @@ abstract contract ERC4626MultiToken is ERC20, ReentrancyGuard, IERC4626MultiToke
     function mint(uint256 shares, address receiver)
         public
         virtual
+        override
         nonReentrant
         returns (uint256[] memory assetsAmounts)
     {
@@ -132,6 +134,7 @@ abstract contract ERC4626MultiToken is ERC20, ReentrancyGuard, IERC4626MultiToke
     function withdraw(uint256[] calldata assetsAmounts, address receiver, address owner)
         public
         virtual
+        override
         nonReentrant
         returns (uint256 shares)
     {
@@ -156,6 +159,7 @@ abstract contract ERC4626MultiToken is ERC20, ReentrancyGuard, IERC4626MultiToke
     function redeem(uint256 shares, address receiver, address owner)
         public
         virtual
+        override
         nonReentrant
         returns (uint256[] memory assetsAmounts)
     {
@@ -191,7 +195,7 @@ abstract contract ERC4626MultiToken is ERC20, ReentrancyGuard, IERC4626MultiToke
     function totalAssets() public view virtual returns (uint256);
 
     /// @inheritdoc IERC4626MultiToken
-    function convertToShares(uint256[] calldata assetsAmounts) public view virtual returns (uint256 shares) {
+    function convertToShares(uint256[] calldata assetsAmounts) public view virtual override returns (uint256 shares) {
         uint256 _totalWeights = totalWeights;
         uint256 length = assetsAmounts.length;
 
@@ -208,7 +212,7 @@ abstract contract ERC4626MultiToken is ERC20, ReentrancyGuard, IERC4626MultiToke
     }
 
     /// @inheritdoc IERC4626MultiToken
-    function convertToAssets(uint256 shares) public view virtual returns (uint256[] memory assetsAmounts) {
+    function convertToAssets(uint256 shares) public view virtual override returns (uint256[] memory assetsAmounts) {
         uint256 _totalWeights = totalWeights;
         uint256 length = assets.length;
 
@@ -222,12 +226,12 @@ abstract contract ERC4626MultiToken is ERC20, ReentrancyGuard, IERC4626MultiToke
     }
 
     /// @inheritdoc IERC4626MultiToken
-    function previewDeposit(uint256[] calldata assetsAmounts) public view virtual returns (uint256) {
+    function previewDeposit(uint256[] calldata assetsAmounts) public view virtual override returns (uint256) {
         return convertToShares(assetsAmounts);
     }
 
     /// @inheritdoc IERC4626MultiToken
-    function previewMint(uint256 shares) public view virtual returns (uint256[] memory assetsAmounts) {
+    function previewMint(uint256 shares) public view virtual override returns (uint256[] memory assetsAmounts) {
         uint256 _totalWeights = totalWeights;
         uint256 length = assets.length;
 
@@ -241,7 +245,7 @@ abstract contract ERC4626MultiToken is ERC20, ReentrancyGuard, IERC4626MultiToke
     }
 
     /// @inheritdoc IERC4626MultiToken
-    function previewWithdraw(uint256[] calldata assetsAmounts) public view virtual returns (uint256 shares) {
+    function previewWithdraw(uint256[] calldata assetsAmounts) public view virtual override returns (uint256 shares) {
         uint256 _totalWeights = totalWeights;
         uint256 length = assetsAmounts.length;
 
@@ -257,7 +261,7 @@ abstract contract ERC4626MultiToken is ERC20, ReentrancyGuard, IERC4626MultiToke
     }
 
     /// @inheritdoc IERC4626MultiToken
-    function previewRedeem(uint256 shares) public view virtual returns (uint256[] memory) {
+    function previewRedeem(uint256 shares) public view virtual override returns (uint256[] memory) {
         return convertToAssets(shares);
     }
 
@@ -266,22 +270,22 @@ abstract contract ERC4626MultiToken is ERC20, ReentrancyGuard, IERC4626MultiToke
     //////////////////////////////////////////////////////////////*/
 
     /// @inheritdoc IERC4626MultiToken
-    function maxDeposit(address) public view virtual returns (uint256) {
+    function maxDeposit(address) public view virtual override returns (uint256) {
         return type(uint256).max;
     }
 
     /// @inheritdoc IERC4626MultiToken
-    function maxMint(address) public view virtual returns (uint256) {
+    function maxMint(address) public view virtual override returns (uint256) {
         return type(uint256).max;
     }
 
     /// @inheritdoc IERC4626MultiToken
-    function maxWithdraw(address owner) public view virtual returns (uint256[] memory) {
+    function maxWithdraw(address owner) public view virtual override returns (uint256[] memory) {
         return convertToAssets(balanceOf[owner]);
     }
 
     /// @inheritdoc IERC4626MultiToken
-    function maxRedeem(address owner) public view virtual returns (uint256) {
+    function maxRedeem(address owner) public view virtual override returns (uint256) {
         return balanceOf[owner];
     }
 

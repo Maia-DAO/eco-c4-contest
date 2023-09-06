@@ -24,10 +24,6 @@ library DateTimeLib {
 
     // Weekdays are 1-indexed for a traditional rustic feel.
 
-    // "And on the seventh day God finished his work that he had done,
-    // and he rested on the seventh day from all his work that he had done."
-    // -- Genesis 2:2
-
     /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
     /*                    DATE TIME OPERATIONS                    */
     /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
@@ -37,10 +33,9 @@ library DateTimeLib {
     /// Note: Inputs outside the supported ranges result in undefined behavior.
     /// Use {isSupportedDays} to check if the inputs is supported.
     function getMonth(uint256 timestamp) internal pure returns (uint256 month) {
-        uint256 epochDay = timestamp / 86400;
+        uint256 epochDay = timestamp / 1 days;
 
-        /// @solidity memory-safe-assembly
-        assembly {
+        assembly ("memory-safe") {
             epochDay := add(epochDay, 719468)
             let doe := mod(epochDay, 146097)
             let yoe := div(sub(sub(add(doe, div(doe, 36524)), div(doe, 1460)), eq(doe, 146096)), 365)
@@ -54,8 +49,8 @@ library DateTimeLib {
     /// Monday: 1, Tuesday: 2, ....., Sunday: 7.
     function isTuesday(uint256 timestamp) internal pure returns (bool result, uint256 startOfDay) {
         unchecked {
-            uint256 day = timestamp / 86400;
-            startOfDay = day * 86400;
+            uint256 day = timestamp / 1 days;
+            startOfDay = day * 1 days;
             result = ((day + 3) % 7) + 1 == 2;
         }
     }

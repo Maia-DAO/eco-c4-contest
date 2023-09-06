@@ -10,15 +10,33 @@ import {FlywheelCore} from "@rewards/FlywheelCoreStrategy.sol";
  * @title Balance Booster Module for Flywheel
  *  @author Maia DAO (https://github.com/Maia-DAO)
  *  @notice Flywheel is a general framework for managing token incentives.
- *          It takes reward streams to various *strategies* such as staking LP tokens and divides them among *users* of those strategies.
+ *          It takes reward streams to various *strategies* such as staking LP tokens
+ *          and divides them among *users* of those strategies.
  *
  *          The Booster module is an optional module for virtually boosting or otherwise transforming user balances.
  *          If a booster is not configured, the strategies ERC-20 balanceOf/totalSupply will be used instead.
  *
  *          Boosting logic can be associated with referrals, vote-escrow, or other strategies.
  *
- *          SECURITY NOTE: similar to how Core needs to be notified any time the strategy user composition changes, the booster would need to be notified of any conditions which change the boosted balances atomically.
+ *          SECURITY NOTE: Similar to how Core needs to be notified any time the strategy user composition changes,
+ *          the booster would need to be notified of any conditions which change the boosted balances atomically.
  *          This prevents gaming of the reward calculation function by using manipulated balances when accruing.
+ *
+ *          NOTE: Gets total and user voting power allocated to each strategy.
+ *
+ *          ⣿⡇⣿⣿⣿⠛⠁⣴⣿⡿⠿⠧⠹⠿⠘⣿⣿⣿⡇⢸⡻⣿⣿⣿⣿⣿⣿⣿
+ *          ⢹⡇⣿⣿⣿⠄⣞⣯⣷⣾⣿⣿⣧⡹⡆⡀⠉⢹⡌⠐⢿⣿⣿⣿⡞⣿⣿⣿
+ *          ⣾⡇⣿⣿⡇⣾⣿⣿⣿⣿⣿⣿⣿⣿⣄⢻⣦⡀⠁⢸⡌⠻⣿⣿⣿⡽⣿⣿
+ *          ⡇⣿⠹⣿⡇⡟⠛⣉⠁⠉⠉⠻⡿⣿⣿⣿⣿⣿⣦⣄⡉⠂⠈⠙⢿⣿⣝⣿
+ *          ⠤⢿⡄⠹⣧⣷⣸⡇⠄⠄⠲⢰⣌⣾⣿⣿⣿⣿⣿⣿⣶⣤⣤⡀⠄⠈⠻⢮
+ *          ⠄⢸⣧⠄⢘⢻⣿⡇⢀⣀⠄⣸⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣧⡀⠄⢀
+ *          ⠄⠈⣿⡆⢸⣿⣿⣿⣬⣭⣴⣿⣿⣿⣿⣿⣿⣿⣯⠝⠛⠛⠙⢿⡿⠃⠄⢸
+ *          ⠄⠄⢿⣿⡀⣿⣿⣿⣾⣿⣿⣿⣿⣿⣿⣿⣿⣿⣷⣿⣿⣿⣿⡾⠁⢠⡇⢀
+ *          ⠄⠄⢸⣿⡇⠻⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣏⣫⣻⡟⢀⠄⣿⣷⣾
+ *          ⠄⠄⢸⣿⡇⠄⠈⠙⠿⣿⣿⣿⣮⣿⣿⣿⣿⣿⣿⣿⣿⡿⢠⠊⢀⡇⣿⣿
+ *          ⠒⠤⠄⣿⡇⢀⡲⠄⠄⠈⠙⠻⢿⣿⣿⠿⠿⠟⠛⠋⠁⣰⠇⠄⢸⣿⣿⣿
+ *          ⠄⠄⠄⣿⡇⢬⡻⡇⡄⠄⠄⠄⡰⢖⠔⠉⠄⠄⠄⠄⣼⠏⠄⠄⢸⣿⣿⣿
+ *          ⠄⠄⠄⣿⡇⠄⠙⢌⢷⣆⡀⡾⡣⠃⠄⠄⠄⠄⠄⣼⡟⠄⠄⠄⠄⢿⣿⣿
  */
 interface IFlywheelBooster {
     /*///////////////////////////////////////////////////////////////
@@ -94,8 +112,9 @@ interface IFlywheelBooster {
      * @notice opt-out of a flywheel for a strategy
      *   @param strategy the strategy to opt-out of
      *   @param flywheel the flywheel to opt-out of
+     *   @param accrue whether or not to accrue rewards before opting out
      */
-    function optOut(ERC20 strategy, FlywheelCore flywheel) external;
+    function optOut(ERC20 strategy, FlywheelCore flywheel, bool accrue) external;
 
     /*///////////////////////////////////////////////////////////////
                        bHERMES GAUGE WEIGHT ACCRUAL
@@ -121,18 +140,18 @@ interface IFlywheelBooster {
                                 ERRORS
     ///////////////////////////////////////////////////////////////*/
 
-    /// @notice error thrown when user is already opted in to a flywheel for a strategy
+    /// @notice error thrown when a user is already opted into a flywheel for a strategy
     error AlreadyOptedIn();
 
-    /// @notice error thrown when user tries to opt out of a flywheel they are not opted in to
+    /// @notice error thrown when a user tries to opt out of a flywheel they are not opted in to
     error NotOptedIn();
 
     /// @notice error thrown when initializing the booster more than once
     error AlreadyInitialized();
 
-    /// @notice Throws when trying to opt in to a strategy that is not a gauge.
+    /// @notice Throws when trying to opt-in to a strategy that is not a gauge.
     error InvalidGauge();
 
-    /// @notice Throws when trying to opt in to an invalid flywheel.
+    /// @notice Throws when trying to opt-in to an invalid flywheel.
     error InvalidFlywheel();
 }

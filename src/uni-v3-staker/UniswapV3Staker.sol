@@ -23,7 +23,7 @@ import {RewardMath} from "./libraries/RewardMath.sol";
 
 import {IUniswapV3Staker} from "./interfaces/IUniswapV3Staker.sol";
 
-/// @title Uniswap V3 Staker Interface with bHermes Boost.
+/// @title Uniswap V3 Staker Interface with BurntHermes Boost.
 contract UniswapV3Staker is IUniswapV3Staker, Multicallable {
     using SafeTransferLib for address;
 
@@ -32,31 +32,31 @@ contract UniswapV3Staker is IUniswapV3Staker, Multicallable {
     //////////////////////////////////////////////////////////////*/
 
     /// @inheritdoc IUniswapV3Staker
-    mapping(address => IUniswapV3Pool) public gaugePool;
+    mapping(address gauge => IUniswapV3Pool pool) public override gaugePool;
 
     /// @inheritdoc IUniswapV3Staker
-    mapping(IUniswapV3Pool => UniswapV3Gauge) public gauges;
+    mapping(IUniswapV3Pool pool => UniswapV3Gauge gauge) public override gauges;
 
     /// @inheritdoc IUniswapV3Staker
-    mapping(IUniswapV3Pool => address) public bribeDepots;
+    mapping(IUniswapV3Pool pool => address depot) public override bribeDepots;
 
     /// @inheritdoc IUniswapV3Staker
-    mapping(IUniswapV3Pool => uint24) public poolsMinimumWidth;
+    mapping(IUniswapV3Pool pool => uint24 minimumWidth) public override poolsMinimumWidth;
 
     /// @inheritdoc IUniswapV3Staker
-    mapping(bytes32 => Incentive) public override incentives;
+    mapping(bytes32 incentiveId => Incentive incentiveInfo) public override incentives;
 
     /// @inheritdoc IUniswapV3Staker
-    mapping(uint256 => Deposit) public override deposits;
+    mapping(uint256 tokenId => Deposit depositInfo) public override deposits;
 
     /// @notice stakes[user][pool] => tokenId of attached position of user per pool
-    mapping(address => mapping(IUniswapV3Pool => uint256)) private _userAttachements;
+    mapping(address user => mapping(IUniswapV3Pool pool => uint256 tokenId)) private _userAttachements;
 
     /// @dev stakes[tokenId][incentiveHash] => Stake
-    mapping(uint256 => mapping(bytes32 => Stake)) private _stakes;
+    mapping(uint256 tokenId => mapping(bytes32 incentiveId => Stake stakeInfo)) private _stakes;
 
     /// @dev stakedIncentives[tokenId] => incentiveIds
-    mapping(uint256 => IncentiveKey) private stakedIncentiveKey;
+    mapping(uint256 tokenId => IncentiveKey incentiveKey) private stakedIncentiveKey;
 
     /// @inheritdoc IUniswapV3Staker
     function stakes(uint256 tokenId, bytes32 incentiveId)
@@ -79,10 +79,10 @@ contract UniswapV3Staker is IUniswapV3Staker, Multicallable {
     }
 
     /// @inheritdoc IUniswapV3Staker
-    mapping(address => uint256) public override rewards;
+    mapping(address user => uint256 rewardAmount) public override rewards;
 
     /// @inheritdoc IUniswapV3Staker
-    mapping(uint256 => uint256) public tokenIdRewards;
+    mapping(uint256 tokenId => uint256 rewardAmount) public override tokenIdRewards;
 
     /*//////////////////////////////////////////////////////////////
                                IMMUTABLES
@@ -101,17 +101,22 @@ contract UniswapV3Staker is IUniswapV3Staker, Multicallable {
     uint256 public immutable override maxIncentiveStartLeadTime;
 
     /// @inheritdoc IUniswapV3Staker
-    address public immutable minter;
+    address public immutable override minter;
 
     /// @inheritdoc IUniswapV3Staker
-    address public immutable hermes;
+    address public immutable override hermes;
 
     /// @inheritdoc IUniswapV3Staker
-    bHermesBoost public immutable hermesGaugeBoost;
+    bHermesBoost public immutable override hermesGaugeBoost;
 
+    /// @notice Uniswap V3 Staker constructor arguments
     /// @param _factory the Uniswap V3 factory
     /// @param _nonfungiblePositionManager the NFT position manager contract address
+    /// @param _uniswapV3GaugeFactory the Uniswap V3 Gauge Factory contract address
+    /// @param _hermesGaugeBoost the BurntHermes Boost contract address
     /// @param _maxIncentiveStartLeadTime the max duration of an incentive in seconds
+    /// @param _minter the minter address, used for refunds
+    /// @param _hermes the hermes token address, used for rewards
     constructor(
         IUniswapV3Factory _factory,
         INonfungiblePositionManager _nonfungiblePositionManager,
@@ -135,14 +140,14 @@ contract UniswapV3Staker is IUniswapV3Staker, Multicallable {
     //////////////////////////////////////////////////////////////*/
 
     /// @inheritdoc IUniswapV3Staker
-    function createIncentiveFromGauge(uint256 reward) external {
-        if (reward <= 0) revert IncentiveRewardMustBePositive();
-
-        uint96 startTime = IncentiveTime.computeEnd(block.timestamp);
+    function createIncentiveFromGauge(uint256 reward) external override {
+        if (reward == 0) revert IncentiveRewardMustBeGreaterThanZero();
 
         IUniswapV3Pool pool = gaugePool[msg.sender];
 
         if (address(pool) == address(0)) revert IncentiveCallerMustBeRegisteredGauge();
+
+        uint96 startTime = IncentiveTime.computeEnd(block.timestamp);
 
         IncentiveKey memory key = IncentiveKey({startTime: startTime, pool: pool});
         bytes32 incentiveId = IncentiveId.compute(key);
@@ -155,8 +160,8 @@ contract UniswapV3Staker is IUniswapV3Staker, Multicallable {
     }
 
     /// @inheritdoc IUniswapV3Staker
-    function createIncentive(IncentiveKey memory key, uint256 reward) external {
-        if (reward <= 0) revert IncentiveRewardMustBePositive();
+    function createIncentive(IncentiveKey memory key, uint256 reward) external override {
+        if (reward == 0) revert IncentiveRewardMustBeGreaterThanZero();
 
         uint96 startTime = IncentiveTime.computeStart(key.startTime);
 
@@ -185,7 +190,7 @@ contract UniswapV3Staker is IUniswapV3Staker, Multicallable {
     //////////////////////////////////////////////////////////////*/
 
     /// @inheritdoc IUniswapV3Staker
-    function endIncentive(IncentiveKey memory key) external returns (uint256 refund) {
+    function endIncentive(IncentiveKey memory key) external override returns (uint256 refund) {
         if (block.timestamp < IncentiveTime.getEnd(key.startTime)) {
             revert EndIncentiveBeforeEndTime();
         }
@@ -200,7 +205,7 @@ contract UniswapV3Staker is IUniswapV3Staker, Multicallable {
         if (incentive.numberOfStakes > 0) revert EndIncentiveWhileStakesArePresent();
 
         // issue the refund
-        incentive.totalRewardUnclaimed = 0;
+        delete incentive.totalRewardUnclaimed;
 
         hermes.safeTransfer(minter, refund);
 
@@ -227,7 +232,10 @@ contract UniswapV3Staker is IUniswapV3Staker, Multicallable {
         (IUniswapV3Pool pool, int24 tickLower, int24 tickUpper, uint128 liquidity) =
             NFTPositionInfo.getPositionInfo(factory, nonfungiblePositionManager, tokenId);
 
-        deposits[tokenId] = Deposit({owner: from, tickLower: tickLower, tickUpper: tickUpper, stakedTimestamp: 0});
+        Deposit storage _deposit = deposits[tokenId];
+        _deposit.owner = from;
+        _deposit.tickLower = tickLower;
+        _deposit.tickUpper = tickUpper;
         emit DepositTransferred(tokenId, address(0), from);
 
         // stake the token in the current incentive
@@ -241,7 +249,7 @@ contract UniswapV3Staker is IUniswapV3Staker, Multicallable {
     //////////////////////////////////////////////////////////////*/
 
     /// @inheritdoc IUniswapV3Staker
-    function withdrawToken(uint256 tokenId, address to, bytes memory data) external {
+    function withdrawToken(uint256 tokenId, address to, bytes memory data) external override {
         if (to == address(0)) revert InvalidRecipient();
 
         Deposit storage deposit = deposits[tokenId];
@@ -260,13 +268,15 @@ contract UniswapV3Staker is IUniswapV3Staker, Multicallable {
     //////////////////////////////////////////////////////////////*/
 
     /// @inheritdoc IUniswapV3Staker
-    function claimReward(address to, uint256 amountRequested) external returns (uint256 reward) {
+    function claimReward(address to, uint256 amountRequested) external override returns (uint256 reward) {
         reward = rewards[msg.sender];
-        if (amountRequested != 0 && amountRequested < reward) {
-            reward = amountRequested;
-            rewards[msg.sender] -= reward;
+        if (amountRequested != 0) {
+            if (amountRequested < reward) {
+                rewards[msg.sender] = reward - amountRequested;
+                reward = amountRequested;
+            }
         } else {
-            rewards[msg.sender] = 0;
+            delete rewards[msg.sender];
         }
 
         if (reward > 0) hermes.safeTransfer(to, reward);
@@ -275,9 +285,9 @@ contract UniswapV3Staker is IUniswapV3Staker, Multicallable {
     }
 
     /// @inheritdoc IUniswapV3Staker
-    function claimAllRewards(address to) external returns (uint256 reward) {
+    function claimAllRewards(address to) external override returns (uint256 reward) {
         reward = rewards[msg.sender];
-        rewards[msg.sender] = 0;
+        delete rewards[msg.sender];
 
         if (reward > 0) hermes.safeTransfer(to, reward);
 
@@ -353,13 +363,13 @@ contract UniswapV3Staker is IUniswapV3Staker, Multicallable {
     //////////////////////////////////////////////////////////////*/
 
     /// @inheritdoc IUniswapV3Staker
-    function unstakeToken(uint256 tokenId) external {
+    function unstakeToken(uint256 tokenId) external override {
         IncentiveKey storage incentiveId = stakedIncentiveKey[tokenId];
         if (incentiveId.startTime != 0) _unstakeToken(incentiveId, tokenId, true);
     }
 
     /// @inheritdoc IUniswapV3Staker
-    function unstakeToken(IncentiveKey memory key, uint256 tokenId) external {
+    function unstakeToken(IncentiveKey memory key, uint256 tokenId) external override {
         _unstakeToken(key, tokenId, true);
     }
 
@@ -372,7 +382,7 @@ contract UniswapV3Staker is IUniswapV3Staker, Multicallable {
         address owner = deposit.owner;
 
         // anyone can call restakeToken if the block time is after the end time of the incentive
-        if ((isNotRestake || block.timestamp < endTime) && owner != msg.sender) revert NotCalledByOwner();
+        if (isNotRestake || block.timestamp < endTime) if (owner != msg.sender) revert NotCalledByOwner();
 
         {
             // scope for bribeAddress, avoids stack too deep errors
@@ -400,11 +410,13 @@ contract UniswapV3Staker is IUniswapV3Staker, Multicallable {
             UniswapV3Gauge gauge = gauges[key.pool]; // saves another SLOAD if no tokenId is attached
 
             // If tokenId is attached to gauge
-            if (hermesGaugeBoost.isUserGauge(owner, address(gauge)) && _userAttachements[owner][key.pool] == tokenId) {
-                // get boost amount and total supply
-                (boostAmount, boostTotalSupply) = hermesGaugeBoost.getUserGaugeBoost(owner, address(gauge));
-                gauge.detachUser(owner);
-                _userAttachements[owner][key.pool] = 0;
+            if (hermesGaugeBoost.isUserGauge(owner, address(gauge))) {
+                if (_userAttachements[owner][key.pool] == tokenId) {
+                    // get boost amount and total supply
+                    (boostAmount, boostTotalSupply) = hermesGaugeBoost.getUserGaugeBoost(owner, address(gauge));
+                    gauge.detachUser(owner);
+                    delete _userAttachements[owner][key.pool];
+                }
             }
 
             uint160 secondsPerLiquidityInsideInitialX128;
@@ -456,7 +468,7 @@ contract UniswapV3Staker is IUniswapV3Staker, Multicallable {
         stake.liquidityNoOverflow = 0;
         if (liquidity >= type(uint96).max) stake.liquidityIfOverflow = 0;
         delete stakedIncentiveKey[tokenId];
-        emit TokenUnstaked(tokenId, incentiveId);
+        emit TokenUnstaked(tokenId, reward);
     }
 
     /*//////////////////////////////////////////////////////////////
@@ -481,15 +493,18 @@ contract UniswapV3Staker is IUniswapV3Staker, Multicallable {
 
         bytes32 incentiveId = IncentiveId.compute(key);
 
-        if (incentives[incentiveId].totalRewardUnclaimed == 0) revert NonExistentIncentiveError();
+        Incentive storage incentive = incentives[incentiveId];
 
+        if (incentive.totalRewardUnclaimed == 0) revert NonExistentIncentiveError();
         if (uint24(tickUpper - tickLower) < poolsMinimumWidth[pool]) revert RangeTooSmallError();
         if (liquidity == 0) revert NoLiquidityError();
 
         stakedIncentiveKey[tokenId] = key;
 
+        Deposit storage deposit = deposits[tokenId];
+
         // If user not attached to gauge, attach
-        address tokenOwner = deposits[tokenId].owner;
+        address tokenOwner = deposit.owner;
         if (tokenOwner == address(0)) revert TokenNotDeposited();
 
         UniswapV3Gauge gauge = gauges[pool]; // saves another SLOAD if no tokenId is attached
@@ -499,21 +514,20 @@ contract UniswapV3Staker is IUniswapV3Staker, Multicallable {
             gauge.attachUser(tokenOwner);
         }
 
-        deposits[tokenId].stakedTimestamp = uint40(block.timestamp);
-        incentives[incentiveId].numberOfStakes++;
+        deposit.stakedTimestamp = uint40(block.timestamp);
+        incentive.numberOfStakes++;
 
         (, uint160 secondsPerLiquidityInsideX128,) = pool.snapshotCumulativesInside(tickLower, tickUpper);
 
-        if (liquidity >= type(uint96).max) {
-            _stakes[tokenId][incentiveId] = Stake({
-                secondsPerLiquidityInsideInitialX128: secondsPerLiquidityInsideX128,
-                liquidityNoOverflow: type(uint96).max,
-                liquidityIfOverflow: liquidity
-            });
-        } else {
-            Stake storage stake = _stakes[tokenId][incentiveId];
+        Stake storage stake = _stakes[tokenId][incentiveId];
+
+        if (liquidity < type(uint96).max) {
             stake.secondsPerLiquidityInsideInitialX128 = secondsPerLiquidityInsideX128;
             stake.liquidityNoOverflow = uint96(liquidity);
+        } else {
+            stake.secondsPerLiquidityInsideInitialX128 = secondsPerLiquidityInsideX128;
+            stake.liquidityNoOverflow = type(uint96).max;
+            stake.liquidityIfOverflow = liquidity;
         }
 
         emit TokenStaked(tokenId, incentiveId, liquidity);
@@ -524,7 +538,7 @@ contract UniswapV3Staker is IUniswapV3Staker, Multicallable {
     //////////////////////////////////////////////////////////////*/
 
     /// @inheritdoc IUniswapV3Staker
-    function updateGauges(IUniswapV3Pool uniswapV3Pool) external {
+    function updateGauges(IUniswapV3Pool uniswapV3Pool) external override {
         address uniswapV3Gauge = address(uniswapV3GaugeFactory.strategyGauges(address(uniswapV3Pool)));
 
         address currentGauge = address(gauges[uniswapV3Pool]);
@@ -538,7 +552,7 @@ contract UniswapV3Staker is IUniswapV3Staker, Multicallable {
          | false          | true           | remove |
          | false          | false          | update |
         */
-        if (newGaugeIsZero && currentGauge == address(0)) revert InvalidGauge();
+        if (newGaugeIsZero) if (currentGauge == address(0)) revert InvalidGauge();
 
         if (currentGauge != uniswapV3Gauge) {
             emit GaugeUpdated(uniswapV3Pool, uniswapV3Gauge);
@@ -561,7 +575,7 @@ contract UniswapV3Staker is IUniswapV3Staker, Multicallable {
     }
 
     /// @inheritdoc IUniswapV3Staker
-    function updateBribeDepot(IUniswapV3Pool uniswapV3Pool) public {
+    function updateBribeDepot(IUniswapV3Pool uniswapV3Pool) public override {
         address newDepot = address(gauges[uniswapV3Pool].multiRewardsDepot());
         if (newDepot != bribeDepots[uniswapV3Pool]) {
             bribeDepots[uniswapV3Pool] = newDepot;
@@ -571,7 +585,7 @@ contract UniswapV3Staker is IUniswapV3Staker, Multicallable {
     }
 
     /// @inheritdoc IUniswapV3Staker
-    function updatePoolMinimumWidth(IUniswapV3Pool uniswapV3Pool) public {
+    function updatePoolMinimumWidth(IUniswapV3Pool uniswapV3Pool) public override {
         uint24 minimumWidth = gauges[uniswapV3Pool].minimumWidth();
         if (minimumWidth != poolsMinimumWidth[uniswapV3Pool]) {
             poolsMinimumWidth[uniswapV3Pool] = minimumWidth;

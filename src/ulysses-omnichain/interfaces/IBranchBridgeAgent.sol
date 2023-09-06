@@ -24,44 +24,44 @@ struct Deposit {
 }
 
 struct DepositInput {
-    //Deposit Info
-    address hToken; //Input Local hTokens Address.
-    address token; //Input Native / underlying Token Address.
-    uint256 amount; //Amount of Local hTokens deposited for interaction.
-    uint256 deposit; //Amount of native tokens deposited for interaction.
-    uint24 toChain; //Destination chain for interaction.
+    // Deposit Info
+    address hToken; // Input Local hTokens Address.
+    address token; // Input Native / underlying Token Address.
+    uint256 amount; // Amount of Local hTokens deposited for interaction.
+    uint256 deposit; // Amount of native tokens deposited for interaction.
+    uint24 toChain; // Destination chain for interaction.
 }
 
 struct DepositMultipleInput {
-    //Deposit Info
-    address[] hTokens; //Input Local hTokens Address.
-    address[] tokens; //Input Native / underlying Token Address.
-    uint256[] amounts; //Amount of Local hTokens deposited for interaction.
-    uint256[] deposits; //Amount of native tokens deposited for interaction.
-    uint24 toChain; //Destination chain for interaction.
+    // Deposit Info
+    address[] hTokens; // Input Local hTokens Address.
+    address[] tokens; // Input Native / underlying Token Address.
+    uint256[] amounts; // Amount of Local hTokens deposited for interaction.
+    uint256[] deposits; // Amount of native tokens deposited for interaction.
+    uint24 toChain; // Destination chain for interaction.
 }
 
 struct DepositParams {
-    //Deposit Info
-    uint32 depositNonce; //Deposit nonce.
-    address hToken; //Input Local hTokens Address.
-    address token; //Input Native / underlying Token Address.
-    uint256 amount; //Amount of Local hTokens deposited for interaction.
-    uint256 deposit; //Amount of native tokens deposited for interaction.
-    uint24 toChain; //Destination chain for interaction.
-    uint128 depositedGas; //BRanch chain gas token amount sent with request.
+    // Deposit Info
+    uint32 depositNonce; // Deposit nonce.
+    address hToken; // Input Local hTokens Address.
+    address token; // Input Native / underlying Token Address.
+    uint256 amount; // Amount of Local hTokens deposited for interaction.
+    uint256 deposit; // Amount of native tokens deposited for interaction.
+    uint24 toChain; // Destination chain for interaction.
+    uint128 depositedGas; // BRanch chain gas token amount sent with request.
 }
 
 struct DepositMultipleParams {
-    //Deposit Info
-    uint8 numberOfAssets; //Number of assets to deposit.
-    uint32 depositNonce; //Deposit nonce.
-    address[] hTokens; //Input Local hTokens Address.
-    address[] tokens; //Input Native / underlying Token Address.
-    uint256[] amounts; //Amount of Local hTokens deposited for interaction.
-    uint256[] deposits; //Amount of native tokens deposited for interaction.
-    uint24 toChain; //Destination chain for interaction.
-    uint128 depositedGas; //BRanch chain gas token amount sent with request.
+    // Deposit Info
+    uint8 numberOfAssets; // Number of assets to deposit.
+    uint32 depositNonce; // Deposit nonce.
+    address[] hTokens; // Input Local hTokens Address.
+    address[] tokens; // Input Native / underlying Token Address.
+    uint256[] amounts; // Amount of Local hTokens deposited for interaction.
+    uint256[] deposits; // Amount of native tokens deposited for interaction.
+    uint24 toChain; // Destination chain for interaction.
+    uint128 depositedGas; // BRanch chain gas token amount sent with request.
 }
 
 struct SettlementParams {
@@ -74,7 +74,7 @@ struct SettlementParams {
 }
 
 struct SettlementMultipleParams {
-    uint8 numberOfAssets; //Number of assets to deposit.
+    uint8 numberOfAssets; // Number of assets to deposit.
     address recipient;
     uint32 settlementNonce;
     address[] hTokens;
@@ -86,13 +86,13 @@ struct SettlementMultipleParams {
 /**
  * @title  Branch Bridge Agent Contract
  * @author MaiaDAO
- * @notice Contract for deployment in Branch Chains of Omnichain System, responible for
- *         interfacing with Users and Routers acting as a middleman to access Anycall cross-chain
- *         messaging and  requesting / depositing  assets in the Branch Chain's Ports.
- * @dev    Bridge Agents allow for the encapsulation of business logic as well as the standardize
- *         cross-chain communication, allowing for the creation of custom Routers to perform
- *         actions as a response to remote user requests. This contract for deployment in the Branch
- *         Chains of the Ulysses Omnichain Liquidity System.
+ * @notice Contract for deployment in Branch Chains of Omnichain System, responsible for interfacing with Users
+ *         and Routers acting as a middleman to access Anycall cross-chain messaging and requesting / depositing
+ *         assets in the Branch Chain's Ports.
+ * @dev    Bridge Agents allow for the encapsulation of business logic as well as the standardization of cross-
+ *         -chain communication, allowing for the creation of custom Routers to perform actions as a response to
+ *         remote user requests. This contract for deployment in the Branch Chains of the Ulysses Omnichain
+ *         Liquidity System.
  *         This contract manages gas spenditure calling `_replenishingGas` after each remote initiated
  *         execution, as well as requests tokens clearances and tx execution to the `BranchBridgeAgentExecutor`.
  *         Remote execution is "sandboxed" in 3 different nestings:
@@ -103,11 +103,11 @@ struct SettlementMultipleParams {
  *              Router interaction the userDepositedGas < executionGasSpent. This is done by calling the `_forceRevert()`
  *              internal function clearing all executionBudget from the AnycallConfig contract forcing the error `no enough budget`.
  *         - 3: The `BranchBridgeAgentExecutor` is in charge of requesting token deposits for each remote interaction as well
- *              as performing the Router calls, if any of the calls initiated by the Router lead to an invlaid state change
+ *              as performing the Router calls, if any of the calls initiated by the Router lead to an invalid state change
  *              both the token deposit clearances as well as the external interactions will be reverted. Yet executionGas
  *              will still be credited by the `BranchBridgeAgent`.
  *
- *         Func IDs for calling these functions through messaging layer:
+ *         Func IDs for calling these functions through the messaging layer:
  *
  *         BRANCH BRIDGE AGENT SETTLEMENT FLAGS
  *         --------------------------------------
@@ -160,7 +160,7 @@ interface IBranchBridgeAgent is IApp {
 
     /**
      * @notice Function to perform a call to the Root Omnichain Router without token deposit.
-     *   @param params enconded parameters to execute on the root chain router.
+     *   @param params encoded parameters to execute on the root chain router.
      *   @param remoteExecutionGas gas allocated for remote branch execution.
      *   @dev DEPOSIT ID: 1 (Call without deposit)
      *
@@ -169,33 +169,39 @@ interface IBranchBridgeAgent is IApp {
 
     /**
      * @notice Function to perform a call to the Root Omnichain Router while depositing a single asset.
-     *   @param params enconded parameters to execute on the root chain router.
+     *   @param params encoded parameters to execute on the root chain router.
      *   @param dParams additional token deposit parameters.
      *   @param remoteExecutionGas gas allocated for remote branch execution.
+     *   @param hasFallbackToggled flag to indicate if the fallback function was toggled.
      *   @dev DEPOSIT ID: 2 (Call with single deposit)
      *
      */
-    function callOutAndBridge(bytes calldata params, DepositInput memory dParams, uint128 remoteExecutionGas)
-        external
-        payable;
+    function callOutAndBridge(
+        bytes calldata params,
+        DepositInput memory dParams,
+        uint128 remoteExecutionGas,
+        bool hasFallbackToggled
+    ) external payable;
 
     /**
      * @notice Function to perform a call to the Root Omnichain Router while depositing two or more assets.
-     *   @param params enconded parameters to execute on the root chain router.
+     *   @param params encoded parameters to execute on the root chain router.
      *   @param dParams additional token deposit parameters.
      *   @param remoteExecutionGas gas allocated for remote branch execution.
+     *   @param hasFallbackToggled flag to indicate if the fallback function was toggled.
      *   @dev DEPOSIT ID: 3 (Call with multiple deposit)
      *
      */
     function callOutAndBridgeMultiple(
         bytes calldata params,
         DepositMultipleInput memory dParams,
-        uint128 remoteExecutionGas
+        uint128 remoteExecutionGas,
+        bool hasFallbackToggled
     ) external payable;
 
     /**
      * @notice Function to perform a call to the Root Omnichain Router without token deposit with msg.sender information.
-     *   @param params enconded parameters to execute on the root chain router.
+     *   @param params encoded parameters to execute on the root chain router.
      *   @param remoteExecutionGas gas allocated for remote branch execution.
      *   @dev DEPOSIT ID: 4 (Call without deposit and verified sender)
      *
@@ -204,28 +210,34 @@ interface IBranchBridgeAgent is IApp {
 
     /**
      * @notice Function to perform a call to the Root Omnichain Router while depositing a single asset msg.sender.
-     *   @param params enconded parameters to execute on the root chain router.
+     *   @param params encoded parameters to execute on the root chain router.
      *   @param dParams additional token deposit parameters.
      *   @param remoteExecutionGas gas allocated for remote branch execution.
+     *   @param hasFallbackToggled flag to indicate if the fallback function was toggled.
      *   @dev DEPOSIT ID: 5 (Call with single deposit and verified sender)
      *
      */
-    function callOutSignedAndBridge(bytes calldata params, DepositInput memory dParams, uint128 remoteExecutionGas)
-        external
-        payable;
+    function callOutSignedAndBridge(
+        bytes calldata params,
+        DepositInput memory dParams,
+        uint128 remoteExecutionGas,
+        bool hasFallbackToggled
+    ) external payable;
 
     /**
      * @notice Function to perform a call to the Root Omnichain Router while depositing two or more assets with msg.sender.
-     *   @param params enconded parameters to execute on the root chain router.
+     *   @param params encoded parameters to execute on the root chain router.
      *   @param dParams additional token deposit parameters.
      *   @param remoteExecutionGas gas allocated for remote branch execution.
+     *   @param hasFallbackToggled flag to indicate if the fallback function was toggled.
      *   @dev DEPOSIT ID: 6 (Call with multiple deposit and verified sender)
      *
      */
     function callOutSignedAndBridgeMultiple(
         bytes calldata params,
         DepositMultipleInput memory dParams,
-        uint128 remoteExecutionGas
+        uint128 remoteExecutionGas,
+        bool hasFallbackToggled
     ) external payable;
 
     /**
@@ -235,13 +247,15 @@ interface IBranchBridgeAgent is IApp {
      *     @param _params parameters to execute on the root chain router.
      *     @param _remoteExecutionGas gas allocated for remote branch execution.
      *     @param _toChain Destination chain for interaction.
+     *     @param _hasFallbackToggled flag to indicate if the fallback function was toggled.
      */
     function retryDeposit(
         bool _isSigned,
         uint32 _depositNonce,
         bytes calldata _params,
         uint128 _remoteExecutionGas,
-        uint24 _toChain
+        uint24 _toChain,
+        bool _hasFallbackToggled
     ) external payable;
 
     /**
@@ -314,7 +328,6 @@ interface IBranchBridgeAgent is IApp {
      * @notice Internal function performs call to AnycallProxy Contract for cross-chain messaging.
      *   @param depositor address of user depositing assets.
      *   @param params calldata for omnichain execution.
-     *   @param depositor address of user depositing assets.
      *   @param gasToBridgeOut gas allocated for the cross-chain call.
      *   @param remoteExecutionGas gas allocated for omnichain execution.
      *   @dev DEPOSIT ID: 1 (Call without Deposit)
@@ -327,10 +340,11 @@ interface IBranchBridgeAgent is IApp {
     /**
      * @notice Function to perform a call to the Root Omnichain Router while depositing a single asset.
      *   @param depositor address of user depositing assets.
-     *   @param params enconded parameters to execute on the root chain router.
+     *   @param params encoded parameters to execute on the root chain router.
      *   @param dParams additional token deposit parameters.
      *   @param gasToBridgeOut gas allocated for the cross-chain call.
      *   @param remoteExecutionGas gas allocated for omnichain execution.
+     *   @param hasFallbackToggled flag to indicate if the fallback function was toggled.
      *   @dev DEPOSIT ID: 2 (Call with single asset Deposit)
      *
      */
@@ -339,16 +353,18 @@ interface IBranchBridgeAgent is IApp {
         bytes calldata params,
         DepositInput memory dParams,
         uint128 gasToBridgeOut,
-        uint128 remoteExecutionGas
+        uint128 remoteExecutionGas,
+        bool hasFallbackToggled
     ) external payable;
 
     /**
      * @notice Function to perform a call to the Root Omnichain Router while depositing two or more assets.
      *   @param depositor address of user depositing assets.
-     *   @param params enconded parameters to execute on the root chain router.
+     *   @param params encoded parameters to execute on the root chain router.
      *   @param dParams additional token deposit parameters.
      *   @param gasToBridgeOut gas allocated for the cross-chain call.
      *   @param remoteExecutionGas gas allocated for omnichain execution.
+     *   @param hasFallbackToggled flag to indicate if the fallback function was toggled.
      *   @dev DEPOSIT ID: 3 (Call with multiple deposit)
      *
      */
@@ -357,7 +373,8 @@ interface IBranchBridgeAgent is IApp {
         bytes calldata params,
         DepositMultipleInput memory dParams,
         uint128 gasToBridgeOut,
-        uint128 remoteExecutionGas
+        uint128 remoteExecutionGas,
+        bool hasFallbackToggled
     ) external payable;
 
     /*///////////////////////////////////////////////////////////////
@@ -378,19 +395,17 @@ interface IBranchBridgeAgent is IApp {
                         EVENTS
     //////////////////////////////////////////////////////////////*/
 
-    event LogCallin(bytes1 selector, bytes data, uint256 fromChainId);
-    event LogCallout(bytes1 selector, bytes data, uint256, uint256 toChainId);
-    event LogCalloutFail(bytes1 selector, bytes data, uint256 toChainId);
+    event LogCallin(bytes1 indexed selector, bytes indexed data, uint256 indexed fromChainId);
+    event LogCallout(bytes1 indexed selector, bytes indexed data, uint256, uint256 indexed toChainId);
+    event LogCalloutFail(bytes1 indexed selector, bytes indexed data, uint256 indexed toChainId);
 
     /*///////////////////////////////////////////////////////////////
                                 ERRORS
     //////////////////////////////////////////////////////////////*/
 
     error AnycallUnauthorizedCaller();
-    error AlreadyExecutedTransaction();
 
     error InvalidInput();
-    error InvalidChain();
     error InsufficientGas();
 
     error NotDepositOwner();

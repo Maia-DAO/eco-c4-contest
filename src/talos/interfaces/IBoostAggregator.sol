@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity >=0.8.0;
+pragma solidity ^0.8.0;
 
 import {ERC20} from "solmate/tokens/ERC20.sol";
 
@@ -44,8 +44,8 @@ interface IBoostAggregator is IERC721Receiver {
     /// @notice mapping of tokenId to user
     function tokenIdRewards(uint256) external view returns (uint256);
 
-    /// @notice mapping of whitelisted addresses
-    function whitelistedAddresses(address) external view returns (bool);
+    /// @notice mapping of allowlisted addresses
+    function allowlistedAddresses(address) external view returns (bool);
 
     /// @notice protocol rewards
     function protocolRewards() external view returns (uint256);
@@ -78,16 +78,16 @@ interface IBoostAggregator is IERC721Receiver {
     //////////////////////////////////////////////////////////////*/
 
     /**
-     * @notice add whitelisted address to stake using this contract
+     * @notice add allowlisted address to stake using this contract
      * @param user address of user
      */
-    function addWhitelistedAddress(address user) external;
+    function addAllowlistedAddress(address user) external;
 
     /**
-     * @notice remove whitelisted address from staking using this contract
+     * @notice remove allowlisted address from staking using this contract
      * @param user address of user
      */
-    function removeWhitelistedAddress(address user) external;
+    function removeAllowlistedAddress(address user) external;
 
     /**
      * @notice set protocol fee
@@ -121,6 +121,35 @@ interface IBoostAggregator is IERC721Receiver {
      * @param num number of boost to withdraw
      */
     function decrementGaugesBoostIndexed(uint256 boost, uint256 offset, uint256 num) external;
+
+    /*//////////////////////////////////////////////////////////////
+                                EVENTS
+    //////////////////////////////////////////////////////////////*/
+
+    /**
+     * @dev emitted when a user sets their rewards depot
+     * @param user address of user, the msg.sender
+     * @param rewardsDepot address of rewards depot
+     */
+    event ChangedRewardsDepot(address indexed user, address indexed rewardsDepot);
+
+    /**
+     * @dev emitted when a user is added to the staking allowlist
+     * @param user address of user to add
+     */
+    event AddedAllowlistedAddress(address indexed user);
+
+    /**
+     * @dev emitted when a user is removed from the staking allowlist
+     * @param user address of user to remove
+     */
+    event RemovedAllowlistedAddress(address indexed user);
+
+    /**
+     * @dev emitted when the booster's protocol fee is changed
+     * @param protocolFee new protocol fee to set
+     */
+    event ChangedProtocolFee(uint256 indexed protocolFee);
 
     /*//////////////////////////////////////////////////////////////
                                 ERRORS

@@ -27,7 +27,7 @@ contract FlywheelBribeRewardsTest is DSTestPlus {
 
         strategy = new MockERC20("test strategy", "TKN", 18);
 
-        rewards = new FlywheelBribeRewards(FlywheelCore(address(this)), 604800);
+        rewards = new FlywheelBribeRewards(FlywheelCore(address(this)));
 
         depot = new MultiRewardsDepot(address(this));
 

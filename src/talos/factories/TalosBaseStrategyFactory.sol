@@ -20,16 +20,16 @@ abstract contract TalosBaseStrategyFactory is Ownable, ITalosBaseStrategyFactory
     //////////////////////////////////////////////////////////////*/
 
     /// @inheritdoc ITalosBaseStrategyFactory
-    INonfungiblePositionManager public immutable nonfungiblePositionManager;
-
-    /// £inheritdoc ITalosBaseStrategyFactory
-    OptimizerFactory public immutable optimizerFactory;
+    INonfungiblePositionManager public immutable override nonfungiblePositionManager;
 
     /// @inheritdoc ITalosBaseStrategyFactory
-    TalosBaseStrategy[] public strategies;
+    OptimizerFactory public immutable override optimizerFactory;
 
     /// @inheritdoc ITalosBaseStrategyFactory
-    mapping(TalosBaseStrategy => uint256) public strategyIds;
+    TalosBaseStrategy[] public override strategies;
+
+    /// @inheritdoc ITalosBaseStrategyFactory
+    mapping(TalosBaseStrategy strategy => uint256 strategyId) public override strategyIds;
 
     /**
      * @notice Constructs the Talos Strategy Factory
@@ -43,7 +43,7 @@ abstract contract TalosBaseStrategyFactory is Ownable, ITalosBaseStrategyFactory
     }
 
     /// @inheritdoc ITalosBaseStrategyFactory
-    function getStrategies() external view returns (TalosBaseStrategy[] memory) {
+    function getStrategies() external view override returns (TalosBaseStrategy[] memory) {
         return strategies;
     }
 
@@ -58,19 +58,19 @@ abstract contract TalosBaseStrategyFactory is Ownable, ITalosBaseStrategyFactory
         address strategyManager,
         bytes32 salt,
         bytes memory data
-    ) external {
+    ) external override {
         if (optimizerFactory.optimizerIds(TalosOptimizer(address(optimizer))) == 0) {
             revert UnrecognizedOptimizer();
         }
 
-        TalosBaseStrategy strategy = createTalosV3Strategy(pool, optimizer, strategyManager, salt, data);
+        TalosBaseStrategy strategy = _createTalosV3Strategy(pool, optimizer, strategyManager, salt, data);
 
         strategyIds[strategy] = strategies.length;
         strategies.push(strategy);
     }
 
     /// @notice Internal function responsible for creating a new Talos Strategy
-    function createTalosV3Strategy(
+    function _createTalosV3Strategy(
         IUniswapV3Pool pool,
         ITalosOptimizer optimizer,
         address strategyManager,

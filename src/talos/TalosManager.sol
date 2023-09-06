@@ -6,11 +6,9 @@ import {Ownable} from "solady/auth/Ownable.sol";
 import {IUniswapV3Pool} from "@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol";
 
 import {ITalosBaseStrategy} from "./interfaces/ITalosBaseStrategy.sol";
-import {ITalosManager} from "./interfaces/ITalosManager.sol";
+import {ITalosManager, AutomationCompatibleInterface} from "./interfaces/ITalosManager.sol";
 import {ITalosOptimizer} from "./interfaces/ITalosOptimizer.sol";
 import {PoolVariables} from "./libraries/PoolVariables.sol";
-
-import {ITalosManager, AutomationCompatibleInterface} from "./interfaces/ITalosManager.sol";
 
 /// @title Talos Strategy Manager - Manages rebalancing and reranging of Talos Positions
 contract TalosManager is Ownable, AutomationCompatibleInterface, ITalosManager {
@@ -21,19 +19,19 @@ contract TalosManager is Ownable, AutomationCompatibleInterface, ITalosManager {
     //////////////////////////////////////////////////////////////*/
 
     /// @inheritdoc ITalosManager
-    int24 public immutable ticksFromLowerRebalance;
+    int24 public immutable override ticksFromLowerRebalance;
 
     /// @inheritdoc ITalosManager
-    int24 public immutable ticksFromUpperRebalance;
+    int24 public immutable override ticksFromUpperRebalance;
 
     /// @inheritdoc ITalosManager
-    int24 public immutable ticksFromLowerRerange;
+    int24 public immutable override ticksFromLowerRerange;
 
     /// @inheritdoc ITalosManager
-    int24 public immutable ticksFromUpperRerange;
+    int24 public immutable override ticksFromUpperRerange;
 
     /// @inheritdoc ITalosManager
-    ITalosBaseStrategy public strategy;
+    ITalosBaseStrategy public override strategy;
 
     /**
      * @notice Construct a new Talos Strategy Manager contract.
@@ -72,7 +70,7 @@ contract TalosManager is Ownable, AutomationCompatibleInterface, ITalosManager {
      * @dev Checks if current tick is in range, returns true if not
      */
     function getRebalance(ITalosBaseStrategy position) private view returns (bool) {
-        //Calculate base ticks.
+        // Calculate base ticks.
         (, int24 currentTick,,,,,) = position.pool().slot0();
 
         return currentTick - position.tickLower() >= ticksFromLowerRebalance
@@ -84,7 +82,7 @@ contract TalosManager is Ownable, AutomationCompatibleInterface, ITalosManager {
      * @dev Checks if current tick is in range, returns true if not
      */
     function getRerange(ITalosBaseStrategy position) private view returns (bool) {
-        //Calculate base ticks.
+        // Calculate base ticks.
         (, int24 currentTick,,,,,) = position.pool().slot0();
 
         return currentTick - position.tickLower() >= ticksFromLowerRerange

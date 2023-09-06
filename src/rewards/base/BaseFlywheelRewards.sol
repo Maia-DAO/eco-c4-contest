@@ -12,8 +12,9 @@ import {IFlywheelRewards} from "../interfaces/IFlywheelRewards.sol";
 
 /**
  * @title Flywheel Reward Module - Base contract for reward token distribution
- *  @notice Determines how many rewards accrue to each strategy globally over a given time period.
- *  @dev approves the flywheel core for the reward token to allow balances to be managed by the module but claimed from core.
+ *  @notice Determines how many rewards accrue to each strategy globally over a given period.
+ *  @dev approves the flywheel core for the reward token
+ *       to allow balances to be managed by the module but claimed from the core.
  */
 abstract contract BaseFlywheelRewards is IFlywheelRewards {
     using SafeTransferLib for address;

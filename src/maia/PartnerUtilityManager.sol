@@ -17,13 +17,13 @@ abstract contract PartnerUtilityManager is UtilityManager, IPartnerUtilityManage
     //////////////////////////////////////////////////////////////*/
 
     /// @inheritdoc IPartnerUtilityManager
-    address public partnerVault;
+    address public override partnerVault;
 
     /// @inheritdoc IPartnerUtilityManager
-    ERC20Votes public immutable partnerGovernance;
+    ERC20Votes public immutable override partnerGovernance;
 
     /// @inheritdoc IPartnerUtilityManager
-    mapping(address => uint256) public userClaimedPartnerGovernance;
+    mapping(address user => uint256 claimedPartnerGovernance) public override userClaimedPartnerGovernance;
 
     /**
      * @notice Constructs the Utility Manager Contract.
@@ -42,6 +42,10 @@ abstract contract PartnerUtilityManager is UtilityManager, IPartnerUtilityManage
     ) UtilityManager(_gaugeWeight, _gaugeBoost, _governance) {
         partnerGovernance = ERC20Votes(_partnerGovernance);
         partnerVault = _partnerVault;
+
+        address(gaugeWeight).safeApprove(partnerVault, type(uint256).max);
+        address(gaugeBoost).safeApprove(partnerVault, type(uint256).max);
+        address(governance).safeApprove(partnerVault, type(uint256).max);
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -60,6 +64,7 @@ abstract contract PartnerUtilityManager is UtilityManager, IPartnerUtilityManage
     function forfeitMultipleAmounts(uint256 weight, uint256 boost, uint256 _governance, uint256 _partnerGovernance)
         public
         virtual
+        override
     {
         forfeitWeight(weight);
         forfeitBoost(boost);
@@ -71,9 +76,12 @@ abstract contract PartnerUtilityManager is UtilityManager, IPartnerUtilityManage
     function forfeitWeight(uint256 amount) public virtual override {
         super.forfeitWeight(amount);
 
+        // Save partnerVault to memory
+        address _partnerVault = partnerVault;
+
         /// @dev Vault applies outstanding weight.
-        if (partnerVault != address(0) && address(gaugeWeight).balanceOf(address(this)) > 0) {
-            IBaseVault(partnerVault).applyWeight();
+        if (_partnerVault != address(0)) {
+            IBaseVault(_partnerVault).applyWeight();
         }
     }
 
@@ -81,9 +89,12 @@ abstract contract PartnerUtilityManager is UtilityManager, IPartnerUtilityManage
     function forfeitBoost(uint256 amount) public virtual override {
         super.forfeitBoost(amount);
 
+        // Save partnerVault to memory
+        address _partnerVault = partnerVault;
+
         /// @dev Vault applies outstanding boost.
-        if (partnerVault != address(0) && address(gaugeBoost).balanceOf(address(this)) > 0) {
-            IBaseVault(partnerVault).applyBoost();
+        if (_partnerVault != address(0)) {
+            IBaseVault(_partnerVault).applyBoost();
         }
     }
 
@@ -91,14 +102,17 @@ abstract contract PartnerUtilityManager is UtilityManager, IPartnerUtilityManage
     function forfeitGovernance(uint256 amount) public virtual override {
         super.forfeitGovernance(amount);
 
+        // Save partnerVault to memory
+        address _partnerVault = partnerVault;
+
         /// @dev Vault applies outstanding governance.
-        if (partnerVault != address(0) && address(governance).balanceOf(address(this)) > 0) {
-            IBaseVault(partnerVault).applyGovernance();
+        if (_partnerVault != address(0)) {
+            IBaseVault(_partnerVault).applyGovernance();
         }
     }
 
     /// @inheritdoc IPartnerUtilityManager
-    function forfeitPartnerGovernance(uint256 amount) public {
+    function forfeitPartnerGovernance(uint256 amount) public override {
         userClaimedPartnerGovernance[msg.sender] -= amount;
         /// @dev partnerGovernance is kept in this contract and not sent to vaults to avoid governance attacks.
         address(partnerGovernance).safeTransferFrom(msg.sender, address(this), amount);
@@ -116,6 +130,7 @@ abstract contract PartnerUtilityManager is UtilityManager, IPartnerUtilityManage
     function claimMultipleAmounts(uint256 weight, uint256 boost, uint256 _governance, uint256 _partnerGovernance)
         public
         virtual
+        override
     {
         claimWeight(weight);
         claimBoost(boost);
@@ -155,7 +170,7 @@ abstract contract PartnerUtilityManager is UtilityManager, IPartnerUtilityManage
     }
 
     /// @inheritdoc IPartnerUtilityManager
-    function claimPartnerGovernance(uint256 amount) public checkPartnerGovernance(amount) {
+    function claimPartnerGovernance(uint256 amount) public override checkPartnerGovernance(amount) {
         if (amount == 0) return;
         userClaimedPartnerGovernance[msg.sender] += amount;
         address(partnerGovernance).safeTransfer(msg.sender, amount);

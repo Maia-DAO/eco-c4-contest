@@ -5,7 +5,7 @@ import "./GovernorBravoInterfaces.sol";
 
 contract GovernorBravoConstantsSeverity1 {
     /// @notice The name of this contract
-    string public constant name = "bHermes Governor Bravo Severity 1";
+    string public constant name = "BurntHermes Governor Bravo Severity 1";
 
     /// @notice The minimum setable proposal threshold
     uint256 public constant MIN_PROPOSAL_THRESHOLD = 0.001 ether; // 0.1% of GovToken
@@ -40,13 +40,6 @@ contract GovernorBravoDelegate is
     GovernorBravoEvents,
     GovernorBravoConstantsSeverity1
 {
-    /// @notice The EIP-712 typehash for the contract's domain
-    bytes32 public constant DOMAIN_TYPEHASH =
-        keccak256("EIP712Domain(string name,uint256 chainId,address verifyingContract)");
-
-    /// @notice The EIP-712 typehash for the ballot struct used by the contract
-    bytes32 public constant BALLOT_TYPEHASH = keccak256("Ballot(uint256 proposalId,uint8 support)");
-
     /**
      * @notice Used to initialize the contract during delegator constructor
      * @param timelock_ The address of the Timelock
@@ -112,10 +105,10 @@ contract GovernorBravoDelegate is
     ) public returns (uint256) {
         // Reject proposals before initiating as Governor
         require(initialProposalId != 0, "GovernorBravo::propose: Governor Bravo not active");
-        // Allow addresses above proposal threshold and whitelisted addresses to propose
+        // Allow addresses above proposal threshold and allowlisted addresses to propose
         require(
             govToken.getPriorVotes(msg.sender, sub256(block.number, 1)) > getProposalThresholdAmount()
-                || isWhitelisted(msg.sender),
+                || isAllowlisted(msg.sender),
             "GovernorBravo::propose: proposer votes below proposal threshold"
         );
         require(
@@ -234,12 +227,12 @@ contract GovernorBravoDelegate is
         // Proposer can cancel
         // admin is Emergency DAO and can cancel any proposal
         if (msg.sender != proposal.proposer && msg.sender != admin) {
-            // Whitelisted proposers can't be canceled for falling below proposal threshold
-            if (isWhitelisted(proposal.proposer)) {
+            // Allowlisted proposers can't be canceled for falling below proposal threshold
+            if (isAllowlisted(proposal.proposer)) {
                 require(
                     (govToken.getPriorVotes(proposal.proposer, sub256(block.number, 1)) < getProposalThresholdAmount())
-                        && msg.sender == whitelistGuardian,
-                    "GovernorBravo::cancel: whitelisted proposer"
+                        && msg.sender == allowlistGuardian,
+                    "GovernorBravo::cancel: allowlisted proposer"
                 );
             } else {
                 require(
@@ -384,12 +377,12 @@ contract GovernorBravoDelegate is
     }
 
     /**
-     * @notice View function which returns if an account is whitelisted
-     * @param account Account to check white list status of
-     * @return If the account is whitelisted
+     * @notice View function which returns if an account is allowlisted
+     * @param account Account to check allow list status of
+     * @return If the account is allowlisted
      */
-    function isWhitelisted(address account) public view returns (bool) {
-        return (whitelistAccountExpirations[account] > block.timestamp);
+    function isAllowlisted(address account) public view returns (bool) {
+        return (allowlistAccountExpirations[account] > block.timestamp);
     }
 
     /**
@@ -442,30 +435,30 @@ contract GovernorBravoDelegate is
     }
 
     /**
-     * @notice Admin function for setting the whitelist expiration as a timestamp for an account. Whitelist status allows accounts to propose without meeting threshold
-     * @param account Account address to set whitelist expiration for
-     * @param expiration Expiration for account whitelist status as timestamp (if now < expiration, whitelisted)
+     * @notice Admin function for setting the allowlist expiration as a timestamp for an account. Allowlist status allows accounts to propose without meeting threshold
+     * @param account Account address to set allowlist expiration for
+     * @param expiration Expiration for account allowlist status as timestamp (if now < expiration, allowlisted)
      */
-    function _setWhitelistAccountExpiration(address account, uint256 expiration) external {
+    function _setAllowlistAccountExpiration(address account, uint256 expiration) external {
         require(
-            msg.sender == admin || msg.sender == whitelistGuardian,
-            "GovernorBravo::_setWhitelistAccountExpiration: admin only"
+            msg.sender == admin || msg.sender == allowlistGuardian,
+            "GovernorBravo::_setAllowlistAccountExpiration: admin only"
         );
-        whitelistAccountExpirations[account] = expiration;
+        allowlistAccountExpirations[account] = expiration;
 
-        emit WhitelistAccountExpirationSet(account, expiration);
+        emit AllowlistAccountExpirationSet(account, expiration);
     }
 
     /**
-     * @notice Admin function for setting the whitelistGuardian. WhitelistGuardian can cancel proposals from whitelisted addresses
-     * @param account Account to set whitelistGuardian to (0x0 to remove whitelistGuardian)
+     * @notice Admin function for setting the allowlistGuardian. AllowlistGuardian can cancel proposals from allowlisted addresses
+     * @param account Account to set allowlistGuardian to (0x0 to remove allowlistGuardian)
      */
-    function _setWhitelistGuardian(address account) external {
-        require(msg.sender == admin, "GovernorBravo::_setWhitelistGuardian: admin only");
-        address oldGuardian = whitelistGuardian;
-        whitelistGuardian = account;
+    function _setAllowlistGuardian(address account) external {
+        require(msg.sender == admin, "GovernorBravo::_setAllowlistGuardian: admin only");
+        address oldGuardian = allowlistGuardian;
+        allowlistGuardian = account;
 
-        emit WhitelistGuardianSet(oldGuardian, whitelistGuardian);
+        emit AllowlistGuardianSet(oldGuardian, allowlistGuardian);
     }
 
     /**

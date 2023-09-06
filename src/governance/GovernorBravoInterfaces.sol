@@ -50,11 +50,11 @@ contract GovernorBravoEvents {
     /// @notice Emitted when pendingAdmin is accepted, which means admin is updated
     event NewAdmin(address oldAdmin, address newAdmin);
 
-    /// @notice Emitted when whitelist account expiration is set
-    event WhitelistAccountExpirationSet(address account, uint256 expiration);
+    /// @notice Emitted when allowlist account expiration is set
+    event AllowlistAccountExpirationSet(address account, uint256 expiration);
 
-    /// @notice Emitted when the whitelistGuardian is set
-    event WhitelistGuardianSet(address oldGuardian, address newGuardian);
+    /// @notice Emitted when the allowlistGuardian is set
+    event AllowlistGuardianSet(address oldGuardian, address newGuardian);
 }
 
 contract GovernorBravoDelegatorStorage {
@@ -75,6 +75,14 @@ contract GovernorBravoDelegatorStorage {
  * GovernorBravoDelegateStorageVX.
  */
 contract GovernorBravoDelegateStorageV1 is GovernorBravoDelegatorStorage {
+    /// @notice The EIP-712 typehash for the contract's domain
+    // keccak256("EIP712Domain(string name,uint256 chainId,address verifyingContract)");
+    bytes32 public constant DOMAIN_TYPEHASH = 0x8cad95687ba82c2ce50e74f7b754645e5117c3a5bec8151c0726d5857980a866;
+
+    /// @notice The EIP-712 typehash for the ballot struct used by the contract
+    // keccak256("Ballot(uint256 proposalId,uint8 support)")
+    bytes32 public constant BALLOT_TYPEHASH = 0x150214d74d59b7d1e90c73fc22ef3d991dd0a76b046543d4d80ab92d2a50328f;
+
     /// @notice The delay before voting on a proposal may take place, once proposed, in blocks
     uint256 public votingDelay;
 
@@ -107,6 +115,10 @@ contract GovernorBravoDelegateStorageV1 is GovernorBravoDelegatorStorage {
         uint256 id;
         /// @notice Creator of the proposal
         address proposer;
+        /// @notice Flag marking whether the proposal has been canceled
+        bool canceled;
+        /// @notice Flag marking whether the proposal has been executed
+        bool executed;
         /// @notice The timestamp that the proposal will be available for execution, set once the vote succeeds
         uint256 eta;
         /// @notice the ordered list of target addresses for calls to be made
@@ -122,17 +134,13 @@ contract GovernorBravoDelegateStorageV1 is GovernorBravoDelegatorStorage {
         /// @notice The block at which voting ends: votes must be cast prior to this block
         uint256 endBlock;
         /// @notice Total supply at the time of proposal creation
-        uint256 totalSupply; 
+        uint256 totalSupply;
         /// @notice Current number of votes in favor of this proposal
         uint256 forVotes;
         /// @notice Current number of votes in opposition to this proposal
         uint256 againstVotes;
         /// @notice Current number of votes for abstaining for this proposal
         uint256 abstainVotes;
-        /// @notice Flag marking whether the proposal has been canceled
-        bool canceled;
-        /// @notice Flag marking whether the proposal has been executed
-        bool executed;
         /// @notice Receipts of ballots for the entire set of voters
         mapping(address => Receipt) receipts;
     }
@@ -161,11 +169,11 @@ contract GovernorBravoDelegateStorageV1 is GovernorBravoDelegatorStorage {
 }
 
 contract GovernorBravoDelegateStorageV2 is GovernorBravoDelegateStorageV1 {
-    /// @notice Stores the expiration of account whitelist status as a timestamp
-    mapping(address => uint256) public whitelistAccountExpirations;
+    /// @notice Stores the expiration of account allowlist status as a timestamp
+    mapping(address => uint256) public allowlistAccountExpirations;
 
-    /// @notice Address which manages whitelisted proposals and whitelist accounts
-    address public whitelistGuardian;
+    /// @notice Address which manages allowlisted proposals and allowlist accounts
+    address public allowlistGuardian;
 }
 
 interface TimelockInterface {

@@ -18,9 +18,11 @@ import {ERC20hTokenBranch as ERC20hToken} from "./token/ERC20hTokenBranch.sol";
  *         This contract is responsible for permissionlessly adding new
  *         tokens or Bridge Agents to the system as well as key governance
  *         enabled system functions (i.e. `addBridgeAgentFactory`).
- * @dev    The function `addGlobalToken` is used to add a global token to a
- *         given Branch Chain is not available since the Arbitrum Branch is
- *         in the same network as the Root Environment.
+ * @dev    The function `addGlobalToken` is is not available since it's used
+ *         to add a global token to a given Branch Chain and the Arbitrum Branch
+ *         is already in the same network as the Root Environment and all the global
+ *         tokens.
+ *
  *         Func IDs for calling these functions through messaging layer:
  *
  *         CROSS-CHAIN MESSAGING FUNCIDs
@@ -45,14 +47,14 @@ contract ArbitrumCoreBranchRouter is CoreBranchRouter {
 
     ///@inheritdoc CoreBranchRouter
     function addLocalToken(address _underlyingAddress) external payable override {
-        //Get Token Info
+        // Get Token Info
         string memory name = ERC20(_underlyingAddress).name();
         string memory symbol = ERC20(_underlyingAddress).symbol();
 
-        //Encode Data
+        // Encode Data
         bytes memory data = abi.encode(_underlyingAddress, address(0), name, symbol);
 
-        //Pack FuncId
+        // Pack FuncId
         bytes memory packedData = abi.encodePacked(bytes1(0x02), data);
 
         //Send Cross-Chain request (System Response/Request)
@@ -79,25 +81,25 @@ contract ArbitrumCoreBranchRouter is CoreBranchRouter {
         address _rootBridgeAgentFactory,
         uint128
     ) internal override {
-        //Check if msg.sender is a valid BridgeAgentFactory
+        // Check if msg.sender is a valid BridgeAgentFactory
         if (!IPort(localPortAddress).isBridgeAgentFactory(_branchBridgeAgentFactory)) {
             revert UnrecognizedBridgeAgentFactory();
         }
 
-        //Create Token
+        // Create Token
         address newBridgeAgent = IBridgeAgentFactory(_branchBridgeAgentFactory).createBridgeAgent(
             _newBranchRouter, _rootBridgeAgent, _rootBridgeAgentFactory
         );
 
-        //Check BridgeAgent Address
+        // Check BridgeAgent Address
         if (!IPort(localPortAddress).isBridgeAgent(newBridgeAgent)) {
             revert UnrecognizedBridgeAgent();
         }
 
-        //Encode Data
+        // Encode Data
         bytes memory data = abi.encode(newBridgeAgent, _rootBridgeAgent);
 
-        //Pack FuncId
+        // Pack FuncId
         bytes memory packedData = abi.encodePacked(bytes1(0x04), data);
 
         //Send Cross-Chain request

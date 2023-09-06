@@ -8,77 +8,77 @@ import {IApp} from "./IApp.sol";
 //////////////////////////////////////////////////////////////*/
 
 struct SwapCallbackData {
-    address tokenIn; //Token being sold
+    address tokenIn; // Token being sold
 }
 
 struct UserFeeInfo {
-    uint128 depositedGas; //Gas deposited by user
-    uint128 gasToBridgeOut; //Gas to be sent to bridge
+    uint128 depositedGas; // Gas deposited by user
+    uint128 gasToBridgeOut; // Gas to be sent to bridge
 }
 
 struct GasPoolInfo {
-    //zeroForOne when swapping gas from branch chain into root chain gas
+    // ZeroForOne when swapping gas from branch chain into root chain gas
     bool zeroForOneOnInflow;
-    uint24 priceImpactPercentage; //Price impact percentage
-    address poolAddress; //Uniswap V3 Pool Address
+    uint24 priceImpactPercentage; // Price impact percentage
+    address poolAddress; // Uniswap V3 Pool Address
 }
 
 enum SettlementStatus {
-    Success, //Settlement was successful
-    Failed //Settlement failed
+    Success, // Settlement was successful
+    Failed // Settlement failed
 }
 
 struct Settlement {
-    uint24 toChain; //Destination chain for interaction.
-    uint128 gasToBridgeOut; //Gas owed to user
-    address owner; //Owner of the settlement
-    address recipient; //Recipient of the settlement.
-    SettlementStatus status; //Status of the settlement
-    address[] hTokens; //Input Local hTokens Addresses.
-    address[] tokens; //Input Native / underlying Token Addresses.
-    uint256[] amounts; //Amount of Local hTokens deposited for interaction.
-    uint256[] deposits; //Amount of native tokens deposited for interaction.
-    bytes callData; //Call data for settlement
+    uint24 toChain; // Destination chain for interaction.
+    uint128 gasToBridgeOut; // Gas owed to user
+    address owner; // Owner of the settlement
+    address recipient; // Recipient of the settlement.
+    SettlementStatus status; // Status of the settlement
+    address[] hTokens; // Input Local hTokens Addresses.
+    address[] tokens; // Input Native / underlying Token Addresses.
+    uint256[] amounts; // Amount of Local hTokens deposited for interaction.
+    uint256[] deposits; // Amount of native tokens deposited for interaction.
+    bytes callData; // Call data for settlement
 }
 
 struct SettlementParams {
-    uint32 settlementNonce; //Settlement nonce.
-    address recipient; //Recipient of the settlement.
-    address hToken; //Input Local hTokens Address.
-    address token; //Input Native / underlying Token Address.
-    uint256 amount; //Amount of Local hTokens deposited for interaction.
-    uint256 deposit; //Amount of native tokens deposited for interaction.
+    uint32 settlementNonce; // Settlement nonce.
+    address recipient; // Recipient of the settlement.
+    address hToken; // Input Local hTokens Address.
+    address token; // Input Native / underlying Token Address.
+    uint256 amount; // Amount of Local hTokens deposited for interaction.
+    uint256 deposit; // Amount of native tokens deposited for interaction.
 }
 
 struct SettlementMultipleParams {
-    uint8 numberOfAssets; //Number of assets to deposit.
-    uint32 settlementNonce; //Settlement nonce.
-    address recipient; //Recipient of the settlement.
-    address[] hTokens; //Input Local hTokens Addresses.
-    address[] tokens; //Input Native / underlying Token Addresses.
-    uint256[] amounts; //Amount of Local hTokens deposited for interaction.
-    uint256[] deposits; //Amount of native tokens deposited for interaction.
+    uint8 numberOfAssets; // Number of assets to deposit.
+    uint32 settlementNonce; // Settlement nonce.
+    address recipient; // Recipient of the settlement.
+    address[] hTokens; // Input Local hTokens Addresses.
+    address[] tokens; // Input Native / underlying Token Addresses.
+    uint256[] amounts; // Amount of Local hTokens deposited for interaction.
+    uint256[] deposits; // Amount of native tokens deposited for interaction.
 }
 
 struct DepositParams {
-    //Deposit Info
-    uint32 depositNonce; //Deposit nonce.
-    address hToken; //Input Local hTokens Address.
-    address token; //Input Native / underlying Token Address.
-    uint256 amount; //Amount of Local hTokens deposited for interaction.
-    uint256 deposit; //Amount of native tokens deposited for interaction.
-    uint24 toChain; //Destination chain for interaction.
+    // Deposit Info
+    uint32 depositNonce; // Deposit nonce.
+    address hToken; // Input Local hTokens Address.
+    address token; // Input Native / underlying Token Address.
+    uint256 amount; // Amount of Local hTokens deposited for interaction.
+    uint256 deposit; // Amount of native tokens deposited for interaction.
+    uint24 toChain; // Destination chain for interaction.
 }
 
 struct DepositMultipleParams {
-    //Deposit Info
-    uint8 numberOfAssets; //Number of assets to deposit.
-    uint32 depositNonce; //Deposit nonce.
-    address[] hTokens; //Input Local hTokens Address.
-    address[] tokens; //Input Native / underlying Token Address.
-    uint256[] amounts; //Amount of Local hTokens deposited for interaction.
-    uint256[] deposits; //Amount of native tokens deposited for interaction.
-    uint24 toChain; //Destination chain for interaction.
+    // Deposit Info
+    uint8 numberOfAssets; // Number of assets to deposit.
+    uint32 depositNonce; // Deposit nonce.
+    address[] hTokens; // Input Local hTokens Address.
+    address[] tokens; // Input Native / underlying Token Address.
+    uint256[] amounts; // Amount of Local hTokens deposited for interaction.
+    uint256[] deposits; // Amount of native tokens deposited for interaction.
+    uint24 toChain; // Destination chain for interaction.
 }
 
 /**
@@ -86,7 +86,7 @@ struct DepositMultipleParams {
  * @author MaiaDAO
  * @notice Contract responsible for interfacing with Users and Routers acting as a middleman to
  *         access Anycall cross-chain messaging and Port communication for asset management.
- * @dev    Bridge Agents allow for the encapsulation of business logic as well as the standardize
+ * @dev    Bridge Agents allow for the encapsulation of business logic as well as the standardization of
  *         cross-chain communication, allowing for the creation of custom Routers to perform
  *         actions as a response to remote user requests. This contract is for deployment in the Root
  *         Chain Omnichain Environment based on Arbitrum.
@@ -104,7 +104,7 @@ struct DepositMultipleParams {
  *              both the token deposit clearances as well as the external interactions will be reverted. Yet executionGas
  *              will still be credited by the `RootBridgeAgent`.
  *
- *          Func IDs for calling these  functions through messaging layer:
+ *          Func IDs for calling these  functions through the messaging layer:
  *
  *          ROOT BRIDGE AGENT DEPOSIT FLAGS
  *          --------------------------------------
@@ -116,7 +116,7 @@ struct DepositMultipleParams {
  *          0x03         | Call to Root Router with Deposit of Multiple Tokens.
  *          0x04         | Call to Root Router without Deposit + singned message.
  *          0x05         | Call to Root Router with Deposit + singned message.
- *          0x06         | Call to Root Router with Deposit of Multiple Tokens + singned message.
+ *          0x06         | Call to Root Router with Deposit of Multiple Tokens + signed message.
  *          0x07         | Call to `retrySettlement()´. (retries sending a settlement + calldata for branch execution with new gas)
  *          0x08         | Call to `clearDeposit()´. (clears a deposit that has not been executed yet triggering `anyFallback`)
  *
@@ -161,13 +161,13 @@ interface IRootBridgeAgent is IApp {
                             VIEW FUNCTIONS
     //////////////////////////////////////////////////////////////*/
     /**
-     * @notice External function to get the intial gas available for remote request execution.
+     * @notice External function to get the initial gas available for remote request execution.
      *   @return uint256 Initial gas available for remote request execution.
      */
     function initialGas() external view returns (uint256);
 
     /**
-     * @notice External get gas fee details for current remote request being executed.
+     * @notice External getter for gas fee details for the current remote request being executed.
      *   @return uint256 Gas fee for remote request execution.
      *   @return uint256 Gas fee for remote request execution.
      */
@@ -208,12 +208,15 @@ interface IRootBridgeAgent is IApp {
      *   @param _recipient address to receive any outstanding gas on the destination chain.
      *   @param _calldata Calldata for function call.
      *   @param _toChain Chain to bridge to.
+     *   @param _hasFallbackToggled Flag to toggle fallback function.
      *   @dev Internal function performs call to AnycallProxy Contract for cross-chain messaging.
      */
-    function callOut(address _recipient, bytes memory _calldata, uint24 _toChain) external payable;
+    function callOut(address _recipient, bytes memory _calldata, uint24 _toChain, bool _hasFallbackToggled)
+        external
+        payable;
 
     /**
-     * @notice External function to move assets from root chain to branch omnichain envirsonment.
+     * @notice External function to move assets from root chain to branch omnichain environment.
      *   @param _owner address allowed for redeeming assets after a failed settlement fallback. This address' Virtual Account is also allowed.
      *   @param _recipient recipient of bridged tokens and any outstanding gas on the destination chain.
      *   @param _data parameters for function call on branch chain.
@@ -221,6 +224,7 @@ interface IRootBridgeAgent is IApp {
      *   @param _amount amount of ´token´.
      *   @param _deposit amount of native / underlying token.
      *   @param _toChain chain to bridge to.
+     *   @param _hasFallbackToggled Flag to toggle fallback function.
      *
      */
     function callOutAndBridge(
@@ -230,7 +234,8 @@ interface IRootBridgeAgent is IApp {
         address _globalAddress,
         uint256 _amount,
         uint256 _deposit,
-        uint24 _toChain
+        uint24 _toChain,
+        bool _hasFallbackToggled
     ) external payable;
 
     /**
@@ -242,7 +247,7 @@ interface IRootBridgeAgent is IApp {
      *   @param _amounts amounts of token.
      *   @param _deposits amounts of underlying / token.
      *   @param _toChain chain to bridge to.
-     *
+     *   @param _hasFallbackToggled Flag to toggle fallback function.
      *
      */
     function callOutAndBridgeMultiple(
@@ -252,7 +257,8 @@ interface IRootBridgeAgent is IApp {
         address[] memory _globalAddresses,
         uint256[] memory _amounts,
         uint256[] memory _deposits,
-        uint24 _toChain
+        uint24 _toChain,
+        bool _hasFallbackToggled
     ) external payable;
 
     /*///////////////////////////////////////////////////////////////
@@ -375,9 +381,9 @@ interface IRootBridgeAgent is IApp {
                              EVENTS
     //////////////////////////////////////////////////////////////*/
 
-    event LogCallin(bytes1 selector, bytes data, uint24 fromChainId);
-    event LogCallout(bytes1 selector, bytes data, uint256, uint24 toChainId);
-    event LogCalloutFail(bytes1 selector, bytes data, uint24 toChainId);
+    event LogCallin(bytes1 indexed selector, bytes indexed data, uint24 indexed fromChainId);
+    event LogCallout(bytes1 indexed selector, bytes indexed data, uint256, uint24 indexed toChainId);
+    event LogCalloutFail(bytes1 indexed selector, bytes indexed data, uint24 indexed toChainId);
 
     /*///////////////////////////////////////////////////////////////
                             ERRORS
@@ -397,10 +403,10 @@ interface IRootBridgeAgent is IApp {
 
     error UnrecognizedUnderlyingAddress();
     error UnrecognizedLocalAddress();
-    error UnrecognizedGlobalAddress();
-    error UnrecognizedAddressInDestination();
 
+    error SettlementRetryUnavailable();
     error SettlementRedeemUnavailable();
+    error SettlementRetrieveUnavailable();
     error NotSettlementOwner();
 
     error InsufficientBalanceForSettlement();

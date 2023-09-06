@@ -41,7 +41,7 @@ contract UlyssesToken is ERC4626MultiToken, Ownable, IUlyssesToken {
     }
 
     ///@inheritdoc IUlyssesToken
-    function addAsset(address asset, uint256 _weight) external nonReentrant onlyOwner {
+    function addAsset(address asset, uint256 _weight) external override nonReentrant onlyOwner {
         if (assetId[asset] != 0) revert AssetAlreadyAdded();
         require(ERC20(asset).decimals() == 18);
         require(_weight > 0);
@@ -57,7 +57,7 @@ contract UlyssesToken is ERC4626MultiToken, Ownable, IUlyssesToken {
     }
 
     ///@inheritdoc IUlyssesToken
-    function removeAsset(address asset) external nonReentrant onlyOwner {
+    function removeAsset(address asset) external override nonReentrant onlyOwner {
         // No need to check if index is 0, it will underflow and revert if it is 0
         uint256 assetIndex = assetId[asset] - 1;
 
@@ -85,7 +85,7 @@ contract UlyssesToken is ERC4626MultiToken, Ownable, IUlyssesToken {
     }
 
     ///@inheritdoc IUlyssesToken
-    function setWeights(uint256[] memory _weights) external nonReentrant onlyOwner {
+    function setWeights(uint256[] memory _weights) external override nonReentrant onlyOwner {
         if (_weights.length != assets.length) revert InvalidWeightsLength();
 
         weights = _weights;

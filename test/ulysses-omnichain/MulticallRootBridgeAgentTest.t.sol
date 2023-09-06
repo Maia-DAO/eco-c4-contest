@@ -78,11 +78,11 @@ contract MulticallRootBridgeAgentTest is Test {
 
     ArbitrumBranchBridgeAgentFactory localBranchBridgeAgentFactory;
 
-    uint24 rootChainId = uint24(42161);
+    uint16 rootChainId = uint16(42161);
 
-    uint24 avaxChainId = uint24(1088);
+    uint16 avaxChainId = uint16(1088);
 
-    uint24 ftmChainId = uint24(2040);
+    uint16 ftmChainId = uint16(2040);
 
     address wrappedNativeToken;
 
@@ -121,17 +121,17 @@ contract MulticallRootBridgeAgentTest is Test {
     address dao = address(this);
 
     function setUp() public {
-        //Mock calls
+        // Mock calls
         vm.mockCall(localAnyCallAddress, abi.encodeWithSignature("executor()"), abi.encode(localAnyCallExecutorAddress));
 
         vm.mockCall(localAnyCallAddress, abi.encodeWithSignature("config()"), abi.encode(localAnyCongfig));
 
-        //Deploy Root Utils
+        // Deploy Root Utils
         wrappedNativeToken = address(new WETH());
 
         multicallAddress = address(new Multicall2());
 
-        //Deploy Root Contracts
+        // Deploy Root Contracts
         rootPort = new RootPort(rootChainId, wrappedNativeToken);
 
         bridgeAgentFactory = new RootBridgeAgentFactory(
@@ -152,7 +152,7 @@ contract MulticallRootBridgeAgentTest is Test {
 
         hTokenFactory = new ERC20hTokenRootFactory(rootChainId, address(rootPort));
 
-        //Initialize Root Contracts
+        // Initialize Root Contracts
         rootPort.initialize(address(bridgeAgentFactory), address(rootCoreRouter));
 
         vm.deal(address(rootPort), 1 ether);
@@ -220,7 +220,7 @@ contract MulticallRootBridgeAgentTest is Test {
 
         //////////////////////////////////
 
-        //Sync Root with new branches
+        // Sync Root with new branches
 
         rootPort.initializeCore(address(coreBridgeAgent), address(arbitrumCoreBridgeAgent), address(localPortAddress));
 
@@ -252,7 +252,7 @@ contract MulticallRootBridgeAgentTest is Test {
             ftmMulticallBridgeAgentAddress, address(multicallBridgeAgent), ftmChainId
         );
 
-        //Mock calls
+        // Mock calls
         vm.mockCall(
             nonFungiblePositionManagerAddress,
             abi.encodeWithSignature(
@@ -280,7 +280,7 @@ contract MulticallRootBridgeAgentTest is Test {
             avaxUnderlyingWrappedNativeTokenAddress
         );
 
-        //Mock calls
+        // Mock calls
         vm.mockCall(
             nonFungiblePositionManagerAddress,
             abi.encodeWithSignature(
@@ -308,7 +308,7 @@ contract MulticallRootBridgeAgentTest is Test {
             ftmUnderlyingWrappedNativeTokenAddress
         );
 
-        //Ensure there are gas tokens from each chain in the system.
+        // Ensure there are gas tokens from each chain in the system.
         vm.startPrank(address(rootPort));
         ERC20hTokenRoot(0x1FD5ad9D40e1154a91F1132C245f0480cf3deC89).mint(address(rootPort), 1 ether, avaxChainId);
         ERC20hTokenRoot(0x1418E54090a03eA9da72C00B0B4f707181DcA8dd).mint(address(rootPort), 1 ether, ftmChainId);
@@ -338,16 +338,16 @@ contract MulticallRootBridgeAgentTest is Test {
     address public newAvaxAssetGlobalAddress;
 
     function testAddLocalToken() internal {
-        //Encode Data
+        // Encode Data
         bytes memory data =
             abi.encode(address(avaxNativeToken), address(avaxNativeAssethToken), "UnderLocal Coin", "UL");
 
-        //Pack FuncId
+        // Pack FuncId
         bytes memory packedData = abi.encodePacked(bytes1(0x02), data);
 
         uint32 _nonce = chainNonce[avaxChainId]++;
 
-        //Call Deposit function
+        // Call Deposit function
         encodeSystemCall(
             payable(avaxCoreBridgeAgentAddress),
             payable(address(coreBridgeAgent)),
@@ -382,16 +382,16 @@ contract MulticallRootBridgeAgentTest is Test {
     address public newFtmAssetGlobalAddress;
 
     function testAddGlobalToken() internal {
-        //Add Local Token from Avax
+        // Add Local Token from Avax
         testAddLocalToken();
 
-        //Encode Call Data
+        // Encode Call Data
         bytes memory data = abi.encode(ftmCoreBridgeAgentAddress, newAvaxAssetGlobalAddress, ftmChainId, 0.000025 ether);
 
-        //Pack FuncId
+        // Pack FuncId
         bytes memory packedData = abi.encodePacked(bytes1(0x01), data);
 
-        //Call Deposit function
+        // Call Deposit function
         encodeCallNoDeposit(
             payable(ftmCoreBridgeAgentAddress),
             payable(address(coreBridgeAgent)),
@@ -401,22 +401,22 @@ contract MulticallRootBridgeAgentTest is Test {
             0.00005 ether,
             ftmChainId
         );
-        //State change occurs in setLocalToken
+        // State change occurs in setLocalToken
     }
 
     address public newAvaxAssetLocalToken = address(0xFAFA);
 
     function testSetLocalToken() internal {
-        //Add Local Token from Avax
+        // Add Local Token from Avax
         testAddGlobalToken();
 
-        //Encode Data
+        // Encode Data
         bytes memory data = abi.encode(newAvaxAssetGlobalAddress, newAvaxAssetLocalToken, "UnderLocal Coin", "UL");
 
-        //Pack FuncId
+        // Pack FuncId
         bytes memory packedData = abi.encodePacked(bytes1(0x03), data);
 
-        //Call Deposit function
+        // Call Deposit function
         encodeSystemCall(
             payable(avaxCoreBridgeAgentAddress),
             payable(address(coreBridgeAgent)),
@@ -451,13 +451,13 @@ contract MulticallRootBridgeAgentTest is Test {
         calls[0] =
             Multicall2.Call({target: mockApp, callData: abi.encodeWithSelector(bytes4(keccak256(bytes("distro()"))))});
 
-        //RLP Encode Calldata
+        // RLP Encode Calldata
         bytes memory data = abi.encode(calls);
 
-        //Pack FuncId
+        // Pack FuncId
         bytes memory packedData = abi.encodePacked(bytes1(0x01), data);
 
-        //Call Deposit function
+        // Call Deposit function
         encodeCallNoDeposit(
             payable(avaxMulticallBridgeAgentAddress),
             payable(multicallBridgeAgent),
@@ -470,24 +470,24 @@ contract MulticallRootBridgeAgentTest is Test {
     }
 
     function testMulticallSignedNoOutputDepositSingle() public {
-        //Add Local Token from Avax
+        // Add Local Token from Avax
         testSetLocalToken();
 
         Multicall2.Call[] memory calls = new Multicall2.Call[](1);
 
-        //Prepare call to transfer 100 hAVAX form virtual account to Mock App (could be bribes)
+        // Prepare call to transfer 100 hAVAX form virtual account to Mock App (could be bribes)
         calls[0] = Multicall2.Call({
             target: address(0x1FD5ad9D40e1154a91F1132C245f0480cf3deC89),
             callData: abi.encodeWithSelector(bytes4(0xa9059cbb), mockApp, 100 ether)
         });
 
-        //RLP Encode Calldata
+        // RLP Encode Calldata
         bytes memory data = abi.encode(calls);
 
-        //Pack FuncId
+        // Pack FuncId
         bytes memory packedData = abi.encodePacked(bytes1(0x01), data);
 
-        //Call Deposit function
+        // Call Deposit function
         encodeCallWithDeposit(
             payable(avaxMulticallBridgeAgentAddress),
             payable(multicallBridgeAgent),
@@ -513,24 +513,24 @@ contract MulticallRootBridgeAgentTest is Test {
     }
 
     function testMulticallSignedNoOutputDepositSingleNative() public {
-        //Add Local Token from Avax
+        // Add Local Token from Avax
         testSetLocalToken();
 
         Multicall2.Call[] memory calls = new Multicall2.Call[](1);
 
-        //Prepare call to transfer 100 hAVAX form virtual account to Mock App (could be bribes)
+        // Prepare call to transfer 100 hAVAX form virtual account to Mock App (could be bribes)
         calls[0] = Multicall2.Call({
             target: newAvaxAssetGlobalAddress,
             callData: abi.encodeWithSelector(bytes4(0xa9059cbb), mockApp, 100 ether)
         });
 
-        //RLP Encode Calldata
+        // RLP Encode Calldata
         bytes memory data = abi.encode(calls);
 
-        //Pack FuncId
+        // Pack FuncId
         bytes memory packedData = abi.encodePacked(bytes1(0x01), data);
 
-        //Call Deposit function
+        // Call Deposit function
         encodeCallWithDeposit(
             payable(avaxMulticallBridgeAgentAddress),
             payable(multicallBridgeAgent),
@@ -573,7 +573,7 @@ contract MulticallRootBridgeAgentTest is Test {
             abi.encode(_fromBridgeAgent, _fromChainId, 22)
         );
 
-        //Encode Data
+        // Encode Data
         bytes memory inputCalldata = abi.encodePacked(bytes1(0x00), _nonce, _data, _rootExecGas, _remoteExecGas);
 
         vm.mockCall(
@@ -587,7 +587,7 @@ contract MulticallRootBridgeAgentTest is Test {
         // Prank into user account
         vm.startPrank(localAnyCallExecutorAddress);
 
-        //Call Deposit function
+        // Call Deposit function
         RootBridgeAgent(_toBridgeAgent).anyExecute(inputCalldata);
 
         // Prank out of user account
@@ -610,7 +610,7 @@ contract MulticallRootBridgeAgentTest is Test {
             abi.encode(_fromBridgeAgent, _fromChainId, 22)
         );
 
-        //Encode Data
+        // Encode Data
         bytes memory inputCalldata = abi.encodePacked(bytes1(0x01), _nonce, _data, _rootExecGas, _remoteExecGas);
 
         vm.mockCall(
@@ -624,7 +624,7 @@ contract MulticallRootBridgeAgentTest is Test {
         // Prank into user account
         vm.startPrank(localAnyCallExecutorAddress);
 
-        //Call Deposit function
+        // Call Deposit function
         RootBridgeAgent(_toBridgeAgent).anyExecute(inputCalldata);
 
         // Prank out of user account
@@ -643,7 +643,7 @@ contract MulticallRootBridgeAgentTest is Test {
         uint128 _rootExecGas,
         uint128 _remoteExecGas
     ) internal pure returns (bytes memory inputCalldata) {
-        //Encode Data
+        // Encode Data
         inputCalldata = abi.encodePacked(
             bytes1(0x05),
             _user,
@@ -683,7 +683,7 @@ contract MulticallRootBridgeAgentTest is Test {
         // Prank into user account
         vm.startPrank(localAnyCallExecutorAddress);
 
-        //Call Deposit function
+        // Call Deposit function
         RootBridgeAgent(_toBridgeAgent).anyExecute(_packedData);
 
         // Prank out of user account
@@ -702,7 +702,7 @@ contract MulticallRootBridgeAgentTest is Test {
         uint128 _rootExecGas,
         uint128 _remoteExecGas
     ) internal pure returns (bytes memory inputCalldata) {
-        //Encode Data
+        // Encode Data
         inputCalldata = abi.encodePacked(
             bytes1(0x06),
             _user,
@@ -742,7 +742,7 @@ contract MulticallRootBridgeAgentTest is Test {
         // Prank into user account
         vm.startPrank(localAnyCallExecutorAddress);
 
-        //Call Deposit function
+        // Call Deposit function
         RootBridgeAgent(_toBridgeAgent).anyExecute(_packedData);
 
         // Prank out of user account

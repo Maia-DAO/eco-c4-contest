@@ -16,12 +16,12 @@ import {BaseBranchRouter} from "./BaseBranchRouter.sol";
 import {ERC20hTokenBranch as ERC20hToken} from "./token/ERC20hTokenBranch.sol";
 
 /// @title Core Branch Router Contract
-contract CoreBranchRouter is BaseBranchRouter {
+contract CoreBranchRouter is ICoreBranchRouter, BaseBranchRouter {
     /// @notice hToken Factory Address.
-    address public hTokenFactoryAddress;
+    address public immutable hTokenFactoryAddress;
 
     /// @notice Local Port Address.
-    address public localPortAddress;
+    address public immutable localPortAddress;
 
     constructor(address _hTokenFactoryAddress, address _localPortAddress) BaseBranchRouter() {
         localPortAddress = _localPortAddress;
@@ -44,13 +44,13 @@ contract CoreBranchRouter is BaseBranchRouter {
         uint128 _remoteExecutionGas,
         uint128 _rootExecutionGas
     ) external payable {
-        //Encode Call Data
+        // Encode Call Data
         bytes memory data = abi.encode(msg.sender, _globalAddress, _toChain, _rootExecutionGas);
 
-        //Pack FuncId
+        // Pack FuncId
         bytes memory packedData = abi.encodePacked(bytes1(0x01), data);
 
-        //Send Cross-Chain request (System Response/Request)
+        // Send Cross-Chain request (System Response/Request)
         IBridgeAgent(localBridgeAgentAddress).performCallOut{value: msg.value}(
             msg.sender, packedData, 0, _remoteExecutionGas
         );
@@ -61,21 +61,23 @@ contract CoreBranchRouter is BaseBranchRouter {
      * @param _underlyingAddress Address of the underlying token to be added.
      */
     function addLocalToken(address _underlyingAddress) external payable virtual {
-        //Get Token Info
+        // Get Token Info
         string memory name = ERC20(_underlyingAddress).name();
         string memory symbol = ERC20(_underlyingAddress).symbol();
 
-        //Create Token
+        // Create Token
         ERC20hToken newToken = ITokenFactory(hTokenFactoryAddress).createToken(name, symbol);
 
-        //Encode Data
+        // Encode Data
         bytes memory data = abi.encode(_underlyingAddress, newToken, name, symbol);
 
-        //Pack FuncId
+        // Pack FuncId
         bytes memory packedData = abi.encodePacked(bytes1(0x02), data);
 
-        //Send Cross-Chain request (System Response/Request)
-        IBridgeAgent(localBridgeAgentAddress).performSystemCallOut{value: msg.value}(msg.sender, packedData, 0, 0);
+        // Send Cross-Chain request (System Response/Request)
+        IBridgeAgent(localBridgeAgentAddress).performSystemCallOut{value: msg.value}(
+            msg.sender, packedData, 0, 0
+        );
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -98,17 +100,19 @@ contract CoreBranchRouter is BaseBranchRouter {
         string memory _symbol,
         uint128 _rootExecutionGas
     ) internal {
-        //Create Token
+        // Create Token
         ERC20hToken newToken = ITokenFactory(hTokenFactoryAddress).createToken(_name, _symbol);
 
-        //Encode Data
+        // Encode Data
         bytes memory data = abi.encode(_globalAddress, newToken);
 
-        //Pack FuncId
+        // Pack FuncId
         bytes memory packedData = abi.encodePacked(bytes1(0x03), data);
 
-        //Send Cross-Chain request
-        IBridgeAgent(localBridgeAgentAddress).performSystemCallOut(address(this), packedData, _rootExecutionGas, 0);
+        // Send Cross-Chain request
+        IBridgeAgent(localBridgeAgentAddress).performSystemCallOut(
+            address(this), packedData, _rootExecutionGas, 0
+        );
     }
 
     /**
@@ -129,29 +133,34 @@ contract CoreBranchRouter is BaseBranchRouter {
         address _rootBridgeAgentFactory,
         uint128 _remoteExecutionGas
     ) internal virtual {
-        //Check if msg.sender is a valid BridgeAgentFactory
-        if (!IPort(localPortAddress).isBridgeAgentFactory(_branchBridgeAgentFactory)) {
+        // Save Port Address to memory
+        address _localPortAddress = localPortAddress;
+
+        // Check if msg.sender is a valid BridgeAgentFactory
+        if (!IPort(_localPortAddress).isBridgeAgentFactory(_branchBridgeAgentFactory)) {
             revert UnrecognizedBridgeAgentFactory();
         }
 
-        //Create Token
+        // Create Token
         address newBridgeAgent = IBridgeAgentFactory(_branchBridgeAgentFactory).createBridgeAgent(
             _newBranchRouter, _rootBridgeAgent, _rootBridgeAgentFactory
         );
 
-        //Check BridgeAgent Address
-        if (!IPort(localPortAddress).isBridgeAgent(newBridgeAgent)) {
+        // Check BridgeAgent Address
+        if (!IPort(_localPortAddress).isBridgeAgent(newBridgeAgent)) {
             revert UnrecognizedBridgeAgent();
         }
 
-        //Encode Data
+        // Encode Data
         bytes memory data = abi.encode(newBridgeAgent, _rootBridgeAgent);
 
-        //Pack FuncId
+        // Pack FuncId
         bytes memory packedData = abi.encodePacked(bytes1(0x04), data);
 
-        //Send Cross-Chain request
-        IBridgeAgent(localBridgeAgentAddress).performSystemCallOut(address(this), packedData, _remoteExecutionGas, 0);
+        // Send Cross-Chain request
+        IBridgeAgent(localBridgeAgentAddress).performSystemCallOut(
+            address(this), packedData, _remoteExecutionGas, 0
+        );
     }
 
     /**
@@ -161,10 +170,16 @@ contract CoreBranchRouter is BaseBranchRouter {
      *
      */
     function _toggleBranchBridgeAgentFactory(address _newBridgeAgentFactoryAddress) internal {
-        if (!IPort(localPortAddress).isBridgeAgentFactory(_newBridgeAgentFactoryAddress)) {
-            IPort(localPortAddress).addBridgeAgentFactory(_newBridgeAgentFactoryAddress);
+        // Save Port Address to memory
+        address _localPortAddress = localPortAddress;
+
+        // Check if msg.sender is an active BridgeAgentFactory
+        if (IPort(_localPortAddress).isBridgeAgentFactory(_newBridgeAgentFactoryAddress)) {
+            // If so, disable it.
+            IPort(_localPortAddress).toggleBridgeAgentFactory(_newBridgeAgentFactoryAddress);
         } else {
-            IPort(localPortAddress).toggleBridgeAgentFactory(_newBridgeAgentFactoryAddress);
+            // If not, add it.
+            IPort(_localPortAddress).addBridgeAgentFactory(_newBridgeAgentFactoryAddress);
         }
     }
 
@@ -175,8 +190,14 @@ contract CoreBranchRouter is BaseBranchRouter {
      *
      */
     function _removeBranchBridgeAgent(address _branchBridgeAgent) internal {
-        if (!IPort(localPortAddress).isBridgeAgent(_branchBridgeAgent)) revert UnrecognizedBridgeAgent();
-        IPort(localPortAddress).toggleBridgeAgent(_branchBridgeAgent);
+        // Save Port Address to memory
+        address _localPortAddress = localPortAddress;
+
+        // Revert if it is not an active BridgeAgent
+        if (!IPort(_localPortAddress).isBridgeAgent(_branchBridgeAgent)) revert UnrecognizedBridgeAgent();
+
+        // Remove BridgeAgent
+        IPort(_localPortAddress).toggleBridgeAgent(_branchBridgeAgent);
     }
 
     /**
@@ -187,15 +208,21 @@ contract CoreBranchRouter is BaseBranchRouter {
      *
      */
     function _manageStrategyToken(address _underlyingToken, uint256 _minimumReservesRatio) internal {
-        if (!IPort(localPortAddress).isStrategyToken(_underlyingToken)) {
-            IPort(localPortAddress).addStrategyToken(_underlyingToken, _minimumReservesRatio);
+        // Save Port Address to memory
+        address _localPortAddress = localPortAddress;
+
+        // Check if token is an active Strategy Token
+        if (IPort(_localPortAddress).isStrategyToken(_underlyingToken)) {
+            // If so, toggle it off.
+            IPort(_localPortAddress).toggleStrategyToken(_underlyingToken);
         } else {
-            IPort(localPortAddress).toggleStrategyToken(_underlyingToken);
+            // If not, add it.
+            IPort(_localPortAddress).addStrategyToken(_underlyingToken, _minimumReservesRatio);
         }
     }
 
     /**
-     * @notice Function to deploy/add a token already active in the global enviornment in the Root Chain. Must be called from another chain.
+     * @notice Function to deploy/add a token already active in the global environment in the Root Chain. Must be called from another chain.
      *  @param _portStrategy the address of the port strategy.
      *  @param _underlyingToken the address of the underlying token.
      *  @param _dailyManagementLimit the daily management limit.
@@ -209,15 +236,19 @@ contract CoreBranchRouter is BaseBranchRouter {
         uint256 _dailyManagementLimit,
         bool _isUpdateDailyLimit
     ) internal {
-        if (!IPort(localPortAddress).isPortStrategy(_portStrategy, _underlyingToken)) {
-            //Add new Port Strategy if new.
-            IPort(localPortAddress).addPortStrategy(_portStrategy, _underlyingToken, _dailyManagementLimit);
+        // Save Port Address to memory
+        address _localPortAddress = localPortAddress;
+
+        // Check .
+        if (!IPort(_localPortAddress).isPortStrategy(_portStrategy, _underlyingToken)) {
+            // If Port Strategy is not active, add new Port Strategy.
+            IPort(_localPortAddress).addPortStrategy(_portStrategy, _underlyingToken, _dailyManagementLimit);
         } else if (_isUpdateDailyLimit) {
-            //Or Update daily limit.
-            IPort(localPortAddress).updatePortStrategy(_portStrategy, _underlyingToken, _dailyManagementLimit);
+            // Or update daily limit.
+            IPort(_localPortAddress).updatePortStrategy(_portStrategy, _underlyingToken, _dailyManagementLimit);
         } else {
-            //Or Toggle Port Strategy.
-            IPort(localPortAddress).togglePortStrategy(_portStrategy, _underlyingToken);
+            // Or Toggle Port Strategy.
+            IPort(_localPortAddress).togglePortStrategy(_portStrategy, _underlyingToken);
         }
     }
 
@@ -280,9 +311,4 @@ contract CoreBranchRouter is BaseBranchRouter {
         }
         return (true, "");
     }
-
-    fallback() external payable {}
-
-    error UnrecognizedBridgeAgent();
-    error UnrecognizedBridgeAgentFactory();
 }

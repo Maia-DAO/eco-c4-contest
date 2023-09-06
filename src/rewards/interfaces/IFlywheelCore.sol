@@ -10,16 +10,20 @@ import {IFlywheelBooster} from "../interfaces/IFlywheelBooster.sol";
  * @title Flywheel Core Incentives Manager
  *  @author Maia DAO (https://github.com/Maia-DAO)
  *  @notice Flywheel is a general framework for managing token incentives.
- *          It takes reward streams to various *strategies* such as staking LP tokens and divides them among *users* of those strategies.
+ *          It takes reward streams to various *strategies* such as staking LP tokens
+ *          and divides them among *users* of those strategies.
  *
  *          The Core contract maintains three important pieces of state:
- * the rewards index which determines how many rewards are owed per token per strategy. User indexes track how far behind the strategy they are to lazily calculate all catch-up rewards.
- * the accrued (unclaimed) rewards per user.
- * references to the booster and rewards module described below.
+ *           - The rewards index which determines how many rewards are owed per token per strategy.
+ *           - User indexes track how far behind the strategy they are to lazily calculate all catch-up rewards.
+ *           - The accrued (unclaimed) rewards per user.
+ *           - References to the booster and rewards module are described below.
  *
- *          Core does not manage any tokens directly. The rewards module maintains token balances, and approves core to pull transfer them to users when they claim.
+ *          Core does not manage any tokens directly. The rewards module maintains token balances,
+ *          and approves core to pull and transfer them to users when they claim.
  *
- *          SECURITY NOTE: For maximum accuracy and to avoid exploits, rewards accrual should be notified atomically through the accrue hook.
+ *          SECURITY NOTE: For maximum accuracy and to avoid exploits:
+ *          Rewards accrual should be notified atomically through the accrue hook.
  *          Accrue should be called any time tokens are transferred, minted, or burned.
  */
 interface IFlywheelCore {
@@ -68,9 +72,9 @@ interface IFlywheelCore {
      * @notice accrue rewards for a two users on a strategy
      *   @param strategy the strategy to accrue a user's rewards on
      *   @param user the first user to be accrued
-     *   @param user the second user to be accrued
-     *   @return the cumulative amount of rewards accrued to the first user (including prior)
-     *   @return the cumulative amount of rewards accrued to the second user (including prior)
+     *   @param secondUser the second user to be accrued
+     *   @return first cumulative amount of rewards accrued to the first user (including prior)
+     *   @return second cumulative amount of rewards accrued to the second user (including prior)
      */
     function accrue(ERC20 strategy, address user, address secondUser) external returns (uint256, uint256);
 
@@ -118,14 +122,16 @@ interface IFlywheelCore {
      *   @param rewardsDelta how many new rewards accrued to the user
      *   @param rewardsIndex the market index for rewards per token accrued
      */
-    event AccrueRewards(ERC20 indexed strategy, address indexed user, uint256 rewardsDelta, uint256 rewardsIndex);
+    event AccrueRewards(
+        ERC20 indexed strategy, address indexed user, uint256 indexed rewardsDelta, uint256 rewardsIndex
+    );
 
     /**
      * @notice Emitted when a user claims accrued rewards.
      *   @param user the user of the rewards
      *   @param amount the amount of rewards claimed
      */
-    event ClaimRewards(address indexed user, uint256 amount);
+    event ClaimRewards(address indexed user, uint256 indexed amount);
 
     /**
      * @notice Emitted when a new strategy is added to flywheel by the admin

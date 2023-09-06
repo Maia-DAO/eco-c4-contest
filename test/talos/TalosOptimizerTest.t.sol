@@ -7,7 +7,7 @@ import {DSTestPlus} from "solmate/test/utils/DSTestPlus.sol";
 
 import {ITalosOptimizer, TalosOptimizer} from "@talos/TalosOptimizer.sol";
 
-// Full integration tests across Flywheel Core, Flywheel Gauge Rewards and bHermes
+// Full integration tests across Flywheel Core, Flywheel Gauge Rewards and BurntHermes
 contract TalosOptimizerTest is DSTestPlus {
     TalosOptimizer optimizer;
 

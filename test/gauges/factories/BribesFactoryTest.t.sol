@@ -33,22 +33,18 @@ contract BribesFactoryTest is DSTestPlus {
     function setUp() public {
         mockBHermes();
         manager = new MockBaseV2GaugeManager(
-            bHermes(_bHermes),
+            BurntHermes(_bHermes),
             FlywheelGaugeRewards(address(this)),
             address(this),
             _admin
         );
         hevm.prank(flywheelGaugeWeightBooster);
-        factory = new MockBribesFactory(
-            rewardsCycleLength,
-            address(this)
-        );
+        factory = new MockBribesFactory(address(this));
         bribeToken = new MockERC20("Bribe Token", "BRIBE", 18);
         bribeToken2 = new MockERC20("Bribe Token2", "BRIBE2", 18);
     }
 
     function testConstructor() public {
-        assertEq(factory.rewardsCycleLength(), rewardsCycleLength);
         assertEq(factory.owner(), address(this));
     }
 
@@ -128,5 +124,5 @@ contract BribesFactoryTest is DSTestPlus {
         factory.addGaugetoFlywheel(gauge, address(bribeToken));
     }
 
-    event BribeFlywheelCreated(address indexed bribeToken, FlywheelCore flywheel);
+    event BribeFlywheelCreated(address indexed bribeToken, FlywheelCore indexed flywheel);
 }

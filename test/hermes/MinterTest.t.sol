@@ -7,14 +7,14 @@ import {DSTestPlus} from "solmate/test/utils/DSTestPlus.sol";
 
 import {MockERC20} from "solmate/test/utils/mocks/MockERC20.sol";
 
-import {bHermes} from "@hermes/bHermes.sol";
+import {BurntHermes} from "@hermes/BurntHermes.sol";
 import {IBaseV2Minter, BaseV2Minter, FlywheelGaugeRewards} from "@hermes/minters/BaseV2Minter.sol";
 
 contract BaseV2MinterTest is DSTestPlus {
     //////////////////////////////////////////////////////////////////
     //                          VARIABLES
     //////////////////////////////////////////////////////////////////
-    bHermes bHermesToken;
+    BurntHermes bHermesToken;
 
     BaseV2Minter baseV2Minter;
 
@@ -29,13 +29,12 @@ contract BaseV2MinterTest is DSTestPlus {
     function setUp() public {
         rewardToken = new MockERC20("test reward token", "RTKN", 18);
 
-        bHermesToken = new bHermes(rewardToken, address(this), address(this), 1 weeks, 12 hours);
+        bHermesToken = new BurntHermes(rewardToken, address(this), address(this));
 
         baseV2Minter = new BaseV2Minter(address(bHermesToken), address(this), address(this));
 
         flywheelGaugeRewards = new FlywheelGaugeRewards(
             address(rewardToken),
-            address(this),
             bHermesToken.gaugeWeight(),
             baseV2Minter
         );
@@ -66,29 +65,29 @@ contract BaseV2MinterTest is DSTestPlus {
         assertEq(address(baseV2Minter.dao()), newDao);
     }
 
-    function testSetDaoShare(uint256 newDaoShare) public {
+    function testSetDaoShare(uint96 newDaoShare) public {
         newDaoShare %= 301;
         assertEq(baseV2Minter.daoShare(), 100);
         baseV2Minter.setDaoShare(newDaoShare);
         assertEq(baseV2Minter.daoShare(), newDaoShare);
     }
 
-    function testSetDaoShareFail(uint256 newDaoShare) public {
-        newDaoShare %= type(uint256).max - 301;
+    function testSetDaoShareFail(uint96 newDaoShare) public {
+        newDaoShare %= type(uint96).max - 301;
         newDaoShare += 301;
         hevm.expectRevert(IBaseV2Minter.DaoShareTooHigh.selector);
         baseV2Minter.setDaoShare(newDaoShare);
     }
 
-    function testSetTailEmission(uint256 newTailEmission) public {
+    function testSetTailEmission(uint96 newTailEmission) public {
         newTailEmission %= 101;
         assertEq(baseV2Minter.tailEmission(), 20);
         baseV2Minter.setTailEmission(newTailEmission);
         assertEq(baseV2Minter.tailEmission(), newTailEmission);
     }
 
-    function testSetTailEmissionFail(uint256 newTailEmission) public {
-        newTailEmission %= type(uint256).max - 101;
+    function testSetTailEmissionFail(uint96 newTailEmission) public {
+        newTailEmission %= type(uint96).max - 101;
         newTailEmission += 101;
         hevm.expectRevert(IBaseV2Minter.TailEmissionTooHigh.selector);
         baseV2Minter.setTailEmission(newTailEmission);
@@ -206,7 +205,7 @@ contract BaseV2MinterTest is DSTestPlus {
         hevm.warp(block.timestamp + 1 weeks);
 
         hevm.expectEmit(true, true, true, true);
-        emit Mint(address(this), 10, 500, 5, 1);
+        emit Mint(address(this), 10, 500, 5, 0);
 
         baseV2Minter.updatePeriod();
         assertEq(baseV2Minter.activePeriod(), block.timestamp);
@@ -233,5 +232,11 @@ contract BaseV2MinterTest is DSTestPlus {
         baseV2Minter.getRewards();
     }
 
-    event Mint(address indexed sender, uint256 weekly, uint256 circulatingSupply, uint256 growth, uint256 dao_share);
+    event Mint(
+        address indexed sender,
+        uint256 indexed weekly,
+        uint256 indexed circulatingSupply,
+        uint256 growth,
+        uint256 dao_share
+    );
 }

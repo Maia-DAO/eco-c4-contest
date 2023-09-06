@@ -50,7 +50,7 @@ interface IBaseV2GaugeFactory {
     /// @notice The gauge factory manager
     function gaugeManager() external view returns (BaseV2GaugeManager);
 
-    /// @notice The bHermes token used for boost accounting
+    /// @notice The BurntHermes token used for boost accounting
     function bHermesBoostToken() external view returns (bHermesBoost);
 
     /// @notice The factory of bribe flywheels

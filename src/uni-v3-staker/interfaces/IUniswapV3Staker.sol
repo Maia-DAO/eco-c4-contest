@@ -13,7 +13,7 @@ import {UniswapV3Gauge} from "@gauges/UniswapV3Gauge.sol";
 import {bHermesBoost} from "@hermes/tokens/bHermesBoost.sol";
 
 /**
- * @title Uniswap V3 Staker Interface with bHermes Boost.
+ * @title Uniswap V3 Staker Interface with BurntHermes Boost.
  *  @author Maia DAO (https://github.com/Maia-DAO)
  *  @notice Allows staking non-fungible liquidity tokens in exchange for reward tokens.
  *
@@ -98,7 +98,7 @@ interface IUniswapV3Staker is IERC721Receiver {
     /// @notice The reward token
     function hermes() external view returns (address);
 
-    /// @notice bHermes boost token
+    /// @notice BurntHermes boost token
     function hermesGaugeBoost() external view returns (bHermesBoost);
 
     /// @notice returns the pool address for a given gauge.
@@ -150,7 +150,8 @@ interface IUniswapV3Staker is IERC721Receiver {
         view
         returns (uint160 secondsPerLiquidityInsideInitialX128, uint128 liquidity);
 
-    /// @notice Returns amounts of reward tokens owed to a given address according to the last time all stakes were updated
+    /// @notice Returns amounts of reward tokens owed to a given address
+    /// @dev According to the last time all stakes were updated
     /// @param owner The owner for which the rewards owed are checked
     /// @return rewardsOwed The amount of the reward token claimable by the owner
     function rewards(address owner) external view returns (uint256 rewardsOwed);
@@ -261,12 +262,12 @@ interface IUniswapV3Staker is IERC721Receiver {
     /// @param pool The Uniswap V3 pool
     /// @param startTime The time when the incentive program begins
     /// @param reward The amount of reward tokens to be distributed
-    event IncentiveCreated(IUniswapV3Pool indexed pool, uint256 startTime, uint256 reward);
+    event IncentiveCreated(IUniswapV3Pool indexed pool, uint256 indexed startTime, uint256 indexed reward);
 
     /// @notice Event that can be emitted when a liquidity mining incentive has ended
     /// @param incentiveId The incentive which is ending
     /// @param refund The amount of reward tokens refunded
-    event IncentiveEnded(bytes32 indexed incentiveId, uint256 refund);
+    event IncentiveEnded(bytes32 indexed incentiveId, uint256 indexed refund);
 
     /// @notice Emitted when ownership of a deposit changes
     /// @param tokenId The ID of the deposit (and token) that is being transferred
@@ -282,18 +283,18 @@ interface IUniswapV3Staker is IERC721Receiver {
 
     /// @notice Event emitted when a Uniswap V3 LP token has been unstaked
     /// @param tokenId The unique identifier of an Uniswap V3 LP token
-    /// @param incentiveId The incentive in which the token is staking
-    event TokenUnstaked(uint256 indexed tokenId, bytes32 indexed incentiveId);
+    /// @param reward The amount of reward tokens accrued
+    event TokenUnstaked(uint256 indexed tokenId, uint256 indexed reward);
 
     /// @notice Event emitted when a reward token has been claimed
     /// @param to The address where claimed rewards were sent to
     /// @param reward The amount of reward tokens claimed
-    event RewardClaimed(address indexed to, uint256 reward);
+    event RewardClaimed(address indexed to, uint256 indexed reward);
 
     /// @notice Event emitted when updating the bribeDepot for a pool
     /// @param uniswapV3Pool The Uniswap V3 pool
     /// @param bribeDepot The bribeDepot for the pool
-    event BribeDepotUpdated(IUniswapV3Pool indexed uniswapV3Pool, address bribeDepot);
+    event BribeDepotUpdated(IUniswapV3Pool indexed uniswapV3Pool, address indexed bribeDepot);
 
     /// @notice Event emitted when updating the poolMinimumWidth for a pool
     /// @param uniswapV3Pool The Uniswap V3 pool
@@ -311,7 +312,7 @@ interface IUniswapV3Staker is IERC721Receiver {
 
     error NotCalledByOwner();
 
-    error IncentiveRewardMustBePositive();
+    error IncentiveRewardMustBeGreaterThanZero();
     error IncentiveStartTimeMustBeNowOrInTheFuture();
     error IncentiveStartTimeNotAtEndOfAnEpoch();
     error IncentiveStartTimeTooFarIntoFuture();

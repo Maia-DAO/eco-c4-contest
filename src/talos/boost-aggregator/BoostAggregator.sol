@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity >=0.8.0;
+pragma solidity ^0.8.0;
 
 import {Ownable} from "solady/auth/Ownable.sol";
 import {SafeTransferLib} from "solady/utils/SafeTransferLib.sol";
@@ -24,36 +24,36 @@ contract BoostAggregator is Ownable, IBoostAggregator {
     //////////////////////////////////////////////////////////////*/
 
     /// @inheritdoc IBoostAggregator
-    INonfungiblePositionManager public immutable nonfungiblePositionManager;
+    INonfungiblePositionManager public immutable override nonfungiblePositionManager;
 
     /// @inheritdoc IBoostAggregator
-    UniswapV3Staker public immutable uniswapV3Staker;
+    UniswapV3Staker public immutable override uniswapV3Staker;
 
     /// @inheritdoc IBoostAggregator
-    bHermesBoost public immutable hermesGaugeBoost;
+    bHermesBoost public immutable override hermesGaugeBoost;
 
     /// @inheritdoc IBoostAggregator
-    ERC20 public immutable hermes;
+    ERC20 public immutable override hermes;
 
     /// @inheritdoc IBoostAggregator
-    mapping(address => address) public userToRewardsDepot;
+    mapping(address user => address depot) public override userToRewardsDepot;
 
     /// @inheritdoc IBoostAggregator
-    mapping(uint256 => address) public tokenIdToUser;
+    mapping(uint256 tokenId => address user) public override tokenIdToUser;
 
     /// @inheritdoc IBoostAggregator
-    mapping(uint256 => uint256) public tokenIdRewards;
+    mapping(uint256 tokenId => uint256 rewardsCheckpoint) public override tokenIdRewards;
 
     /// @inheritdoc IBoostAggregator
-    mapping(address => bool) public whitelistedAddresses;
+    mapping(address user => bool allowed) public override allowlistedAddresses;
 
     /// @inheritdoc IBoostAggregator
-    uint256 public protocolRewards;
+    uint256 public override protocolRewards;
 
     /// @inheritdoc IBoostAggregator
-    uint256 public protocolFee = 2000; // 20%
+    uint256 public override protocolFee = 2000; // 20%
     // divisioner for protocol fee
-    uint256 private constant DIVISIONER = 10000;
+    uint256 private constant DIVISIONER = 10_000;
 
     uint256 public immutable maxFee;
 
@@ -79,11 +79,11 @@ contract BoostAggregator is Ownable, IBoostAggregator {
 
     /// @inheritdoc IERC721Receiver
     /// @dev msg.sender not validated to be nonfungiblePositionManager in order to allow
-    ///      whitelisted addresses to retrieve NFTs incorrectly sent to this contract
+    ///      allowlisted addresses to retrieve NFTs incorrectly sent to this contract
     function onERC721Received(address, address from, uint256 tokenId, bytes calldata)
         external
         override
-        onlyWhitelisted(from)
+        onlyAllowlisted(from)
         returns (bytes4)
     {
         // update tokenIdRewards prior to staking
@@ -101,8 +101,10 @@ contract BoostAggregator is Ownable, IBoostAggregator {
     //////////////////////////////////////////////////////////////*/
 
     /// @inheritdoc IBoostAggregator
-    function setOwnRewardsDepot(address rewardsDepot) external {
+    function setOwnRewardsDepot(address rewardsDepot) external override {
         userToRewardsDepot[msg.sender] = rewardsDepot;
+
+        emit ChangedRewardsDepot(msg.sender, rewardsDepot);
     }
 
     /*//////////////////////////////////////////////////////////////
@@ -110,9 +112,10 @@ contract BoostAggregator is Ownable, IBoostAggregator {
     //////////////////////////////////////////////////////////////*/
 
     /// @inheritdoc IBoostAggregator
-    function unstakeAndWithdraw(uint256 tokenId) external {
+    function unstakeAndWithdraw(uint256 tokenId) external override {
         address user = tokenIdToUser[tokenId];
         if (user != msg.sender) revert NotTokenIdOwner();
+        tokenIdToUser[tokenId] = address(0);
 
         // unstake NFT from Uniswap V3 Staker
         uniswapV3Staker.unstakeToken(tokenId);
@@ -147,23 +150,29 @@ contract BoostAggregator is Ownable, IBoostAggregator {
     //////////////////////////////////////////////////////////////*/
 
     /// @inheritdoc IBoostAggregator
-    function addWhitelistedAddress(address user) external onlyOwner {
-        whitelistedAddresses[user] = true;
+    function addAllowlistedAddress(address user) external override onlyOwner {
+        allowlistedAddresses[user] = true;
+
+        emit AddedAllowlistedAddress(user);
     }
 
     /// @inheritdoc IBoostAggregator
-    function removeWhitelistedAddress(address user) external onlyOwner {
-        delete whitelistedAddresses[user];
+    function removeAllowlistedAddress(address user) external override onlyOwner {
+        delete allowlistedAddresses[user];
+
+        emit RemovedAllowlistedAddress(user);
     }
 
     /// @inheritdoc IBoostAggregator
-    function setProtocolFee(uint256 _protocolFee) external onlyOwner {
+    function setProtocolFee(uint256 _protocolFee) external override onlyOwner {
         if (_protocolFee > maxFee) revert FeeTooHigh();
         protocolFee = _protocolFee;
+
+        emit ChangedProtocolFee(_protocolFee);
     }
 
     /// @inheritdoc IBoostAggregator
-    function withdrawProtocolFees(address to) external onlyOwner {
+    function withdrawProtocolFees(address to) external override onlyOwner {
         uint256 fees = protocolRewards;
         if (fees > 0) {
             uniswapV3Staker.claimReward(to, fees);
@@ -172,14 +181,14 @@ contract BoostAggregator is Ownable, IBoostAggregator {
     }
 
     /// @inheritdoc IBoostAggregator
-    function withdrawAllGaugeBoost(address to) external onlyOwner {
+    function withdrawAllGaugeBoost(address to) external override onlyOwner {
         /// @dev May run out of gas.
         hermesGaugeBoost.decrementAllGaugesAllBoost();
         address(hermesGaugeBoost).safeTransfer(to, hermesGaugeBoost.balanceOf(address(this)));
     }
 
     /// @inheritdoc IBoostAggregator
-    function withdrawGaugeBoost(address to, uint256 amount) external onlyOwner {
+    function withdrawGaugeBoost(address to, uint256 amount) external override onlyOwner {
         /// @dev May run out of gas.
         hermesGaugeBoost.decrementAllGaugesBoost(amount);
         hermesGaugeBoost.updateUserBoost(address(this));
@@ -187,7 +196,7 @@ contract BoostAggregator is Ownable, IBoostAggregator {
     }
 
     /// @inheritdoc IBoostAggregator
-    function decrementGaugesBoostIndexed(uint256 boost, uint256 offset, uint256 num) external onlyOwner {
+    function decrementGaugesBoostIndexed(uint256 boost, uint256 offset, uint256 num) external override onlyOwner {
         hermesGaugeBoost.decrementGaugesBoostIndexed(boost, offset, num);
     }
 
@@ -195,10 +204,10 @@ contract BoostAggregator is Ownable, IBoostAggregator {
                                 MODIFIERS
     //////////////////////////////////////////////////////////////*/
 
-    /// @dev Only whitelisted addresses
+    /// @dev Only allowlisted addresses
     /// @param from The address who the NFT is being transferred from
-    modifier onlyWhitelisted(address from) {
-        if (!whitelistedAddresses[from]) revert Unauthorized();
+    modifier onlyAllowlisted(address from) {
+        if (!allowlistedAddresses[from]) revert Unauthorized();
         _;
     }
 }

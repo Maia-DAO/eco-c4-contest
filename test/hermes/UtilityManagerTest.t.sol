@@ -18,13 +18,13 @@ import {bHermesVotes as ERC20Votes} from "@hermes/tokens/bHermesVotes.sol";
 import "@rewards/base/FlywheelCore.sol";
 import {FlywheelGaugeRewards, IBaseV2Minter} from "@rewards/rewards/FlywheelGaugeRewards.sol";
 
-// Full integration tests across Flywheel Core, Flywheel Gauge Rewards and bHermes
+// Full integration tests across Flywheel Core, Flywheel Gauge Rewards and BurntHermes
 contract UtilityManagerTest is DSTestPlus {
     MockUtilityManager utilityManager;
 
     function setUp() public {
         utilityManager = new MockUtilityManager(
-            address(new bHermesGauges(address(this), address(this), 1 weeks, 1 days / 2)),
+            address(new bHermesGauges(address(this), address(this))),
             address(new bHermesBoost(address(this))),
             address(new ERC20Votes(address(this)))
         );

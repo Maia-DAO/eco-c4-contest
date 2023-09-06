@@ -20,12 +20,12 @@ library PoolVariables {
     using FixedPointMathLib for uint256;
     using FixedPointMathLib for uint128;
 
-    uint24 private constant GLOBAL_DIVISIONER = 1e6; // for basis point (0.0001%)
+    uint24 private constant GLOBAL_DIVISIONER = 2 * 1e6; // for basis point (0.0001%)
 
     /// @notice Shows current Optimizer's balances
     /// @param totalAmount0 Current token0 Optimizer's balance
     /// @param totalAmount1 Current token1 Optimizer's balance
-    event Snapshot(uint256 totalAmount0, uint256 totalAmount1);
+    event Snapshot(uint256 indexed totalAmount0, uint256 indexed totalAmount1);
 
     // Cache struct for calculations
     struct Info {
@@ -49,7 +49,7 @@ library PoolVariables {
         view
         returns (uint256, uint256)
     {
-        //Get current price from the pool
+        // Get the current price from the pool
         (uint160 sqrtRatioX96,,,,,,) = pool.slot0();
         return LiquidityAmounts.getAmountsForLiquidity(
             sqrtRatioX96, TickMath.getSqrtRatioAtTick(_tickLower), TickMath.getSqrtRatioAtTick(_tickUpper), liquidity
@@ -70,7 +70,7 @@ library PoolVariables {
         int24 _tickLower,
         int24 _tickUpper
     ) internal view returns (uint128) {
-        //Get current price from the pool
+        // Get the current price from the pool
         (uint160 sqrtRatioX96,,,,,,) = pool.slot0();
 
         return LiquidityAmounts.getLiquidityForAmounts(
@@ -95,11 +95,12 @@ library PoolVariables {
     /// of `tickSpacing`.
     function floor(int24 tick, int24 tickSpacing) internal pure returns (int24) {
         int24 compressed = tick / tickSpacing;
-        if (tick < 0 && tick % tickSpacing != 0) compressed--;
+        if (tick < 0) if (tick % tickSpacing != 0) compressed--;
+
         return compressed * tickSpacing;
     }
 
-    /// @dev Gets ticks with proportion equivalent to desired amount
+    /// @dev Gets ticks with proportion equivalent to the desired amount
     /// @param pool Uniswap V3 pool
     /// @param amount0Desired The desired amount of token0
     /// @param amount1Desired The desired amount of token1
@@ -115,18 +116,18 @@ library PoolVariables {
         int24 tickSpacing
     ) internal view returns (int24 tickLower, int24 tickUpper) {
         Info memory cache = Info(amount0Desired, amount1Desired, 0, 0, 0, 0, 0);
-        // Get current price and tick from the pool
+        // Get the current price and tick from the pool
         (uint160 sqrtPriceX96, int24 currentTick,,,,,) = pool.slot0();
-        //Calc base ticks
+        // Calc base ticks
         (cache.tickLower, cache.tickUpper) = baseTicks(currentTick, baseThreshold, tickSpacing);
-        //Calc amounts of token0 and token1 that can be stored in base range
-        (cache.amount0, cache.amount1) =
-            amountsForTicks(pool, cache.amount0Desired, cache.amount1Desired, cache.tickLower, cache.tickUpper);
-        //Liquidity that can be stored in base range
-        cache.liquidity = liquidityForAmounts(pool, cache.amount0, cache.amount1, cache.tickLower, cache.tickUpper);
-        //Get imbalanced token
+        // Calc amounts of token0, token1 that can be stored in the base range
+        // and liquidity that can be stored in the base range
+        (cache.amount0, cache.amount1, cache.liquidity) =
+            amountsForTicks(sqrtPriceX96, cache.amount0Desired, cache.amount1Desired, cache.tickLower, cache.tickUpper);
+
+        // Get the imbalanced token
         bool zeroGreaterOne = amountsDirection(cache.amount0Desired, cache.amount1Desired, cache.amount0, cache.amount1);
-        //Calc new tick(upper or lower) for imbalanced token
+        // Calc new tick(upper or lower) for imbalanced token
         if (zeroGreaterOne) {
             uint160 nextSqrtPrice0 = SqrtPriceMath.getNextSqrtPriceFromAmount0RoundingUp(
                 sqrtPriceX96, cache.liquidity, cache.amount0Desired, false
@@ -145,7 +146,7 @@ library PoolVariables {
     }
 
     /// @dev Gets amounts of token0 and token1 that can be stored in range of upper and lower ticks
-    /// @param pool Uniswap V3 pool
+    /// @param sqrtRatioX96 The current price of Uniswap V3 pool
     /// @param amount0Desired The desired amount of token0
     /// @param amount1Desired The desired amount of token1
     /// @param _tickLower The lower tick of the range
@@ -153,15 +154,25 @@ library PoolVariables {
     /// @return amount0 amounts of token0 that can be stored in range
     /// @return amount1 amounts of token1 that can be stored in range
     function amountsForTicks(
-        IUniswapV3Pool pool,
+        uint160 sqrtRatioX96,
         uint256 amount0Desired,
         uint256 amount1Desired,
         int24 _tickLower,
         int24 _tickUpper
-    ) internal view returns (uint256 amount0, uint256 amount1) {
-        uint128 liquidity = liquidityForAmounts(pool, amount0Desired, amount1Desired, _tickLower, _tickUpper);
+    ) internal pure returns (uint256 amount0, uint256 amount1, uint128 liquidity) {
+        uint160 lowerSqrtRatio = TickMath.getSqrtRatioAtTick(_tickLower);
+        uint160 upperSqrtRatio = TickMath.getSqrtRatioAtTick(_tickUpper);
 
-        (amount0, amount1) = amountsForLiquidity(pool, liquidity, _tickLower, _tickUpper);
+        liquidity = LiquidityAmounts.getLiquidityForAmounts(
+            sqrtRatioX96, lowerSqrtRatio, upperSqrtRatio, amount0Desired, amount1Desired
+        );
+
+        (amount0, amount1) =
+            LiquidityAmounts.getAmountsForLiquidity(sqrtRatioX96, lowerSqrtRatio, upperSqrtRatio, liquidity);
+
+        // Liquidity that can be stored in base range
+        liquidity =
+            LiquidityAmounts.getLiquidityForAmounts(sqrtRatioX96, lowerSqrtRatio, upperSqrtRatio, amount0, amount1);
     }
 
     /// @dev Calc base ticks depending on base threshold and tickspacing
@@ -203,7 +214,7 @@ library PoolVariables {
         if (deviation > maxTwapDeviation) revert DeviationTooHigh();
     }
 
-    /// @dev Fetches time-weighted average price in ticks from Uniswap pool for specified duration
+    /// @dev Fetches time-weighted average price in ticks from Uniswap pool for a specified duration
     function getTwap(IUniswapV3Pool pool, uint32 twapDuration) private view returns (int24) {
         uint32 _twapDuration = twapDuration;
         uint32[] memory secondsAgo = new uint32[](2);
@@ -230,27 +241,36 @@ library PoolVariables {
         cache.amount1Desired = _token1.balanceOf(address(this)) - protocolFees1;
         emit Snapshot(cache.amount0Desired, cache.amount1Desired);
 
-        //Calc base ticks
+        // Calc base ticks
         (uint160 sqrtPriceX96, int24 currentTick,,,,,) = _pool.slot0();
 
         (cache.tickLower, cache.tickUpper) = baseTicks(currentTick, baseThreshold, _tickSpacing);
 
-        // Calc liquidity for base ticks
-        cache.liquidity =
-            liquidityForAmounts(_pool, cache.amount0Desired, cache.amount1Desired, cache.tickLower, cache.tickUpper);
+        {
+            uint160 lowerSqrtRatio = TickMath.getSqrtRatioAtTick(cache.tickLower);
+            uint160 upperSqrtRatio = TickMath.getSqrtRatioAtTick(cache.tickUpper);
 
-        // Get exact amounts for base ticks
-        (cache.amount0, cache.amount1) = amountsForLiquidity(_pool, cache.liquidity, cache.tickLower, cache.tickUpper);
+            // Calc liquidity for base ticks
+            cache.liquidity = LiquidityAmounts.getLiquidityForAmounts(
+                sqrtPriceX96, lowerSqrtRatio, upperSqrtRatio, cache.amount0Desired, cache.amount1Desired
+            );
 
-        // Get imbalanced token
+            // Get exact amounts for base ticks
+            (cache.amount0, cache.amount1) =
+                LiquidityAmounts.getAmountsForLiquidity(sqrtPriceX96, lowerSqrtRatio, upperSqrtRatio, cache.liquidity);
+        }
+
+        // Get the imbalanced token
         zeroForOne = amountsDirection(cache.amount0Desired, cache.amount1Desired, cache.amount0, cache.amount1);
-        // Calculate the amount of imbalanced token that should be swapped. Calculations strive to achieve one to one ratio
+        // Calculate the amount of imbalanced token that should be swapped.
+        // Calculations strive to achieve a one to one ratio
+        // always positive. "overflow" safe conversion cuz we are dividing by 2
         amountSpecified = zeroForOne
-            ? int256((cache.amount0Desired - cache.amount0) / 2)
-            : int256((cache.amount1Desired - cache.amount1) / 2); // always positive. "overflow" safe convertion cuz we are dividing by 2
+            ? int256((cache.amount0Desired - cache.amount0) >> 1)
+            : int256((cache.amount1Desired - cache.amount1) >> 1);
 
         // Calculate Price limit depending on price impact
-        uint160 exactSqrtPriceImpact = (sqrtPriceX96 * (_strategy.priceImpactPercentage() / 2)) / GLOBAL_DIVISIONER;
+        uint160 exactSqrtPriceImpact = (sqrtPriceX96 * _strategy.priceImpactPercentage()) / GLOBAL_DIVISIONER;
         sqrtPriceLimitX96 = zeroForOne ? sqrtPriceX96 - exactSqrtPriceImpact : sqrtPriceX96 + exactSqrtPriceImpact;
     }
 

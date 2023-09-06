@@ -26,8 +26,6 @@ contract FlywheelInstantRewardsTest is DSTestPlus {
         rewards = new FlywheelInstantRewards(FlywheelCoreInstant(address(this)));
 
         depot = rewards.rewardsDepot();
-
-        hevm.prank(address(strategy));
     }
 
     function testGetAccruedRewardsUninitialized() public {

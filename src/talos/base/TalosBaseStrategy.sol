@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 // Logic inspired by Popsicle Finance Contracts (PopsicleV3Optimizer/contracts/popsicle-v3-optimizer/PopsicleV3Optimizer.sol)
-pragma solidity >=0.8.0;
+pragma solidity ^0.8.0;
 
 import {Ownable} from "solady/auth/Ownable.sol";
 import {SafeCastLib} from "solady/utils/SafeCastLib.sol";
@@ -36,12 +36,12 @@ abstract contract TalosBaseStrategy is Ownable, ERC20, ReentrancyGuard, ITalosBa
     /// @inheritdoc ITalosBaseStrategy
     uint256 public override tokenId;
     /// @inheritdoc ITalosBaseStrategy
-    uint128 public override liquidity;
+    uint256 public override protocolFees0;
+    /// @inheritdoc ITalosBaseStrategy
+    uint256 public override protocolFees1;
 
     /// @inheritdoc ITalosBaseStrategy
-    uint256 public protocolFees0;
-    /// @inheritdoc ITalosBaseStrategy
-    uint256 public protocolFees1;
+    uint128 public override liquidity;
 
     /// @notice Current tick lower of Optimizer pool position
     /// @inheritdoc ITalosBaseStrategy
@@ -51,7 +51,7 @@ abstract contract TalosBaseStrategy is Ownable, ERC20, ReentrancyGuard, ITalosBa
     int24 public override tickUpper;
 
     /// @inheritdoc ITalosBaseStrategy
-    bool public initialized;
+    bool public override initialized;
 
     /*//////////////////////////////////////////////////////////////
                                IMMUTABLES
@@ -106,7 +106,7 @@ abstract contract TalosBaseStrategy is Ownable, ERC20, ReentrancyGuard, ITalosBa
         uint256 amount0Min,
         uint256 amount1Min,
         uint256 deadline
-    ) external virtual checkDeviation returns (uint256 shares, uint256 amount0, uint256 amount1) {
+    ) external virtual override checkDeviation returns (uint256 shares, uint256 amount0, uint256 amount1) {
         if (initialized) revert AlreadyInitialized();
         initialized = true;
 
@@ -129,7 +129,8 @@ abstract contract TalosBaseStrategy is Ownable, ERC20, ReentrancyGuard, ITalosBa
         address(_token1).safeTransferFrom(msg.sender, address(this), amount1Desired);
 
         {
-            INonfungiblePositionManager _nonfungiblePositionManager = nonfungiblePositionManager; // Saves an extra SLOAD
+            // Saves an extra SLOAD
+            INonfungiblePositionManager _nonfungiblePositionManager = nonfungiblePositionManager;
 
             address(_token0).safeApprove(address(_nonfungiblePositionManager), type(uint256).max);
             address(_token1).safeApprove(address(_nonfungiblePositionManager), type(uint256).max);
@@ -161,10 +162,11 @@ abstract contract TalosBaseStrategy is Ownable, ERC20, ReentrancyGuard, ITalosBa
             amount1 = _amount1;
         }
 
-        if (amount0 == 0 && amount1 == 0) revert AmountsAreZero();
+        if (amount0 == 0) if (amount1 == 0) revert AmountsAreZero();
 
         shares = liquidity * MULTIPLIER;
 
+        if (shares == 0) revert NoSharesMinted();
         if (shares > optimizer.maxTotalSupply()) revert ExceedingMaxTotalSupply();
         _mint(receiver, shares);
 
@@ -174,12 +176,18 @@ abstract contract TalosBaseStrategy is Ownable, ERC20, ReentrancyGuard, ITalosBa
 
         // Refund in both assets.
         if (amount0 < amount0Desired) {
-            uint256 refund0 = amount0Desired - amount0;
+            uint256 refund0;
+            unchecked {
+                refund0 = amount0Desired - amount0;
+            }
             address(_token0).safeTransfer(msg.sender, refund0);
         }
 
         if (amount1 < amount1Desired) {
-            uint256 refund1 = amount1Desired - amount1;
+            uint256 refund1;
+            unchecked {
+                refund1 = amount1Desired - amount1;
+            }
             address(_token1).safeTransfer(msg.sender, refund1);
         }
     }
@@ -227,12 +235,13 @@ abstract contract TalosBaseStrategy is Ownable, ERC20, ReentrancyGuard, ITalosBa
             );
         }
 
-        if (amount0 == 0 && amount1 == 0) revert AmountsAreZero();
+        if (amount0 == 0) if (amount1 == 0) revert AmountsAreZero();
 
         uint256 supply = totalSupply; // Saves an extra SLOAD if totalSupply is non-zero.
         shares = supply == 0 ? liquidityDifference * MULTIPLIER : (liquidityDifference * supply) / liquidity;
-        liquidity += liquidityDifference;
+        liquidity = liquidity + liquidityDifference;
 
+        if (shares == 0) revert NoSharesMinted();
         _mint(receiver, shares);
         if (totalSupply > optimizer.maxTotalSupply()) revert ExceedingMaxTotalSupply();
 
@@ -242,12 +251,18 @@ abstract contract TalosBaseStrategy is Ownable, ERC20, ReentrancyGuard, ITalosBa
 
         // Refund in both assets.
         if (amount0 < _amount0Desired) {
-            uint256 refund0 = _amount0Desired - amount0;
+            uint256 refund0;
+            unchecked {
+                refund0 = _amount0Desired - amount0;
+            }
             address(_token0).safeTransfer(msg.sender, refund0);
         }
 
         if (amount1 < _amount1Desired) {
-            uint256 refund1 = _amount1Desired - amount1;
+            uint256 refund1;
+            unchecked {
+                refund1 = _amount1Desired - amount1;
+            }
             address(_token1).safeTransfer(msg.sender, refund1);
         }
     }
@@ -260,22 +275,23 @@ abstract contract TalosBaseStrategy is Ownable, ERC20, ReentrancyGuard, ITalosBa
         address receiver,
         address _owner,
         uint256 deadline
-    ) public virtual override nonReentrant checkDeviation returns (uint256 amount0, uint256 amount1) {
+    ) public virtual override nonReentrant returns (uint256 amount0, uint256 amount1) {
+        if (shares == 0) revert RedeemingZeroShares();
+        if (receiver == address(0)) revert ReceiverIsZeroAddress();
+
         if (msg.sender != _owner) {
             uint256 allowed = allowance[_owner][msg.sender]; // Saves gas for limited approvals.
 
             if (allowed != type(uint256).max) allowance[_owner][msg.sender] = allowed - shares;
         }
 
-        if (shares == 0) revert RedeemingZeroShares();
-        if (receiver == address(0)) revert ReceiverIsZeroAddress();
-
         uint256 _tokenId = tokenId;
 
         beforeRedeem(_tokenId, _owner);
 
         {
-            uint128 liquidityToDecrease = uint128((liquidity * shares) / totalSupply);
+            uint128 _liquidity = liquidity; // Saves an extra SLOAD.
+            uint128 liquidityToDecrease = uint128((_liquidity * shares) / totalSupply);
 
             nonfungiblePositionManager.decreaseLiquidity(
                 INonfungiblePositionManager.DecreaseLiquidityParams({
@@ -289,7 +305,7 @@ abstract contract TalosBaseStrategy is Ownable, ERC20, ReentrancyGuard, ITalosBa
 
             _burn(_owner, shares);
 
-            liquidity -= liquidityToDecrease;
+            liquidity = _liquidity - liquidityToDecrease;
         }
 
         (amount0, amount1) = nonfungiblePositionManager.collect(
@@ -301,7 +317,7 @@ abstract contract TalosBaseStrategy is Ownable, ERC20, ReentrancyGuard, ITalosBa
             })
         );
 
-        if (amount0 == 0 && amount1 == 0) revert AmountsAreZero();
+        if (amount0 == 0) if (amount1 == 0) revert AmountsAreZero();
 
         emit Redeem(msg.sender, receiver, _owner, amount0, amount1, shares);
 
@@ -348,14 +364,15 @@ abstract contract TalosBaseStrategy is Ownable, ERC20, ReentrancyGuard, ITalosBa
     }
 
     /// @inheritdoc ITalosBaseStrategy
-    function uniswapV3SwapCallback(int256 amount0, int256 amount1, bytes calldata _data) external {
+    function uniswapV3SwapCallback(int256 amount0, int256 amount1, bytes calldata _data) external override {
         if (msg.sender != address(pool)) revert CallerIsNotPool();
-        if (amount0 == 0 && amount1 == 0) revert AmountsAreZero();
-        SwapCallbackData memory data = abi.decode(_data, (SwapCallbackData));
-        bool zeroForOne = data.zeroForOne;
+        if (amount0 == 0) if (amount1 == 0) revert AmountsAreZero();
 
-        if (zeroForOne) address(token0).safeTransfer(msg.sender, uint256(amount0));
-        else address(token1).safeTransfer(msg.sender, uint256(amount1));
+        if (abi.decode(_data, (bool))) {
+            address(token0).safeTransfer(msg.sender, uint256(amount0));
+        } else {
+            address(token1).safeTransfer(msg.sender, uint256(amount1));
+        }
     }
 
     /*//////////////////////////////////////////////////////////////
@@ -377,7 +394,7 @@ abstract contract TalosBaseStrategy is Ownable, ERC20, ReentrancyGuard, ITalosBa
                 deadline: block.timestamp
             })
         );
-        liquidity = 0;
+        delete liquidity;
         _nonfungiblePositionManager.collect(
             INonfungiblePositionManager.CollectParams({
                 tokenId: _tokenId,
@@ -409,7 +426,7 @@ abstract contract TalosBaseStrategy is Ownable, ERC20, ReentrancyGuard, ITalosBa
     //////////////////////////////////////////////////////////////*/
 
     /// @inheritdoc ITalosBaseStrategy
-    function collectProtocolFees(uint256 amount0, uint256 amount1) external nonReentrant onlyOwner {
+    function collectProtocolFees(uint256 amount0, uint256 amount1) external override nonReentrant onlyOwner {
         uint256 _protocolFees0 = protocolFees0;
         uint256 _protocolFees1 = protocolFees1;
 
@@ -419,17 +436,16 @@ abstract contract TalosBaseStrategy is Ownable, ERC20, ReentrancyGuard, ITalosBa
         if (amount1 > _protocolFees1) {
             revert Token1AmountIsBiggerThanProtocolFees();
         }
-        ERC20 _token0 = token0;
-        ERC20 _token1 = token1;
-        uint256 balance0 = _token0.balanceOf(address(this));
-        uint256 balance1 = _token1.balanceOf(address(this));
-        require(balance0 >= amount0 && balance1 >= amount1);
-        if (amount0 > 0) address(_token0).safeTransfer(msg.sender, amount0);
-        if (amount1 > 0) address(_token1).safeTransfer(msg.sender, amount1);
 
-        protocolFees0 = _protocolFees0 - amount0;
-        protocolFees1 = _protocolFees1 - amount1;
+        unchecked {
+            protocolFees0 = _protocolFees0 - amount0;
+            protocolFees1 = _protocolFees1 - amount1;
+        }
+
         emit RewardPaid(msg.sender, amount0, amount1);
+
+        if (amount0 > 0) address(token0).safeTransfer(msg.sender, amount0);
+        if (amount1 > 0) address(token1).safeTransfer(msg.sender, amount1);
     }
 
     /*//////////////////////////////////////////////////////////////

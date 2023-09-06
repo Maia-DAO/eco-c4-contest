@@ -1,18 +1,13 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import {Ownable} from "solady/auth/Ownable.sol";
-
-import {ERC20} from "solmate/tokens/ERC20.sol";
-
 import {WETH9} from "../interfaces/IWETH9.sol";
 
 import {IAnycallProxy} from "../interfaces/IAnycallProxy.sol";
-import {IRootBridgeAgent} from "../interfaces/IRootBridgeAgent.sol";
 import {IRootBridgeAgentFactory} from "../interfaces/IRootBridgeAgentFactory.sol";
 import {IRootPort} from "../interfaces/IRootPort.sol";
 
-import {DeployRootBridgeAgent, RootBridgeAgent} from "../RootBridgeAgent.sol";
+import {DeployRootBridgeAgent} from "../RootBridgeAgent.sol";
 
 /// @title Root Bridge Agent Factory Contract
 contract RootBridgeAgentFactory is IRootBridgeAgentFactory {
@@ -33,9 +28,6 @@ contract RootBridgeAgentFactory is IRootBridgeAgentFactory {
 
     /// @notice Local Anyexec Address
     address public immutable localAnyCallExecutorAddress;
-
-    /// @notice Bridge Agent Manager
-    mapping(address => address) public getBridgeAgentManager;
 
     /**
      * @notice Constructor for Bridge Agent.

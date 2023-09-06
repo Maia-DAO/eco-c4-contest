@@ -22,7 +22,8 @@ interface IBaseV2Minter is IRewardsStream {
     /// @notice Underlying token that the contract has minting powers over.
     function underlying() external view returns (address);
 
-    /// @notice ERC4626 vault that receives emissions via rebases, which later will be distributed throughout the depositors.
+    /// @notice ERC4626 vault that receives emissions via rebases,
+    ///         which later will be distributed to the depositors.
     function vault() external view returns (ERC4626);
 
     /// @notice Holds the rewards for the current cycle and distributes them to the gauges.
@@ -32,11 +33,11 @@ interface IBaseV2Minter is IRewardsStream {
     function dao() external view returns (address);
 
     /// @notice Represents the percentage of the emissions that will be sent to the DAO.
-    function daoShare() external view returns (uint256);
+    function daoShare() external view returns (uint96);
 
     /// @notice Represents the percentage of the circulating supply
     ///         that will be distributed every epoch as rewards
-    function tailEmission() external view returns (uint256);
+    function tailEmission() external view returns (uint96);
 
     /// @notice Represents the weekly emissions.
     function weekly() external view returns (uint256);
@@ -57,9 +58,9 @@ interface IBaseV2Minter is IRewardsStream {
 
     /**
      * @notice Changes the current tail emissions.
-     * @param _tail_emission amount to set as the tail emission
+     * @param _tailEmission amount to set as the tail emission
      */
-    function setTailEmission(uint256 _tail_emission) external;
+    function setTailEmission(uint96 _tailEmission) external;
 
     /**
      * @notice Sets the address of the DAO.
@@ -69,9 +70,9 @@ interface IBaseV2Minter is IRewardsStream {
 
     /**
      * @notice Sets the share of the DAO rewards.
-     * @param _dao_share share of the DAO rewards.
+     * @param _daoShare share of the DAO rewards.
      */
-    function setDaoShare(uint256 _dao_share) external;
+    function setDaoShare(uint96 _daoShare) external;
 
     /*//////////////////////////////////////////////////////////////
                          EMISSION LOGIC
@@ -85,7 +86,7 @@ interface IBaseV2Minter is IRewardsStream {
 
     /**
      * @notice Calculate inflation and adjust burn balances accordingly.
-     * @param _minted Amount of minted bhermes
+     * @param _minted Amount of minted bHermes
      */
     function calculateGrowth(uint256 _minted) external view returns (uint256);
 
@@ -94,7 +95,7 @@ interface IBaseV2Minter is IRewardsStream {
      *         the weekly emissions, and mints the tokens for the previous week rewards.
      *         Update period can only be called once per cycle (1 week)
      */
-    function updatePeriod() external returns (uint256);
+    function updatePeriod() external;
 
     /**
      * @notice Distributes the weekly emissions to flywheelGaugeRewards contract.
@@ -106,7 +107,19 @@ interface IBaseV2Minter is IRewardsStream {
                                 EVENTS
     //////////////////////////////////////////////////////////////*/
 
-    event Mint(address indexed sender, uint256 weekly, uint256 circulatingSupply, uint256 growth, uint256 dao_share);
+    event Mint(
+        address indexed sender,
+        uint256 indexed weekly,
+        uint256 indexed circulatingSupply,
+        uint256 growth,
+        uint256 daoShare
+    );
+
+    event ChangedDao(address indexed dao);
+
+    event ChangedDaoShare(uint256 indexed daoShare);
+
+    event ChangedTailEmission(uint256 indexed tailEmission);
 
     /*///////////////////////////////////////////////////////////////
                                 ERRORS
@@ -123,4 +136,7 @@ interface IBaseV2Minter is IRewardsStream {
 
     /// @dev Throws when the new dao share is higher than 30%.
     error DaoShareTooHigh();
+
+    /// @dev Throws when the updating dao share without a dao set.
+    error DaoRewardsAreDisabled();
 }

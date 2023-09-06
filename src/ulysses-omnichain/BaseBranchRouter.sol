@@ -20,10 +20,13 @@ import {
 /// @title Base Branch Router Contract
 contract BaseBranchRouter is IBranchRouter, Ownable {
     /// @inheritdoc IBranchRouter
-    address public localBridgeAgentAddress;
+    address public override localBridgeAgentAddress;
 
     /// @inheritdoc IBranchRouter
-    address public bridgeAgentExecutorAddress;
+    address public override bridgeAgentExecutorAddress;
+
+    /// @notice Re-entrancy lock modifier state.
+    uint256 internal _unlocked = 1;
 
     constructor() {
         _initializeOwner(msg.sender);
@@ -46,7 +49,7 @@ contract BaseBranchRouter is IBranchRouter, Ownable {
     //////////////////////////////////////////////////////////////*/
 
     /// @inheritdoc IBranchRouter
-    function getDepositEntry(uint32 _depositNonce) external view returns (Deposit memory) {
+    function getDepositEntry(uint32 _depositNonce) external view override returns (Deposit memory) {
         return IBridgeAgent(localBridgeAgentAddress).getDepositEntry(_depositNonce);
     }
 
@@ -55,7 +58,7 @@ contract BaseBranchRouter is IBranchRouter, Ownable {
     //////////////////////////////////////////////////////////////*/
 
     /// @inheritdoc IBranchRouter
-    function callOut(bytes calldata params, uint128 remoteExecutionGas) external payable lock {
+    function callOut(bytes calldata params, uint128 remoteExecutionGas) external payable override lock {
         IBridgeAgent(localBridgeAgentAddress).performCallOut{value: msg.value}(
             msg.sender, params, 0, remoteExecutionGas
         );
@@ -65,10 +68,11 @@ contract BaseBranchRouter is IBranchRouter, Ownable {
     function callOutAndBridge(bytes calldata params, DepositInput memory dParams, uint128 remoteExecutionGas)
         external
         payable
+        override
         lock
     {
         IBridgeAgent(localBridgeAgentAddress).performCallOutAndBridge{value: msg.value}(
-            msg.sender, params, dParams, 0, remoteExecutionGas
+            msg.sender, params, dParams, 0, remoteExecutionGas, true
         );
     }
 
@@ -77,19 +81,19 @@ contract BaseBranchRouter is IBranchRouter, Ownable {
         bytes calldata params,
         DepositMultipleInput memory dParams,
         uint128 remoteExecutionGas
-    ) external payable lock {
+    ) external payable override lock {
         IBridgeAgent(localBridgeAgentAddress).performCallOutAndBridgeMultiple{value: msg.value}(
-            msg.sender, params, dParams, 0, remoteExecutionGas
+            msg.sender, params, dParams, 0, remoteExecutionGas, true
         );
     }
 
     /// @inheritdoc IBranchRouter
-    function retrySettlement(uint32 _settlementNonce, uint128 _gasToBoostSettlement) external payable lock {
+    function retrySettlement(uint32 _settlementNonce, uint128 _gasToBoostSettlement) external payable override lock {
         IBridgeAgent(localBridgeAgentAddress).retrySettlement{value: msg.value}(_settlementNonce, _gasToBoostSettlement);
     }
 
     /// @inheritdoc IBranchRouter
-    function redeemDeposit(uint32 _depositNonce) external lock {
+    function redeemDeposit(uint32 _depositNonce) external override lock {
         IBridgeAgent(localBridgeAgentAddress).redeemDeposit(_depositNonce);
     }
 
@@ -101,6 +105,7 @@ contract BaseBranchRouter is IBranchRouter, Ownable {
     function anyExecuteNoSettlement(bytes calldata)
         external
         virtual
+        override
         requiresAgentExecutor
         returns (bool success, bytes memory result)
     {
@@ -112,6 +117,7 @@ contract BaseBranchRouter is IBranchRouter, Ownable {
     function anyExecuteSettlement(bytes calldata, SettlementParams memory)
         external
         virtual
+        override
         requiresAgentExecutor
         returns (bool success, bytes memory result)
     {
@@ -123,6 +129,7 @@ contract BaseBranchRouter is IBranchRouter, Ownable {
     function anyExecuteSettlementMultiple(bytes calldata, SettlementMultipleParams memory)
         external
         virtual
+        override
         requiresAgentExecutor
         returns (bool success, bytes memory result)
     {
@@ -139,8 +146,6 @@ contract BaseBranchRouter is IBranchRouter, Ownable {
         if (msg.sender != bridgeAgentExecutorAddress) revert UnrecognizedBridgeAgentExecutor();
         _;
     }
-
-    uint256 internal _unlocked = 1;
 
     /// @notice Modifier for a simple re-entrancy check.
     modifier lock() {

@@ -52,6 +52,12 @@ contract TalosOptimizer is Ownable, ITalosOptimizer {
         tickRangeMultiplier = _tickRangeMultiplier;
         priceImpactPercentage = _priceImpactPercentage;
         maxTotalSupply = _maxTotalSupply;
+
+        emit ChangedMaxTotalSupply(_maxTotalSupply);
+        emit ChangedTwapDuration(_twapDuration);
+        emit ChangedMaxTwapDeviation(_maxTwapDeviation);
+        emit ChangedTickRangeMultiplier(_tickRangeMultiplier);
+        emit ChangedPriceImpactPercentage(_priceImpactPercentage);
     }
 
     /*//////////////////////////////////////////////////////////////
@@ -59,33 +65,43 @@ contract TalosOptimizer is Ownable, ITalosOptimizer {
     //////////////////////////////////////////////////////////////*/
 
     /// @inheritdoc ITalosOptimizer
-    function setMaxTotalSupply(uint256 _maxTotalSupply) external onlyOwner {
+    function setMaxTotalSupply(uint256 _maxTotalSupply) external override onlyOwner {
         if (_maxTotalSupply == 0) revert MaxTotalSupplyIsZero();
         maxTotalSupply = _maxTotalSupply;
+
+        emit ChangedMaxTotalSupply(_maxTotalSupply);
     }
 
     /// @inheritdoc ITalosOptimizer
-    function setTwapDuration(uint32 _twapDuration) external onlyOwner {
+    function setTwapDuration(uint32 _twapDuration) external override onlyOwner {
         if (_twapDuration < 100) revert TwapDurationTooLow();
         twapDuration = _twapDuration;
+
+        emit ChangedTwapDuration(_twapDuration);
     }
 
     /// @inheritdoc ITalosOptimizer
-    function setMaxTwapDeviation(int24 _maxTwapDeviation) external onlyOwner {
+    function setMaxTwapDeviation(int24 _maxTwapDeviation) external override onlyOwner {
         if (_maxTwapDeviation < 20) revert MaxTwapDeviationTooLow();
         maxTwapDeviation = _maxTwapDeviation;
+
+        emit ChangedMaxTwapDeviation(_maxTwapDeviation);
     }
 
     /// @inheritdoc ITalosOptimizer
-    function setTickRange(int24 _tickRangeMultiplier) external onlyOwner {
+    function setTickRange(int24 _tickRangeMultiplier) external override onlyOwner {
         tickRangeMultiplier = _tickRangeMultiplier;
+
+        emit ChangedTickRangeMultiplier(_tickRangeMultiplier);
     }
 
     /// @inheritdoc ITalosOptimizer
-    function setPriceImpact(uint24 _priceImpactPercentage) external onlyOwner {
+    function setPriceImpact(uint24 _priceImpactPercentage) external override onlyOwner {
         if (_priceImpactPercentage >= 1e6 || _priceImpactPercentage == 0) {
             revert PriceImpactPercentageInvalid();
         }
         priceImpactPercentage = _priceImpactPercentage;
+
+        emit ChangedPriceImpactPercentage(_priceImpactPercentage);
     }
 }

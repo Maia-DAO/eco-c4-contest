@@ -22,33 +22,28 @@ contract BribesFactory is Ownable, IBribesFactory {
                         BRIBES FACTORY STATE
     //////////////////////////////////////////////////////////////*/
 
-    /// @inheritdoc IBribesFactory
-    uint256 public immutable rewardsCycleLength;
-
     FlywheelBoosterGaugeWeight private immutable flywheelGaugeWeightBooster;
 
     /// @inheritdoc IBribesFactory
-    FlywheelCore[] public bribeFlywheels;
+    FlywheelCore[] public override bribeFlywheels;
 
     /// @inheritdoc IBribesFactory
-    mapping(FlywheelCore bribeflywheel => uint256 id) public bribeFlywheelIds;
+    mapping(FlywheelCore bribeflywheel => uint256 id) public override bribeFlywheelIds;
 
     /// @inheritdoc IBribesFactory
-    mapping(address tokenAddress => FlywheelCore flywheel) public tokenToFlywheel;
+    mapping(address tokenAddress => FlywheelCore flywheel) public override tokenToFlywheel;
 
     /**
      * @notice Creates a new bribes factory
-     * @param _rewardsCycleLength Rewards Cycle Length
      * @param _owner Owner of this contract, transfer to bHermesGauges contract after deployment
      */
-    constructor(uint256 _rewardsCycleLength, address _owner) {
+    constructor(address _owner) {
         _initializeOwner(_owner);
-        rewardsCycleLength = _rewardsCycleLength;
         flywheelGaugeWeightBooster = FlywheelBoosterGaugeWeight(msg.sender);
     }
 
     /// @inheritdoc IBribesFactory
-    function getBribeFlywheels() external view returns (FlywheelCore[] memory) {
+    function getBribeFlywheels() external view override returns (FlywheelCore[] memory) {
         return bribeFlywheels;
     }
 
@@ -57,7 +52,7 @@ contract BribesFactory is Ownable, IBribesFactory {
     //////////////////////////////////////////////////////////////*/
 
     /// @inheritdoc IBribesFactory
-    function addGaugetoFlywheel(address gauge, address bribeToken) external returns (FlywheelCore flywheel) {
+    function addGaugetoFlywheel(address gauge, address bribeToken) external override returns (FlywheelCore flywheel) {
         if (!bHermesGauges(owner()).isGauge(gauge)) revert InvalidGauge();
 
         flywheel = tokenToFlywheel[bribeToken];
@@ -77,7 +72,7 @@ contract BribesFactory is Ownable, IBribesFactory {
     //////////////////////////////////////////////////////////////*/
 
     /// @inheritdoc IBribesFactory
-    function createBribeFlywheel(address bribeToken) public returns (FlywheelCore flywheel) {
+    function createBribeFlywheel(address bribeToken) public override returns (FlywheelCore flywheel) {
         if (address(tokenToFlywheel[bribeToken]) != address(0)) revert BribeFlywheelAlreadyExists();
         if (bribeToken == address(0)) revert InvalidBribeToken();
 
@@ -95,7 +90,7 @@ contract BribesFactory is Ownable, IBribesFactory {
         bribeFlywheels.push(flywheel);
         bribeFlywheelIds[flywheel] = bribeFlywheels.length;
 
-        flywheel.setFlywheelRewards(address(new FlywheelBribeRewards{salt: salt}(flywheel, rewardsCycleLength)));
+        flywheel.setFlywheelRewards(address(new FlywheelBribeRewards{salt: salt}(flywheel)));
 
         emit BribeFlywheelCreated(bribeToken, flywheel);
     }

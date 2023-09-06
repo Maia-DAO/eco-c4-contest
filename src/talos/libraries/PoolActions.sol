@@ -17,16 +17,6 @@ import {PoolVariables} from "./PoolVariables.sol";
 library PoolActions {
     using PoolVariables for IUniswapV3Pool;
 
-    /// @notice Shows current Optimizer's balances
-    /// @param totalAmount0 Current token0 Optimizer's balance
-    /// @param totalAmount1 Current token1 Optimizer's balance
-    event Snapshot(uint256 totalAmount0, uint256 totalAmount1);
-
-    //Any data passed through by the caller via the IUniswapV3PoolActions#swap call
-    struct SwapCallbackData {
-        bool zeroForOne;
-    }
-
     struct ActionParams {
         IUniswapV3Pool pool;
         ITalosOptimizer optimizer;
@@ -50,14 +40,8 @@ library PoolActions {
             actionParams.protocolFees1
         );
 
-        //Swap imbalanced token as long as we haven't used the entire amountSpecified and haven't reached the price limit
-        actionParams.pool.swap(
-            address(this),
-            zeroForOne,
-            amountSpecified,
-            sqrtPriceLimitX96,
-            abi.encode(SwapCallbackData({zeroForOne: zeroForOne}))
-        );
+        // Swap imbalanced token as long as we haven't used the entire amountSpecified and haven't reached the price limit
+        actionParams.pool.swap(address(this), zeroForOne, amountSpecified, sqrtPriceLimitX96, abi.encode(zeroForOne));
     }
 
     // Rerange a pool according to ITalosOptimizer's parameters
@@ -82,7 +66,7 @@ library PoolActions {
             actionParams.protocolFees0,
             actionParams.protocolFees1
         );
-        emit Snapshot(amount0, amount1);
+        emit PoolVariables.Snapshot(amount0, amount1);
 
         (tokenId, liquidity, amount0, amount1) = nonfungiblePositionManager.mint(
             INonfungiblePositionManager.MintParams({
@@ -114,7 +98,7 @@ library PoolActions {
         balance0 = token0.balanceOf(address(this)) - protocolFees0;
         balance1 = token1.balanceOf(address(this)) - protocolFees1;
 
-        //Get exact ticks depending on Optimizer's balances
+        // Get exact ticks depending on Optimizer's balances
         (tickLower, tickUpper) = pool.getPositionTicks(balance0, balance1, baseThreshold, tickSpacing);
     }
 }

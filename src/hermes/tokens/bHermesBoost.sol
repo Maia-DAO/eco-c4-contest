@@ -1,8 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import {Ownable} from "solady/auth/Ownable.sol";
-
 import {ERC20} from "solmate/tokens/ERC20.sol";
 
 import {ERC20Boost} from "@ERC20/ERC20Boost.sol";
@@ -17,15 +15,15 @@ import {IbHermesUnderlying} from "../interfaces/IbHermesUnderlying.sol";
  */
 contract bHermesBoost is ERC20Boost, IbHermesUnderlying {
     /// @inheritdoc IbHermesUnderlying
-    address public immutable bHermes;
+    address public immutable override bHermes;
 
-    constructor(address _owner) ERC20("bHermes Boost", "bHERMES-B", 18) {
+    constructor(address _owner) ERC20("BurntHermes Boost", "bHERMES-B", 18) {
         _initializeOwner(_owner);
         bHermes = msg.sender;
     }
 
     /// @inheritdoc IbHermesUnderlying
-    function mint(address to, uint256 amount) external onlybHermes {
+    function mint(address to, uint256 amount) external override onlybHermes {
         _mint(to, amount);
     }
 

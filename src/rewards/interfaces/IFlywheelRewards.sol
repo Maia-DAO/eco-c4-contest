@@ -10,21 +10,25 @@ import {FlywheelCore} from "../base/FlywheelCore.sol";
  * @title Rewards Module for Flywheel
  *  @author Maia DAO (https://github.com/Maia-DAO)
  *  @notice Flywheel is a general framework for managing token incentives.
- *          It takes reward streams to various *strategies* such as staking LP tokens and divides them among *users* of those strategies.
+ *          It takes reward streams to various *strategies* such as staking LP tokens
+ *          and divides them among *users* of those strategies.
  *
  *          The Rewards module is responsible for:
- *             - determining the ongoing reward amounts to entire strategies (core handles the logic for dividing among users)
- *             - actually holding rewards that are yet to be claimed
+ *             - Determining the ongoing reward amounts to entire strategies 
+ *               (core handles the logic for dividing among users)
+ *             - Holding rewards that are yet to be claimed
  *
- *          The reward stream can follow arbitrary logic as long as the reward amount passed to flywheel core has been sent to this contract.
+ *          The reward stream can follow arbitrary logic 
+ *          as long as the reward amount passed to flywheel core has been sent to this contract.
  *
  *          Different module strategies include:
- *             - a static reward rate per second
- *             - a decaying reward rate
- *             - a dynamic just-in-time reward stream
- *             - liquid governance reward delegation (Curve Gauge style)
+ *             - A static reward rate per second
+ *             - A decaying reward rate
+ *             - A dynamic just-in-time reward stream
+ *             - Liquid governance reward delegation (Curve Gauge style)
  *
- *          SECURITY NOTE: The rewards strategy should be smooth and continuous, to prevent gaming the reward distribution by frontrunning.
+ *          SECURITY NOTE: The rewards strategy should be smooth and continuous, 
+ *          to prevent gaming the reward distribution by frontrunning.
  */
 interface IFlywheelRewards {
     /*//////////////////////////////////////////////////////////////

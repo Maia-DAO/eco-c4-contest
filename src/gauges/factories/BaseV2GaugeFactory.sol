@@ -33,18 +33,18 @@ abstract contract BaseV2GaugeFactory is Ownable, IBaseV2GaugeFactory {
     BaseV2Gauge[] public override gauges;
 
     /// @inheritdoc IBaseV2GaugeFactory
-    mapping(BaseV2Gauge => uint256) public override gaugeIds;
+    mapping(BaseV2Gauge gauge => uint256 gaugeId) public override gaugeIds;
 
     /// @inheritdoc IBaseV2GaugeFactory
-    mapping(BaseV2Gauge => bool) public override activeGauges;
+    mapping(BaseV2Gauge gauge => bool isActive) public override activeGauges;
 
     /// @inheritdoc IBaseV2GaugeFactory
-    mapping(address => BaseV2Gauge) public override strategyGauges;
+    mapping(address strategy => BaseV2Gauge gauge) public override strategyGauges;
 
     /**
      * @notice Creates a new gauge factory
      * @param _gaugeManager The gauge manager to use
-     * @param _bHermesBoost The bHermes boost token to use
+     * @param _bHermesBoost The BurntHermes boost token to use
      * @param _bribesFactory The bribes factory to use
      * @param _owner The owner of the factory
      */
@@ -61,7 +61,7 @@ abstract contract BaseV2GaugeFactory is Ownable, IBaseV2GaugeFactory {
     }
 
     /// @inheritdoc IBaseV2GaugeFactory
-    function getGauges() external view returns (BaseV2Gauge[] memory) {
+    function getGauges() external view override returns (BaseV2Gauge[] memory) {
         return gauges;
     }
 
@@ -70,7 +70,7 @@ abstract contract BaseV2GaugeFactory is Ownable, IBaseV2GaugeFactory {
     //////////////////////////////////////////////////////////////*/
 
     /// @inheritdoc IBaseV2GaugeFactory
-    function newEpoch() external {
+    function newEpoch() external override {
         BaseV2Gauge[] storage _gauges = gauges;
 
         uint256 length = _gauges.length;
@@ -84,7 +84,7 @@ abstract contract BaseV2GaugeFactory is Ownable, IBaseV2GaugeFactory {
     }
 
     /// @inheritdoc IBaseV2GaugeFactory
-    function newEpoch(uint256 start, uint256 end) external {
+    function newEpoch(uint256 start, uint256 end) external override {
         BaseV2Gauge[] storage _gauges = gauges;
 
         uint256 length = _gauges.length;
@@ -109,7 +109,7 @@ abstract contract BaseV2GaugeFactory is Ownable, IBaseV2GaugeFactory {
     function createGauge(address strategy, bytes memory data) external onlyOwner returns (BaseV2Gauge gauge) {
         if (address(strategyGauges[strategy]) != address(0)) revert GaugeAlreadyExists();
 
-        gauge = newGauge(strategy, data);
+        gauge = _newGauge(strategy, data);
         strategyGauges[strategy] = gauge;
 
         uint256 id = gauges.length;
@@ -119,15 +119,15 @@ abstract contract BaseV2GaugeFactory is Ownable, IBaseV2GaugeFactory {
 
         gaugeManager.addGauge(address(gauge));
 
-        afterCreateGauge(strategy, data);
+        _afterCreateGauge(strategy, data);
     }
 
-    function afterCreateGauge(address strategy, bytes memory data) internal virtual;
+    function _afterCreateGauge(address strategy, bytes memory data) internal virtual;
 
-    function newGauge(address strategy, bytes memory data) internal virtual returns (BaseV2Gauge gauge);
+    function _newGauge(address strategy, bytes memory data) internal virtual returns (BaseV2Gauge gauge);
 
     /// @inheritdoc IBaseV2GaugeFactory
-    function removeGauge(BaseV2Gauge gauge) external onlyOwner {
+    function removeGauge(BaseV2Gauge gauge) external override onlyOwner {
         if (!activeGauges[gauge] || gauges[gaugeIds[gauge]] != gauge) revert InvalidGauge();
         delete gauges[gaugeIds[gauge]];
         delete gaugeIds[gauge];

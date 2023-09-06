@@ -61,9 +61,6 @@ interface IBaseV2Gauge {
     /// @notice the gauge's rewards depot
     function multiRewardsDepot() external returns (MultiRewardsDepot);
 
-    /// @notice the current epoch / cycle number
-    function epoch() external returns (uint256);
-
     /*///////////////////////////////////////////////////////////////
                         GAUGE ACTIONS    
     //////////////////////////////////////////////////////////////*/

@@ -21,7 +21,6 @@ import {UniswapV3Gauge} from "@gauges/UniswapV3Gauge.sol";
 contract UniswapV3GaugeTest is DSTestPlus {
     MockERC20 public strategy;
     MockERC20 public rewardToken;
-    MockERC20 public hermes;
     BurntHermes public bhermesToken;
     MockRewardsStream public rewardsStream;
     MultiRewardsDepot public depot;
@@ -38,17 +37,14 @@ contract UniswapV3GaugeTest is DSTestPlus {
     event RemoveBribeFlywheel(FlywheelCore indexed bribeFlywheel);
 
     function setUp() public {
-        hermes = new MockERC20("hermes", "HERMES", 18);
-
         rewardToken = new MockERC20("test token", "TKN", 18);
         strategy = new MockERC20("test strategy", "TKN", 18);
 
         rewardsStream = new MockRewardsStream(rewardToken, 100e18);
-        rewardToken.mint(address(rewardsStream), 100e25);
 
         booster = new FlywheelBoosterGaugeWeight();
 
-        bhermesToken = new BurntHermes(hermes, address(this), address(booster));
+        bhermesToken = new BurntHermes(rewardToken, address(this), address(booster));
         bhermesToken.gaugeWeight().setMaxGauges(10);
 
         booster.transferOwnership(address(bhermesToken.gaugeWeight()));
@@ -73,6 +69,8 @@ contract UniswapV3GaugeTest is DSTestPlus {
         depot = gauge.multiRewardsDepot();
 
         bhermesToken.gaugeWeight().addGauge(address(gauge));
+
+        hevm.mockCall(address(this), abi.encodeWithSignature("getAccruedRewards()"), abi.encode(0));
     }
 
     function createFlywheel(MockERC20 token) private returns (FlywheelCore flywheel) {
@@ -90,38 +88,15 @@ contract UniswapV3GaugeTest is DSTestPlus {
         require(gauge.minimumWidth() == 100);
     }
 
-    function testNewEpochFail() external {
-        hevm.mockCall(address(this), abi.encodeWithSignature("getAccruedRewards()"), abi.encode(0));
-        hevm.mockCall(address(this), abi.encodeWithSignature("createIncentiveFromGauge(uint256)", 0), "");
-
-        uint256 epoch = gauge.epoch();
-        gauge.newEpoch();
-        assertEq(epoch, gauge.epoch());
-    }
-
-    function testNewEpochWorkThenFail() external {
-        hevm.warp(WEEK); // skip to cycle 1
-
-        hevm.mockCall(address(this), abi.encodeWithSignature("getAccruedRewards()"), abi.encode(0));
-        hevm.mockCall(address(this), abi.encodeWithSignature("createIncentiveFromGauge(uint256)", 0), "");
-
-        hevm.expectEmit(true, true, true, true);
-        emit Distribute(0);
-
-        gauge.newEpoch();
-        uint256 epoch = gauge.epoch();
-        gauge.newEpoch();
-        assertEq(epoch, gauge.epoch());
-    }
-
     function testNewEpochEmpty() external {
         hevm.warp(WEEK); // skip to cycle 1
 
-        hevm.mockCall(address(this), abi.encodeWithSignature("getAccruedRewards()"), abi.encode(0));
+        hevm.mockCall(
+            address(rewardToken), abi.encodeWithSignature("balanceOf(address)", address(gauge)), abi.encode(0)
+        );
         hevm.mockCall(address(this), abi.encodeWithSignature("createIncentiveFromGauge(uint256)", 0), "");
 
-        hevm.expectEmit(true, true, true, true);
-        emit Distribute(0);
+        hevm.expectCall(address(rewardToken), abi.encodeWithSignature("balanceOf(address)", address(gauge)));
 
         gauge.newEpoch();
     }
@@ -129,18 +104,22 @@ contract UniswapV3GaugeTest is DSTestPlus {
     function testNewEpoch() external {
         hevm.warp(WEEK); // skip to cycle 1
 
-        hevm.mockCall(address(this), abi.encodeWithSignature("getAccruedRewards()"), abi.encode(100e18));
+        rewardToken.mint(address(gauge), 100e18);
         hevm.mockCall(address(this), abi.encodeWithSignature("createIncentiveFromGauge(uint256)", 100e18), "");
 
         hevm.expectEmit(true, true, true, true);
         emit Distribute(100e18);
+
         gauge.newEpoch();
     }
 
     function testNewEpoch(uint256 amount) external {
+        amount %= type(uint248).max - 1;
+        ++amount;
+
         hevm.warp(WEEK); // skip to cycle 1
 
-        hevm.mockCall(address(this), abi.encodeWithSignature("getAccruedRewards()"), abi.encode(amount));
+        rewardToken.mint(address(gauge), amount);
         hevm.mockCall(address(this), abi.encodeWithSignature("createIncentiveFromGauge(uint256)", amount), "");
 
         hevm.expectEmit(true, true, true, true);
@@ -150,9 +129,12 @@ contract UniswapV3GaugeTest is DSTestPlus {
     }
 
     function testNewEpochTwice(uint256 amount) external {
+        amount %= type(uint248).max - 1;
+        ++amount;
+
         hevm.warp(WEEK); // skip to cycle 1
 
-        hevm.mockCall(address(this), abi.encodeWithSignature("getAccruedRewards()"), abi.encode(amount));
+        rewardToken.mint(address(gauge), amount);
         hevm.mockCall(address(this), abi.encodeWithSignature("createIncentiveFromGauge(uint256)", amount), "");
 
         hevm.expectEmit(true, true, true, true);
@@ -169,9 +151,12 @@ contract UniswapV3GaugeTest is DSTestPlus {
     }
 
     function testNewEpochTwiceSecondHasNothing(uint256 amount) external {
+        amount %= type(uint248).max - 1;
+        ++amount;
+
         hevm.warp(WEEK); // skip to cycle 1
 
-        hevm.mockCall(address(this), abi.encodeWithSignature("getAccruedRewards()"), abi.encode(amount));
+        rewardToken.mint(address(gauge), amount);
         hevm.mockCall(address(this), abi.encodeWithSignature("createIncentiveFromGauge(uint256)", amount), "");
 
         hevm.expectEmit(true, true, true, true);
@@ -181,11 +166,12 @@ contract UniswapV3GaugeTest is DSTestPlus {
 
         hevm.warp(2 * WEEK); // skip to cycle 2
 
-        hevm.mockCall(address(this), abi.encodeWithSignature("getAccruedRewards()"), abi.encode(0));
+        hevm.mockCall(
+            address(rewardToken), abi.encodeWithSignature("balanceOf(address)", address(gauge)), abi.encode(0)
+        );
         hevm.mockCall(address(this), abi.encodeWithSignature("createIncentiveFromGauge(uint256)", 0), "");
 
-        hevm.expectEmit(true, true, true, true);
-        emit Distribute(0);
+        hevm.expectCall(address(rewardToken), abi.encodeWithSignature("balanceOf(address)", address(gauge)));
 
         gauge.newEpoch();
     }

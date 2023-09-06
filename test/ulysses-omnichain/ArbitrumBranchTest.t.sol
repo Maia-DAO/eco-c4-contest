@@ -577,17 +577,14 @@ contract ArbitrumBranchTest is DSTestPlus {
         // Get some gas.
         hevm.deal(address(this), 1 ether);
 
-        hevm.expectRevert(bytes4(keccak256("RootExecutionFailed()")));
+        address prevAddress = RootPort(rootPort).getLocalTokenFromUnderlying(address(arbitrumNativeToken), rootChainId);
 
         // Add new localToken
         arbitrumCoreRouter.addLocalToken(ftmGlobalToken);
 
-        // newArbitrumAssetGlobalAddress =
-        //     RootPort(rootPort).getLocalTokenFromUnderlying(address(arbitrumNativeToken), rootChainId);
+        address afterAddress = RootPort(rootPort).getLocalTokenFromUnderlying(address(arbitrumNativeToken), rootChainId);
 
-        // console2.log("New: ", newArbitrumAssetGlobalAddress);
-
-        // require(newArbitrumAssetGlobalAddress == address(0), "Token should not be added"); // Error should be thrown and caught
+        require(prevAddress == afterAddress, "Token should not change since already added");
     }
 
     function testDepositToPort() public {

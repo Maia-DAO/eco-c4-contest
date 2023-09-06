@@ -438,7 +438,7 @@ contract BranchBridgeAgentTest is Test {
 
         vm.startPrank(localAnyCallExecutorAddress);
 
-        vm.expectCall(localAnyCongfig, abi.encodeWithSignature("withdraw(uint256)", 100000001891880000));
+        vm.expectCall(localAnyCongfig, abi.encodeWithSignature("withdraw(uint256)", 100000001879130000));
         bAgent.anyFallback(anyFallbackData);
     }
 

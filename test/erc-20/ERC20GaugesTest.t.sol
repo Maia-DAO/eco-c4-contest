@@ -19,9 +19,9 @@ contract ERC20GaugesTest is DSTestPlus {
     address gauge2;
 
     function setUp() public {
-        flywheelBooster = new FlywheelBoosterGaugeWeight(1 weeks);
+        flywheelBooster = new FlywheelBoosterGaugeWeight();
 
-        token = new MockERC20Gauges(address(this), address(flywheelBooster), 3600, 600); // 1 hour cycles, 10 minute freeze
+        token = new MockERC20Gauges(address(this), address(flywheelBooster));
         flywheelBooster.transferOwnership(address(token));
 
         hevm.mockCall(address(0), abi.encodeWithSignature("rewardToken()"), abi.encode(ERC20(address(0xDEAD))));
@@ -199,7 +199,7 @@ contract ERC20GaugesTest is DSTestPlus {
         assertEq(token.incrementGauge(gauge1, 1e18), 1e18);
         assertEq(token.incrementGauge(gauge2, 1e18), 2e18);
 
-        hevm.warp(3600); // warp 1 hour to store changes
+        hevm.warp(1 weeks); // warp 1 week to store changes
         assertEq(token.calculateGaugeAllocation(gauge1, 100e18), 50e18);
         assertEq(token.calculateGaugeAllocation(gauge2, 100e18), 50e18);
 
@@ -209,7 +209,7 @@ contract ERC20GaugesTest is DSTestPlus {
         assertEq(token.calculateGaugeAllocation(gauge1, 100e18), 50e18);
         assertEq(token.calculateGaugeAllocation(gauge2, 100e18), 50e18);
 
-        hevm.warp(7200); // warp another hour to store changes again
+        hevm.warp(2 weeks); // warp another week to store changes again
         assertEq(token.calculateGaugeAllocation(gauge1, 100e18), 25e18);
         assertEq(token.calculateGaugeAllocation(gauge2, 100e18), 75e18);
     }
@@ -258,7 +258,7 @@ contract ERC20GaugesTest is DSTestPlus {
         token.addGauge(gauge1);
 
         // any timestamp in freeze window is unable to increment
-        hevm.warp(token.getGaugeCycleEnd() - (cycleOffset % token.incrementFreezeWindow()) - 1);
+        hevm.warp(token.getGaugeCycleEnd() - (cycleOffset % 12 hours) - 1);
 
         hevm.expectRevert(abi.encodeWithSignature("IncrementFreezeError()"));
         token.incrementGauge(gauge1, amount);
@@ -350,7 +350,7 @@ contract ERC20GaugesTest is DSTestPlus {
         assertEq(token.getStoredGaugeWeight(gauge1), 0);
         assertEq(token.storedTotalWeight(), 0);
 
-        hevm.warp(block.timestamp + 3600); // warp one cycle
+        hevm.warp(block.timestamp + 1 weeks); // warp one cycle
 
         assertEq(token.getStoredGaugeWeight(gauge1), 1e18);
         assertEq(token.storedTotalWeight(), 1e18);
@@ -365,7 +365,7 @@ contract ERC20GaugesTest is DSTestPlus {
         assertEq(token.getStoredGaugeWeight(gauge2), 0);
         assertEq(token.storedTotalWeight(), 1e18);
 
-        hevm.warp(block.timestamp + 1800); // warp half cycle
+        hevm.warp(block.timestamp + 1 weeks / 2); // warp half cycle
 
         assertEq(token.getStoredGaugeWeight(gauge2), 0);
         assertEq(token.storedTotalWeight(), 1e18);
@@ -377,13 +377,13 @@ contract ERC20GaugesTest is DSTestPlus {
         assertEq(token.getGaugeWeight(gauge1), 5e18);
         assertEq(token.totalWeight(), 7e18);
 
-        hevm.warp(block.timestamp + 1800); // warp half cycle
+        hevm.warp(block.timestamp + 1 weeks / 2); // warp half cycle
 
         assertEq(token.getStoredGaugeWeight(gauge1), 5e18);
         assertEq(token.getStoredGaugeWeight(gauge2), 2e18);
         assertEq(token.storedTotalWeight(), 7e18);
 
-        hevm.warp(block.timestamp + 3600); // warp full cycle
+        hevm.warp(block.timestamp + 1 weeks); // warp full cycle
 
         assertEq(token.getStoredGaugeWeight(gauge1), 5e18);
         assertEq(token.getStoredGaugeWeight(gauge2), 2e18);
@@ -570,7 +570,7 @@ contract ERC20GaugesTest is DSTestPlus {
         assertEq(token.getStoredGaugeWeight(gauge1), 0);
         assertEq(token.storedTotalWeight(), 0);
 
-        hevm.warp(block.timestamp + 3600); // warp full cycle
+        hevm.warp(block.timestamp + 1 weeks); // warp full cycle
 
         assertEq(token.getStoredGaugeWeight(gauge1), 2e18);
         assertEq(token.storedTotalWeight(), 2e18);
@@ -584,7 +584,7 @@ contract ERC20GaugesTest is DSTestPlus {
         assertEq(token.getStoredGaugeWeight(gauge1), 2e18);
         assertEq(token.storedTotalWeight(), 2e18);
 
-        hevm.warp(block.timestamp + 3600); // warp full cycle
+        hevm.warp(block.timestamp + 1 weeks); // warp full cycle
 
         assertEq(token.getStoredGaugeWeight(gauge1), 0);
         assertEq(token.storedTotalWeight(), 0);

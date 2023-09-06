@@ -22,8 +22,8 @@ contract bHermesGauges is ERC20Gauges, IbHermesUnderlying {
     /// @inheritdoc IbHermesUnderlying
     address public immutable bHermes;
 
-    constructor(address _owner, address flywheelBooster, uint32 _rewardsCycleLength, uint32 _incrementFreezeWindow)
-        ERC20Gauges(flywheelBooster, _rewardsCycleLength, _incrementFreezeWindow)
+    constructor(address _owner, address flywheelBooster)
+        ERC20Gauges(flywheelBooster)
         ERC20("BurntHermes Gauges", "bHERMES-G", 18)
     {
         _initializeOwner(_owner);

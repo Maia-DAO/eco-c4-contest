@@ -71,7 +71,6 @@ abstract contract ERC4626PartnerManager is PartnerUtilityManager, Ownable, ERC46
         )
     {
         _initializeOwner(_owner);
-        partnerVault = _partnerVault;
         factory = _factory;
         bHermesRate = _bHermesRate;
         bHermes = BurntHermes(_bHermes);

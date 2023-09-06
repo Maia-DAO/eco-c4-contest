@@ -165,10 +165,12 @@ abstract contract FlywheelCore is Ownable, IFlywheelCore {
                 ? flywheelBooster.boostedTotalSupply(strategy)
                 : strategy.totalSupply();
 
-            uint224 deltaIndex;
+            uint256 deltaIndex;
 
-            if (supplyTokens != 0) {
-                deltaIndex = ((strategyRewardsAccrued * ONE) / supplyTokens).toUint224();
+            if (supplyTokens > 0) {
+                unchecked {
+                    deltaIndex = (strategyRewardsAccrued * ONE) / supplyTokens;
+                }
             }
 
             // accumulate rewards per token onto the index, multiplied by a fixed-point factor

@@ -346,7 +346,9 @@ abstract contract TalosTestor is DSTestPlus {
     //                          EVENTS
     //////////////////////////////////////////////////////////////////
 
-    event Deposit(address indexed caller, address indexed owner, uint256 amount0, uint256 amount1, uint256 shares);
+    event Deposit(
+        address indexed caller, address indexed owner, uint256 amount0, uint256 amount1, uint256 indexed shares
+    );
 
     event Redeem(
         address indexed caller,
@@ -363,11 +365,11 @@ abstract contract TalosTestor is DSTestPlus {
     /// @param tickUpper Upper price tick of the position
     /// @param amount0 Amount of token 0 deposited to the position
     /// @param amount1 Amount of token 1 deposited to the position
-    event Rerange(uint256 indexed tokenId, int24 tickLower, int24 tickUpper, uint256 amount0, uint256 amount1);
+    event Rerange(uint256 indexed tokenId, int24 indexed tickLower, int24 indexed tickUpper, uint256 amount0, uint256 amount1);
 
     /// @notice Emitted when user collects his fee share
     /// @param sender User address
     /// @param fees0 Exact amount of fees claimed by the users in terms of token 0
     /// @param fees1 Exact amount of fees claimed by the users in terms of token 1
-    event RewardPaid(address indexed sender, uint256 fees0, uint256 fees1);
+    event RewardPaid(address indexed sender, uint256 indexed fees0, uint256 indexed fees1);
 }

@@ -87,9 +87,8 @@ interface IBaseV2Gauge {
     /**
      * @notice Emitted when weekly emissions are distributed
      * @param amount amount of tokens distributed
-     * @param epoch current epoch
      */
-    event Distribute(uint256 indexed amount, uint256 indexed epoch);
+    event Distribute(uint256 indexed amount);
 
     /*///////////////////////////////////////////////////////////////
                             ERRORS

@@ -25,14 +25,9 @@ abstract contract ERC20Gauges is ERC20MultiVotes, ReentrancyGuard, IERC20Gauges 
 
     /**
      * @notice Construct a new ERC20Gauges
-     * @param _gaugeCycleLength the length of a gauge cycle in seconds
-     * @param _incrementFreezeWindow the length of the grace period in seconds
+     * @param _flywheelBooster the flywheel booster contract to accrue bribes
      */
-    constructor(address _flywheelBooster, uint32 _gaugeCycleLength, uint32 _incrementFreezeWindow) {
-        if (_incrementFreezeWindow >= _gaugeCycleLength) revert IncrementFreezeError();
-        gaugeCycleLength = _gaugeCycleLength;
-        incrementFreezeWindow = _incrementFreezeWindow;
-
+    constructor(address _flywheelBooster) {
         if (_flywheelBooster == address(0)) revert InvalidBooster();
         flywheelBooster = IFlywheelBooster(_flywheelBooster);
     }
@@ -41,11 +36,8 @@ abstract contract ERC20Gauges is ERC20MultiVotes, ReentrancyGuard, IERC20Gauges 
                             GAUGE STATE
     //////////////////////////////////////////////////////////////*/
 
-    /// @inheritdoc IERC20Gauges
-    uint32 public immutable override gaugeCycleLength;
-
-    /// @inheritdoc IERC20Gauges
-    uint32 public immutable override incrementFreezeWindow;
+    /// @notice 12 hours period at the end of a cycle where votes cannot increment
+    uint256 private constant INCREMENT_FREEZE_WINDOW = 12 hours;
 
     /// @inheritdoc IERC20Gauges
     mapping(address user => mapping(address gauge => uint112 weight)) public override getUserGaugeWeight;
@@ -78,10 +70,10 @@ abstract contract ERC20Gauges is ERC20MultiVotes, ReentrancyGuard, IERC20Gauges 
     }
 
     function _getGaugeCycleEnd() internal view returns (uint32) {
-        uint32 nowPlusOneCycle = block.timestamp.toUint32() + gaugeCycleLength;
+        uint256 nowPlusOneCycle = block.timestamp + 1 weeks;
         unchecked {
             // cannot divide by zero and always <= nowPlusOneCycle so no overflow
-            return (nowPlusOneCycle / gaugeCycleLength) * gaugeCycleLength;
+            return ((nowPlusOneCycle / 1 weeks) * 1 weeks).toUint32();
         }
     }
 
@@ -215,7 +207,7 @@ abstract contract ERC20Gauges is ERC20MultiVotes, ReentrancyGuard, IERC20Gauges 
     function _incrementGaugeWeight(address user, address gauge, uint112 weight, uint32 cycle) internal {
         if (!_gauges.contains(gauge) || _deprecatedGauges.contains(gauge)) revert InvalidGaugeError();
         unchecked {
-            if (cycle - block.timestamp <= incrementFreezeWindow) revert IncrementFreezeError();
+            if (cycle - block.timestamp <= INCREMENT_FREEZE_WINDOW) revert IncrementFreezeError();
         }
 
         flywheelBooster.accrueBribesPositiveDelta(user, ERC20(gauge), weight);
@@ -235,7 +227,7 @@ abstract contract ERC20Gauges is ERC20MultiVotes, ReentrancyGuard, IERC20Gauges 
 
         _writeGaugeWeight(_getGaugeWeight[gauge], _add112, weight, cycle);
 
-        emit IncrementGaugeWeight(user, gauge, weight, cycle);
+        emit IncrementGaugeWeight(user, gauge, weight);
     }
 
     /**
@@ -323,7 +315,7 @@ abstract contract ERC20Gauges is ERC20MultiVotes, ReentrancyGuard, IERC20Gauges 
 
         _writeGaugeWeight(_getGaugeWeight[gauge], _subtract112, weight, cycle);
 
-        emit DecrementGaugeWeight(user, gauge, weight, cycle);
+        emit DecrementGaugeWeight(user, gauge, weight);
     }
 
     /**

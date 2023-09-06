@@ -25,7 +25,7 @@ library PoolVariables {
     /// @notice Shows current Optimizer's balances
     /// @param totalAmount0 Current token0 Optimizer's balance
     /// @param totalAmount1 Current token1 Optimizer's balance
-    event Snapshot(uint256 totalAmount0, uint256 totalAmount1);
+    event Snapshot(uint256 indexed totalAmount0, uint256 indexed totalAmount1);
 
     // Cache struct for calculations
     struct Info {

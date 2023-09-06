@@ -82,22 +82,22 @@ interface IUtilityManager {
     //////////////////////////////////////////////////////////////*/
 
     /// @notice Emitted when a user forfeits weight.
-    event ForfeitWeight(address indexed user, uint256 amount);
+    event ForfeitWeight(address indexed user, uint256 indexed amount);
 
     /// @notice Emitted when a user forfeits boost.
-    event ForfeitBoost(address indexed user, uint256 amount);
+    event ForfeitBoost(address indexed user, uint256 indexed amount);
 
     /// @notice Emitted when a user forfeits governance.
-    event ForfeitGovernance(address indexed user, uint256 amount);
+    event ForfeitGovernance(address indexed user, uint256 indexed amount);
 
     /// @notice Emitted when a user claims weight.
-    event ClaimWeight(address indexed user, uint256 amount);
+    event ClaimWeight(address indexed user, uint256 indexed amount);
 
     /// @notice Emitted when a user claims boost.
-    event ClaimBoost(address indexed user, uint256 amount);
+    event ClaimBoost(address indexed user, uint256 indexed amount);
 
     /// @notice Emitted when a user claims governance.
-    event ClaimGovernance(address indexed user, uint256 amount);
+    event ClaimGovernance(address indexed user, uint256 indexed amount);
 
     /*///////////////////////////////////////////////////////////////
                                 ERRORS

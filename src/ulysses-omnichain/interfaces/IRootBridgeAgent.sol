@@ -375,9 +375,9 @@ interface IRootBridgeAgent is IApp {
                              EVENTS
     //////////////////////////////////////////////////////////////*/
 
-    event LogCallin(bytes1 selector, bytes data, uint24 fromChainId);
-    event LogCallout(bytes1 selector, bytes data, uint256, uint24 toChainId);
-    event LogCalloutFail(bytes1 selector, bytes data, uint24 toChainId);
+    event LogCallin(bytes1 indexed selector, bytes indexed data, uint24 indexed fromChainId);
+    event LogCallout(bytes1 indexed selector, bytes indexed data, uint256, uint24 indexed toChainId);
+    event LogCalloutFail(bytes1 indexed selector, bytes indexed data, uint24 indexed toChainId);
 
     /*///////////////////////////////////////////////////////////////
                             ERRORS

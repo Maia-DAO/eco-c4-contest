@@ -19,8 +19,7 @@ abstract contract FlywheelAcummulatedRewards is BaseFlywheelRewards, IFlywheelAc
                         REWARDS CONTRACT STATE
     //////////////////////////////////////////////////////////////*/
 
-    /// @inheritdoc IFlywheelAcummulatedRewards
-    uint256 public immutable override rewardsCycleLength;
+    uint256 private constant REWARDS_CYCLE_LENGTH = 1 weeks;
 
     /// @inheritdoc IFlywheelAcummulatedRewards
     mapping(ERC20 strategy => uint256 endCycle) public override endCycles;
@@ -28,11 +27,8 @@ abstract contract FlywheelAcummulatedRewards is BaseFlywheelRewards, IFlywheelAc
     /**
      * @notice Flywheel Instant Rewards constructor.
      *  @param _flywheel flywheel core contract
-     *  @param _rewardsCycleLength the length of a rewards cycle in seconds
      */
-    constructor(FlywheelCore _flywheel, uint256 _rewardsCycleLength) BaseFlywheelRewards(_flywheel) {
-        rewardsCycleLength = _rewardsCycleLength;
-    }
+    constructor(FlywheelCore _flywheel) BaseFlywheelRewards(_flywheel) {}
 
     /*//////////////////////////////////////////////////////////////
                         FLYWHEEL CORE FUNCTIONS
@@ -40,26 +36,24 @@ abstract contract FlywheelAcummulatedRewards is BaseFlywheelRewards, IFlywheelAc
 
     /// @inheritdoc IFlywheelAcummulatedRewards
     function getAccruedRewards(ERC20 strategy) external override onlyFlywheel returns (uint256 amount) {
-        uint32 timestamp = block.timestamp.toUint32();
-
         uint256 endCycle = endCycles[strategy];
 
         // if cycle has ended, reset cycle and transfer all available
-        if (timestamp >= endCycle) {
+        if (block.timestamp >= endCycle) {
             if (endCycle != 0) amount = getNextCycleRewards(strategy);
 
-            uint256 _rewardsCycleLength = rewardsCycleLength;
+            unchecked {
+                // reset for next cycle
+                uint256 newEndCycle = ((block.timestamp + REWARDS_CYCLE_LENGTH) / REWARDS_CYCLE_LENGTH) * REWARDS_CYCLE_LENGTH;
+                endCycles[strategy] = newEndCycle;
 
-            // reset for next cycle
-            uint256 newEndCycle = ((timestamp + _rewardsCycleLength) / _rewardsCycleLength) * _rewardsCycleLength;
-            endCycles[strategy] = newEndCycle;
-
-            emit NewRewardsCycle(timestamp, newEndCycle, amount);
+                emit NewRewardsCycle(amount);
+            }
         } else {
             amount = 0;
         }
     }
 
-    /// @notice function to get the next cycle's rewards amount
+    /// @notice function to get the next cycle's reward amount
     function getNextCycleRewards(ERC20 strategy) internal virtual returns (uint256);
 }

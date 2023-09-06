@@ -122,14 +122,16 @@ interface IFlywheelCore {
      *   @param rewardsDelta how many new rewards accrued to the user
      *   @param rewardsIndex the market index for rewards per token accrued
      */
-    event AccrueRewards(ERC20 indexed strategy, address indexed user, uint256 rewardsDelta, uint256 rewardsIndex);
+    event AccrueRewards(
+        ERC20 indexed strategy, address indexed user, uint256 indexed rewardsDelta, uint256 rewardsIndex
+    );
 
     /**
      * @notice Emitted when a user claims accrued rewards.
      *   @param user the user of the rewards
      *   @param amount the amount of rewards claimed
      */
-    event ClaimRewards(address indexed user, uint256 amount);
+    event ClaimRewards(address indexed user, uint256 indexed amount);
 
     /**
      * @notice Emitted when a new strategy is added to flywheel by the admin

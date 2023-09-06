@@ -17,16 +17,6 @@ import {PoolVariables} from "./PoolVariables.sol";
 library PoolActions {
     using PoolVariables for IUniswapV3Pool;
 
-    /// @notice Shows current Optimizer's balances
-    /// @param totalAmount0 Current token0 Optimizer's balance
-    /// @param totalAmount1 Current token1 Optimizer's balance
-    event Snapshot(uint256 totalAmount0, uint256 totalAmount1);
-
-    // Any data passed through by the caller via the IUniswapV3PoolActions#swap call
-    struct SwapCallbackData {
-        bool zeroForOne;
-    }
-
     struct ActionParams {
         IUniswapV3Pool pool;
         ITalosOptimizer optimizer;
@@ -76,7 +66,7 @@ library PoolActions {
             actionParams.protocolFees0,
             actionParams.protocolFees1
         );
-        emit Snapshot(amount0, amount1);
+        emit PoolVariables.Snapshot(amount0, amount1);
 
         (tokenId, liquidity, amount0, amount1) = nonfungiblePositionManager.mint(
             INonfungiblePositionManager.MintParams({

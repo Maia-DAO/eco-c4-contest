@@ -308,14 +308,14 @@ contract BaseV2GaugeManagerTest is DSTestPlus {
     }
 
     /// @notice Emitted when a new gauge factory is added.
-    event AddedGaugeFactory(address gaugeFactory);
+    event AddedGaugeFactory(address indexed gaugeFactory);
 
     /// @notice Emitted when a gauge factory is removed.
-    event RemovedGaugeFactory(address gaugeFactory);
+    event RemovedGaugeFactory(address indexed gaugeFactory);
 
     /// @notice Emitted when changing BurntHermes GaugeWeight and GaugeWeight owner.
-    event ChangedbHermesGaugeOwner(address newOwner);
+    event ChangedbHermesGaugeOwner(address indexed newOwner);
 
     /// @notice Emitted when changing admin.
-    event ChangedAdmin(address newAdmin);
+    event ChangedAdmin(address indexed newAdmin);
 }

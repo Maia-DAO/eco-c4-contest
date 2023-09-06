@@ -51,16 +51,6 @@ interface IERC20Gauges {
     function getUserWeight(address) external view returns (uint112);
 
     /**
-     * @notice the length of a gauge cycle
-     */
-    function gaugeCycleLength() external view returns (uint32);
-
-    /**
-     * @notice the period at the end of a cycle where votes cannot increment
-     */
-    function incrementFreezeWindow() external view returns (uint32);
-
-    /**
      * @notice a mapping from users to gauges to a user's allocated weight to that gauge
      */
     function getUserGaugeWeight(address, address) external view returns (uint112);
@@ -207,8 +197,8 @@ interface IERC20Gauges {
 
     /**
      * @notice the default maximum amount of gauges a user can allocate to.
-     * @dev Use `numUserGauges` to check this. If this number is ever lowered, or a contract has an override, 
-     *      then existing addresses MAY have more gauges allocated to them. 
+     * @dev Use `numUserGauges` to check this. If this number is ever lowered, or a contract has an override,
+     *      then existing addresses MAY have more gauges allocated to them.
      */
     function maxGauges() external view returns (uint256);
 
@@ -235,8 +225,7 @@ interface IERC20Gauges {
     /**
      * @notice set the new max gauges. Requires auth by `ownable`.
      * @dev Use `numUserGauges` to check this.
-     *      If this is set to a lower number than the current max, users MAY have more gauges active than the max. 
-     *      
+     *      If this is set to a lower number than the current max, users MAY have more gauges active than the max.
      */
     function setMaxGauges(uint256 newMax) external;
 
@@ -250,10 +239,10 @@ interface IERC20Gauges {
     //////////////////////////////////////////////////////////////*/
 
     /// @notice emitted when incrementing a gauge
-    event IncrementGaugeWeight(address indexed user, address indexed gauge, uint256 weight, uint32 cycleEnd);
+    event IncrementGaugeWeight(address indexed user, address indexed gauge, uint256 indexed weight);
 
     /// @notice emitted when decrementing a gauge
-    event DecrementGaugeWeight(address indexed user, address indexed gauge, uint256 weight, uint32 cycleEnd);
+    event DecrementGaugeWeight(address indexed user, address indexed gauge, uint256 indexed weight);
 
     /// @notice emitted when adding a new gauge to the live set.
     event AddGauge(address indexed gauge);
@@ -262,10 +251,10 @@ interface IERC20Gauges {
     event RemoveGauge(address indexed gauge);
 
     /// @notice emitted when updating the maximum number of gauges a user can delegate to.
-    event MaxGaugesUpdate(uint256 oldMaxGauges, uint256 newMaxGauges);
+    event MaxGaugesUpdate(uint256 indexed oldMaxGauges, uint256 indexed newMaxGauges);
 
     /// @notice emitted when changing a contract's approval to go over the max gauges.
-    event CanContractExceedMaxGaugesUpdate(address indexed account, bool canContractExceedMaxGauges);
+    event CanContractExceedMaxGaugesUpdate(address indexed account, bool indexed canContractExceedMaxGauges);
 
     /*///////////////////////////////////////////////////////////////
                             ERRORS

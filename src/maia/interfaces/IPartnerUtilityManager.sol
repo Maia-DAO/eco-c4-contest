@@ -48,5 +48,5 @@ interface IPartnerUtilityManager {
     //////////////////////////////////////////////////////////////*/
 
     /// @notice Emitted when a user claims partner governance.
-    event ClaimPartnerGovernance(address indexed user, uint256 amount);
+    event ClaimPartnerGovernance(address indexed user, uint256 indexed amount);
 }

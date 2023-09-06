@@ -203,12 +203,16 @@ interface IBranchPort {
     event DebtCreated(address indexed _strategy, address indexed _token, uint256 _amount);
     event DebtRepaid(address indexed _strategy, address indexed _token, uint256 _amount);
 
-    event StrategyTokenAdded(address indexed _token, uint256 _minimumReservesRatio);
+    event StrategyTokenAdded(address indexed _token, uint256 indexed _minimumReservesRatio);
     event StrategyTokenToggled(address indexed _token);
 
-    event PortStrategyAdded(address indexed _portStrategy, address indexed _token, uint256 _dailyManagementLimit);
+    event PortStrategyAdded(
+        address indexed _portStrategy, address indexed _token, uint256 indexed _dailyManagementLimit
+    );
     event PortStrategyToggled(address indexed _portStrategy, address indexed _token);
-    event PortStrategyUpdated(address indexed _portStrategy, address indexed _token, uint256 _dailyManagementLimit);
+    event PortStrategyUpdated(
+        address indexed _portStrategy, address indexed _token, uint256 indexed _dailyManagementLimit
+    );
 
     event BridgeAgentFactoryAdded(address indexed _bridgeAgentFactory);
     event BridgeAgentFactoryToggled(address indexed _bridgeAgentFactory);

@@ -78,7 +78,7 @@ abstract contract BaseV2Gauge is IBaseV2Gauge {
 
             _distribute(accruedRewards);
 
-            emit Distribute(accruedRewards, _newEpoch);
+            emit Distribute(accruedRewards);
         }
     }
 

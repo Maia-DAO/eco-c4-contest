@@ -231,5 +231,5 @@ interface IUlyssesPool {
      * @param poolId The ID of the destination Ulysses LP
      * @param assets The amount of underlying deposited in this Ulysses LP
      */
-    event Swap(address indexed caller, uint256 indexed poolId, uint256 assets);
+    event Swap(address indexed caller, uint256 indexed poolId, uint256 indexed assets);
 }

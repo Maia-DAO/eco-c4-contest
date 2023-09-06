@@ -34,9 +34,6 @@ contract FlywheelGaugeRewards is IFlywheelGaugeRewards {
     /// @inheritdoc IFlywheelGaugeRewards
     uint32 public override gaugeCycle;
 
-    /// @inheritdoc IFlywheelGaugeRewards
-    uint32 public immutable override gaugeCycleLength;
-
     /// @notice the start of the next cycle being partially queued
     uint32 internal nextCycle;
 
@@ -52,10 +49,8 @@ contract FlywheelGaugeRewards is IFlywheelGaugeRewards {
     constructor(address _rewardToken, ERC20Gauges _gaugeToken, IBaseV2Minter _minter) {
         rewardToken = _rewardToken;
 
-        gaugeCycleLength = _gaugeToken.gaugeCycleLength();
-
         // seed initial gaugeCycle
-        gaugeCycle = (block.timestamp.toUint32() / gaugeCycleLength) * gaugeCycleLength;
+        gaugeCycle = ((block.timestamp / 1 weeks) * 1 weeks).toUint32();
 
         gaugeToken = _gaugeToken;
 
@@ -75,8 +70,7 @@ contract FlywheelGaugeRewards is IFlywheelGaugeRewards {
         minter.updatePeriod();
 
         // next cycle is always the next even divisor of the cycle length above the current block timestamp.
-        uint32 _gaugeCycleLength = gaugeCycleLength;
-        uint32 currentCycle = (block.timestamp.toUint32() / _gaugeCycleLength) * _gaugeCycleLength;
+        uint32 currentCycle = (block.timestamp.toUint32() / 1 weeks) * 1 weeks;
         uint32 lastCycle = gaugeCycle;
 
         // ensure new cycle has begun
@@ -100,7 +94,7 @@ contract FlywheelGaugeRewards is IFlywheelGaugeRewards {
         delete nextCycleQueuedRewards;
         delete paginationOffset;
 
-        emit CycleStart(currentCycle, totalQueuedForCycle);
+        emit CycleStart(totalQueuedForCycle);
     }
 
     /// @inheritdoc IFlywheelGaugeRewards
@@ -112,8 +106,7 @@ contract FlywheelGaugeRewards is IFlywheelGaugeRewards {
         minter.updatePeriod();
 
         // next cycle is always the next even divisor of the cycle length above the current block timestamp.
-        uint32 _gaugeCycleLength = gaugeCycleLength;
-        uint32 currentCycle = (block.timestamp.toUint32() / _gaugeCycleLength) * _gaugeCycleLength;
+        uint32 currentCycle = (block.timestamp.toUint32() / 1 weeks) * 1 weeks;
         uint32 lastCycle = gaugeCycle;
 
         // ensure new cycle has begun
@@ -156,7 +149,7 @@ contract FlywheelGaugeRewards is IFlywheelGaugeRewards {
             gaugeCycle = currentCycle;
             nextCycleQueuedRewards = 0;
             paginationOffset = 0;
-            emit CycleStart(currentCycle, queued);
+            emit CycleStart(queued);
         } else {
             paginationOffset = offset + numRewards.toUint32();
         }
@@ -202,7 +195,7 @@ contract FlywheelGaugeRewards is IFlywheelGaugeRewards {
             queuedRewards.cycleRewards = uint112(nextRewards);
             queuedRewards.storedCycle = currentCycle;
 
-            emit QueueRewards(address(gauge), currentCycle, nextRewards);
+            emit QueueRewards(address(gauge), nextRewards);
         }
     }
 

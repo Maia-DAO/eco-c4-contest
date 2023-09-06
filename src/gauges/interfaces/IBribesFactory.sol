@@ -15,9 +15,6 @@ interface IBribesFactory {
                         BRIBES FACTORY STATE
     //////////////////////////////////////////////////////////////*/
 
-    /// @notice The length of a rewards cycle
-    function rewardsCycleLength() external view returns (uint256);
-
     /// @notice Array that holds every bribe created by the factory.
     function bribeFlywheels(uint256) external view returns (FlywheelCore);
 
@@ -53,7 +50,7 @@ interface IBribesFactory {
     //////////////////////////////////////////////////////////////*/
 
     /// @notice Emitted when a new bribe flywheel is created.
-    event BribeFlywheelCreated(address indexed bribeToken, FlywheelCore flywheel);
+    event BribeFlywheelCreated(address indexed bribeToken, FlywheelCore indexed flywheel);
 
     /*//////////////////////////////////////////////////////////////
                             ERRORS

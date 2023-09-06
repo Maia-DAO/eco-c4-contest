@@ -6,7 +6,7 @@ pragma solidity ^0.8.0;
  *  @author Maia DAO (https://github.com/Maia-DAO)
  *  @notice This contract is meant to be used to represent a token that can boost holders' rewards in other contracts.
  *          Holders can have their boost attached to gauges and cannot transfer their BurntHermes until they detach it.
- *          Only gauges can attach and detach boost from a user. 
+ *          Only gauges can attach and detach boost from a user.
  *          The current user's boost and total supply are stored when attaching.
  *          The boost is then detached when the user removes their boost or when the gauge is removed.
  *          A "gauge" is represented by an address that distributes rewards to users periodically or continuously.
@@ -216,16 +216,16 @@ interface IERC20Boost {
     event RemoveGauge(address indexed gauge);
 
     /// @notice emmitted when a user attaches boost to a gauge.
-    event Attach(address indexed user, address indexed gauge, uint256 boost);
+    event Attach(address indexed user, address indexed gauge, uint256 indexed boost);
 
     /// @notice emmitted when a user detaches boost from a gauge.
     event Detach(address indexed user, address indexed gauge);
 
     /// @notice emmitted when a user updates their boost.
-    event UpdateUserBoost(address indexed user, uint256 updatedBoost);
+    event UpdateUserBoost(address indexed user, uint256 indexed updatedBoost);
 
     /// @notice emmitted when a user decrements their gauge boost.
-    event DecrementUserGaugeBoost(address indexed user, address indexed gauge, uint256 UpdatedBoost);
+    event DecrementUserGaugeBoost(address indexed user, address indexed gauge, uint256 indexed UpdatedBoost);
 
     /*///////////////////////////////////////////////////////////////
                             ERRORS

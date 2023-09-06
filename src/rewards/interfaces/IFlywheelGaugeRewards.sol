@@ -20,7 +20,7 @@ interface IRewardsStream {
  *  @notice Distributes rewards from a stream based on gauge weights
  *
  *  The contract assumes an arbitrary stream of rewards `S` of the rewardToken.
- *  It chunks the rewards into cycles of length `l`.
+ *  It chunks the rewards into cycles of length `l` of 1 week.
  *
  *  The allocation function for each cycle A(g, S) proportions the stream to each gauge
  *  such that SUM(A(g, S)) over all gauges <= S.
@@ -55,9 +55,6 @@ interface IFlywheelGaugeRewards {
 
     /// @notice the start of the current cycle
     function gaugeCycle() external view returns (uint32);
-
-    /// @notice the length of a gauge/rewards cycle
-    function gaugeCycleLength() external view returns (uint32);
 
     /// @notice mapping from gauges to queued rewards
     function gaugeQueuedRewards(ERC20)
@@ -94,11 +91,11 @@ interface IFlywheelGaugeRewards {
     //////////////////////////////////////////////////////////////*/
 
     /// @notice emitted when a cycle has completely queued and started
-    event CycleStart(uint32 indexed cycleStart, uint256 rewardAmount);
+    event CycleStart(uint256 indexed rewardAmount);
 
     /// @notice emitted when a single gauge is queued.
     /// @dev May be emitted before the cycle starts if the queue is done via pagination.
-    event QueueRewards(address indexed gauge, uint32 indexed cycleStart, uint256 rewardAmount);
+    event QueueRewards(address indexed gauge, uint256 indexed rewardAmount);
 
     /*//////////////////////////////////////////////////////////////
                                 ERRORS

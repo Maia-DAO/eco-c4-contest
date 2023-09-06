@@ -95,9 +95,9 @@ contract UniswapV3StakerTest is DSTestPlus, IERC721Receiver {
 
         (uniswapV3Factory, nonfungiblePositionManager) = UniswapV3Assistant.deployUniswapV3();
 
-        bHermesToken = new BurntHermes(rewardToken, address(this), address(this), 1 weeks, 12 hours);
+        bHermesToken = new BurntHermes(rewardToken, address(this), address(this));
 
-        flywheelGaugeWeightBooster = new FlywheelBoosterGaugeWeight(1 weeks);
+        flywheelGaugeWeightBooster = new FlywheelBoosterGaugeWeight();
 
         bribesFactory = flywheelGaugeWeightBooster.bribesFactory();
 

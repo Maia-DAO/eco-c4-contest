@@ -107,7 +107,13 @@ interface IBaseV2Minter is IRewardsStream {
                                 EVENTS
     //////////////////////////////////////////////////////////////*/
 
-    event Mint(address indexed sender, uint256 weekly, uint256 circulatingSupply, uint256 growth, uint256 daoShare);
+    event Mint(
+        address indexed sender,
+        uint256 indexed weekly,
+        uint256 indexed circulatingSupply,
+        uint256 growth,
+        uint256 daoShare
+    );
 
     event ChangedDao(address indexed dao);
 

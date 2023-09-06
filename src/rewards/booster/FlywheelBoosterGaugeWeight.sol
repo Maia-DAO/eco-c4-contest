@@ -33,11 +33,11 @@ contract FlywheelBoosterGaugeWeight is Ownable, IFlywheelBooster {
     mapping(ERC20 strategy => mapping(FlywheelCore flywheel => uint256 gaugeWeight)) public override
         flywheelStrategyGaugeWeight;
 
-    constructor(uint256 _rewardsCycleLength) {
+    constructor() {
         // Must transfer ownership to bHermesGauges contract after its deployment.
         _initializeOwner(msg.sender);
 
-        bribesFactory = new BribesFactory(_rewardsCycleLength, msg.sender);
+        bribesFactory = new BribesFactory(msg.sender);
     }
 
     /*///////////////////////////////////////////////////////////////

@@ -155,10 +155,12 @@ contract TalosStrategyVanilla is TalosStrategySimple {
     /// @param feesFromPool1 Total amount of fees collected in terms of token 1
     /// @param usersFees0 Total amount of fees collected by users in terms of token 0
     /// @param usersFees1 Total amount of fees collected by users in terms of token 1
-    event CollectFees(uint256 feesFromPool0, uint256 feesFromPool1, uint256 usersFees0, uint256 usersFees1);
+    event CollectFees(
+        uint256 indexed feesFromPool0, uint256 indexed feesFromPool1, uint256 indexed usersFees0, uint256 usersFees1
+    );
 
     /// @notice Emitted when fees are compounded to the pool
     /// @param amount0 Total amount of fees compounded in terms of token 0
     /// @param amount1 Total amount of fees compounded in terms of token 1
-    event CompoundFees(uint256 amount0, uint256 amount1);
+    event CompoundFees(uint256 indexed amount0, uint256 indexed amount1);
 }

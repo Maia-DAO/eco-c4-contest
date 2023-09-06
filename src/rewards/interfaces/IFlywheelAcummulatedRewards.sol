@@ -8,7 +8,7 @@ import {ERC20} from "solmate/tokens/ERC20.sol";
  * @title Flywheel Accumulated Rewards.
  *  @author Maia DAO (https://github.com/Maia-DAO)
  *  @notice This contract is responsible for strategy rewards management.
- *          Once every cycle all the rewards can be accrued
+ *          Once every week all the rewards can be accrued
  *          from the strategy's corresponding rewards depot for subsequent distribution.
  *
  *          The reward depot serves as a pool of rewards.
@@ -20,9 +20,6 @@ interface IFlywheelAcummulatedRewards {
     /*//////////////////////////////////////////////////////////////
                         REWARDS CONTRACT STATE
     //////////////////////////////////////////////////////////////*/
-
-    /// @notice the length of a rewards cycle
-    function rewardsCycleLength() external view returns (uint256);
 
     /// @notice end of current active rewards cycle's UNIX timestamp.
     function endCycles(ERC20 strategy) external view returns (uint256);
@@ -43,5 +40,5 @@ interface IFlywheelAcummulatedRewards {
     //////////////////////////////////////////////////////////////*/
 
     /// @notice emitted every time a new rewards cycle begins
-    event NewRewardsCycle(uint32 indexed start, uint256 indexed end, uint256 reward);
+    event NewRewardsCycle(uint256 indexed reward);
 }

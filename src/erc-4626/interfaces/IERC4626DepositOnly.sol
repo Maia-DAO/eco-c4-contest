@@ -61,7 +61,7 @@ interface IERC4626DepositOnly {
                                  EVENTS
     //////////////////////////////////////////////////////////////*/
 
-    event Deposit(address indexed caller, address indexed owner, uint256 assets, uint256 shares);
+    event Deposit(address indexed caller, address indexed owner, uint256 indexed assets, uint256 shares);
 
     event Withdraw(
         address indexed caller, address indexed receiver, address indexed owner, uint256 assets, uint256 shares

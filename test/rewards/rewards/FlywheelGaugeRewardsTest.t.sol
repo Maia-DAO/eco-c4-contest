@@ -27,16 +27,16 @@ contract FlywheelGaugeRewardsTest is DSTestPlus {
     address gauge4;
 
     function setUp() public {
-        hevm.warp(1000); // skip to cycle 1
+        hevm.warp(1 weeks); // skip to cycle 1
 
         rewardToken = new MockERC20("test token", "TKN", 18);
 
         rewardsStream = new MockRewardsStream(rewardToken, 100e18);
         rewardToken.mint(address(rewardsStream), 100e25);
 
-        flywheelBooster = new FlywheelBoosterGaugeWeight(1 weeks);
+        flywheelBooster = new FlywheelBoosterGaugeWeight();
 
-        gaugeToken = new MockERC20Gauges(address(this), address(flywheelBooster), 1000, 100);
+        gaugeToken = new MockERC20Gauges(address(this), address(flywheelBooster));
         gaugeToken.setMaxGauges(10);
         gaugeToken.mint(address(this), 100e18);
         gaugeToken.setMaxDelegates(1);
@@ -73,7 +73,7 @@ contract FlywheelGaugeRewardsTest is DSTestPlus {
     }
 
     function testQueueWithoutGaugesNoGauges() public {
-        hevm.warp(block.timestamp + 1000);
+        hevm.warp(block.timestamp + 1 weeks);
         hevm.expectRevert(abi.encodeWithSignature("EmptyGaugesError()"));
         rewards.queueRewardsForCycle();
     }
@@ -84,58 +84,58 @@ contract FlywheelGaugeRewardsTest is DSTestPlus {
         gaugeToken.incrementGauge(gauge1, 1e18);
         gaugeToken.incrementGauge(gauge2, 3e18);
 
-        hevm.warp(block.timestamp + 1000);
+        hevm.warp(block.timestamp + 1 weeks);
 
         rewards.queueRewardsForCycle();
 
         (uint112 prior1, uint112 stored1, uint32 cycle1) = rewards.gaugeQueuedRewards(ERC20(gauge1));
         require(prior1 == 0);
         require(stored1 == 25e18);
-        require(cycle1 == 2000);
+        require(cycle1 == 2 weeks);
 
         (uint112 prior2, uint112 stored2, uint32 cycle2) = rewards.gaugeQueuedRewards(ERC20(gauge2));
         require(prior2 == 0);
         require(stored2 == 75e18);
-        require(cycle2 == 2000);
+        require(cycle2 == 2 weeks);
 
-        require(rewards.gaugeCycle() == 2000);
+        require(rewards.gaugeCycle() == 2 weeks);
     }
 
     function testQueueSkipCycle() public {
         gaugeToken.addGauge(gauge1);
         gaugeToken.incrementGauge(gauge1, 1e18);
 
-        hevm.warp(block.timestamp + 2000);
+        hevm.warp(block.timestamp + 2 weeks);
 
         rewards.queueRewardsForCycle();
 
         (uint112 prior, uint112 stored, uint32 cycle) = rewards.gaugeQueuedRewards(ERC20(gauge1));
         require(prior == 0);
         require(stored == 100e18);
-        require(cycle == 3000);
+        require(cycle == 3 weeks);
 
-        require(rewards.gaugeCycle() == 3000);
+        require(rewards.gaugeCycle() == 3 weeks);
     }
 
     function testQueueTwoCycles() public {
         testQueue();
         gaugeToken.decrementGauge(gauge2, 2e18);
 
-        hevm.warp(block.timestamp + 1000);
+        hevm.warp(block.timestamp + 1 weeks);
 
         rewards.queueRewardsForCycle();
 
         (uint112 prior1, uint112 stored1, uint32 cycle1) = rewards.gaugeQueuedRewards(ERC20(gauge1));
         require(prior1 == 25e18);
         require(stored1 == 50e18);
-        require(cycle1 == 3000);
+        require(cycle1 == 3 weeks);
 
         (uint112 prior2, uint112 stored2, uint32 cycle2) = rewards.gaugeQueuedRewards(ERC20(gauge2));
         require(prior2 == 75e18);
         require(stored2 == 50e18);
-        require(cycle2 == 3000);
+        require(cycle2 == 3 weeks);
 
-        require(rewards.gaugeCycle() == 3000);
+        require(rewards.gaugeCycle() == 3 weeks);
     }
 
     function testGetRewards() public {
@@ -151,7 +151,7 @@ contract FlywheelGaugeRewardsTest is DSTestPlus {
         testQueueTwoCycles();
 
         // accrue 100%
-        hevm.warp(block.timestamp + 200);
+        hevm.warp(block.timestamp + 1 days);
         hevm.prank(gauge1);
         require(rewards.getAccruedRewards() == 75e18);
         (uint112 prior, uint112 stored,) = rewards.gaugeQueuedRewards(ERC20(gauge1));
@@ -171,58 +171,58 @@ contract FlywheelGaugeRewardsTest is DSTestPlus {
         gaugeToken.incrementGauge(gauge1, 1e18);
         gaugeToken.incrementGauge(gauge2, 3e18);
 
-        hevm.warp(block.timestamp + 1000);
+        hevm.warp(block.timestamp + 1 weeks);
 
         rewards.queueRewardsForCyclePaginated(5);
 
         (uint112 prior1, uint112 stored1, uint32 cycle1) = rewards.gaugeQueuedRewards(ERC20(gauge1));
         require(prior1 == 0);
         require(stored1 == 25e18);
-        require(cycle1 == 2000);
+        require(cycle1 == 2 weeks);
 
         (uint112 prior2, uint112 stored2, uint32 cycle2) = rewards.gaugeQueuedRewards(ERC20(gauge2));
         require(prior2 == 0);
         require(stored2 == 75e18);
-        require(cycle2 == 2000);
+        require(cycle2 == 2 weeks);
 
-        require(rewards.gaugeCycle() == 2000);
+        require(rewards.gaugeCycle() == 2 weeks);
     }
 
     function testQueueSkipCycleFullPagination() public {
         gaugeToken.addGauge(gauge1);
         gaugeToken.incrementGauge(gauge1, 1e18);
 
-        hevm.warp(block.timestamp + 2000);
+        hevm.warp(block.timestamp + 2 weeks);
 
         rewards.queueRewardsForCyclePaginated(5);
 
         (uint112 prior, uint112 stored, uint32 cycle) = rewards.gaugeQueuedRewards(ERC20(gauge1));
         require(prior == 0);
         require(stored == 100e18);
-        require(cycle == 3000);
+        require(cycle == 3 weeks);
 
-        require(rewards.gaugeCycle() == 3000);
+        require(rewards.gaugeCycle() == 3 weeks);
     }
 
     function testQueueTwoCyclesFullPagination() public {
         testQueueFullPagination();
         gaugeToken.decrementGauge(gauge2, 2e18);
 
-        hevm.warp(block.timestamp + 1000);
+        hevm.warp(block.timestamp + 1 weeks);
 
         rewards.queueRewardsForCyclePaginated(5);
 
         (uint112 prior1, uint112 stored1, uint32 cycle1) = rewards.gaugeQueuedRewards(ERC20(gauge1));
         require(prior1 == 25e18);
         require(stored1 == 50e18);
-        require(cycle1 == 3000);
+        require(cycle1 == 3 weeks);
 
         (uint112 prior2, uint112 stored2, uint32 cycle2) = rewards.gaugeQueuedRewards(ERC20(gauge2));
         require(prior2 == 75e18);
         require(stored2 == 50e18);
-        require(cycle2 == 3000);
+        require(cycle2 == 3 weeks);
 
-        require(rewards.gaugeCycle() == 3000);
+        require(rewards.gaugeCycle() == 3 weeks);
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -242,24 +242,24 @@ contract FlywheelGaugeRewardsTest is DSTestPlus {
         gaugeToken.addGauge(gauge4);
         gaugeToken.incrementGauge(gauge4, 4e18);
 
-        hevm.warp(block.timestamp + 1000);
+        hevm.warp(block.timestamp + 1 weeks);
 
-        require(rewards.gaugeCycle() == 1000);
+        require(rewards.gaugeCycle() == 1 weeks);
 
         rewards.queueRewardsForCyclePaginated(2);
 
         // pagination not complete, cycle not complete
-        require(rewards.gaugeCycle() == 1000);
+        require(rewards.gaugeCycle() == 1 weeks);
 
         (uint112 prior1, uint112 stored1, uint32 cycle1) = rewards.gaugeQueuedRewards(ERC20(gauge1));
         require(prior1 == 0);
         require(stored1 == 10e18);
-        require(cycle1 == 2000);
+        require(cycle1 == 2 weeks);
 
         (uint112 prior2, uint112 stored2, uint32 cycle2) = rewards.gaugeQueuedRewards(ERC20(gauge2));
         require(prior2 == 0);
         require(stored2 == 20e18);
-        require(cycle2 == 2000);
+        require(cycle2 == 2 weeks);
 
         (uint112 prior3, uint112 stored3, uint32 cycle3) = rewards.gaugeQueuedRewards(ERC20(gauge3));
         require(prior3 == 0);
@@ -273,27 +273,27 @@ contract FlywheelGaugeRewardsTest is DSTestPlus {
 
         rewards.queueRewardsForCyclePaginated(2);
 
-        require(rewards.gaugeCycle() == 2000);
+        require(rewards.gaugeCycle() == 2 weeks);
 
         (prior1, stored1, cycle1) = rewards.gaugeQueuedRewards(ERC20(gauge1));
         require(prior1 == 0);
         require(stored1 == 10e18);
-        require(cycle1 == 2000);
+        require(cycle1 == 2 weeks);
 
         (prior2, stored2, cycle2) = rewards.gaugeQueuedRewards(ERC20(gauge2));
         require(prior2 == 0);
         require(stored2 == 20e18);
-        require(cycle2 == 2000);
+        require(cycle2 == 2 weeks);
 
         (prior3, stored3, cycle3) = rewards.gaugeQueuedRewards(ERC20(gauge3));
         require(prior3 == 0);
         require(stored3 == 30e18);
-        require(cycle3 == 2000);
+        require(cycle3 == 2 weeks);
 
         (prior4, stored4, cycle4) = rewards.gaugeQueuedRewards(ERC20(gauge4));
         require(prior4 == 0);
         require(stored4 == 40e18);
-        require(cycle4 == 2000);
+        require(cycle4 == 2 weeks);
     }
 
     function testIncompletePagination() public {
@@ -305,16 +305,16 @@ contract FlywheelGaugeRewardsTest is DSTestPlus {
         gaugeToken.addGauge(gauge4);
         gaugeToken.incrementGauge(gauge4, 4e18);
 
-        hevm.warp(block.timestamp + 1000);
+        hevm.warp(block.timestamp + 1 weeks);
 
-        require(rewards.gaugeCycle() == 2000);
+        require(rewards.gaugeCycle() == 2 weeks);
 
         rewards.queueRewardsForCyclePaginated(2);
 
         // pagination not complete, cycle not complete
-        require(rewards.gaugeCycle() == 2000);
+        require(rewards.gaugeCycle() == 2 weeks);
 
-        hevm.warp(block.timestamp + 500);
+        hevm.warp(block.timestamp + 1 weeks / 2);
         hevm.prank(gauge1);
         require(rewards.getAccruedRewards() == 25e18); // only previous round
         hevm.prank(gauge2);
@@ -324,15 +324,15 @@ contract FlywheelGaugeRewardsTest is DSTestPlus {
         hevm.prank(gauge4);
         require(rewards.getAccruedRewards() == 0); // nothing because no previous round
 
-        hevm.warp(block.timestamp + 500);
+        hevm.warp(block.timestamp + 1 weeks / 2);
 
         // should reset the pagination process without queueing the last one
         rewards.queueRewardsForCyclePaginated(2);
 
         // pagination still not complete, cycle not complete
-        require(rewards.gaugeCycle() == 2000);
+        require(rewards.gaugeCycle() == 2 weeks);
 
-        hevm.warp(block.timestamp + 500);
+        hevm.warp(block.timestamp + 1 weeks / 2);
         hevm.prank(gauge1);
         require(rewards.getAccruedRewards() == 0); // only previous round
         hevm.prank(gauge2);
@@ -346,9 +346,9 @@ contract FlywheelGaugeRewardsTest is DSTestPlus {
         rewards.queueRewardsForCyclePaginated(2);
 
         // pagination complete, cycle complete
-        require(rewards.gaugeCycle() == 4000);
+        require(rewards.gaugeCycle() == 4 weeks);
 
-        hevm.warp(block.timestamp + 500);
+        hevm.warp(block.timestamp + 1 weeks / 2);
         hevm.prank(gauge1);
         require(rewards.getAccruedRewards() == 20e18); // only previous round
         hevm.prank(gauge2);

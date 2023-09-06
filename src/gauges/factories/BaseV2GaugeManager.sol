@@ -168,8 +168,10 @@ contract BaseV2GaugeManager is Ownable, IBaseV2GaugeManager {
     }
 
     modifier rewardsAreQueuedForThisCycle() {
-        uint256 gaugeCycleLength = rewards.gaugeCycleLength();
-        uint256 currentCycle = (block.timestamp / gaugeCycleLength) * gaugeCycleLength;
+        uint256 currentCycle;
+        unchecked {
+            currentCycle = (block.timestamp / 1 weeks) * 1 weeks;
+        }
         if (currentCycle > rewards.gaugeCycle()) revert RewardsNotQueued();
         _;
     }

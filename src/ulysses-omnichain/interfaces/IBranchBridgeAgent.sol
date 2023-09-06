@@ -377,9 +377,9 @@ interface IBranchBridgeAgent is IApp {
                         EVENTS
     //////////////////////////////////////////////////////////////*/
 
-    event LogCallin(bytes1 selector, bytes data, uint256 fromChainId);
-    event LogCallout(bytes1 selector, bytes data, uint256, uint256 toChainId);
-    event LogCalloutFail(bytes1 selector, bytes data, uint256 toChainId);
+    event LogCallin(bytes1 indexed selector, bytes indexed data, uint256 indexed fromChainId);
+    event LogCallout(bytes1 indexed selector, bytes indexed data, uint256, uint256 indexed toChainId);
+    event LogCalloutFail(bytes1 indexed selector, bytes indexed data, uint256 indexed toChainId);
 
     /*///////////////////////////////////////////////////////////////
                                 ERRORS

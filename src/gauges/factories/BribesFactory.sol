@@ -22,9 +22,6 @@ contract BribesFactory is Ownable, IBribesFactory {
                         BRIBES FACTORY STATE
     //////////////////////////////////////////////////////////////*/
 
-    /// @inheritdoc IBribesFactory
-    uint256 public immutable override rewardsCycleLength;
-
     FlywheelBoosterGaugeWeight private immutable flywheelGaugeWeightBooster;
 
     /// @inheritdoc IBribesFactory
@@ -38,12 +35,10 @@ contract BribesFactory is Ownable, IBribesFactory {
 
     /**
      * @notice Creates a new bribes factory
-     * @param _rewardsCycleLength Rewards Cycle Length
      * @param _owner Owner of this contract, transfer to bHermesGauges contract after deployment
      */
-    constructor(uint256 _rewardsCycleLength, address _owner) {
+    constructor(address _owner) {
         _initializeOwner(_owner);
-        rewardsCycleLength = _rewardsCycleLength;
         flywheelGaugeWeightBooster = FlywheelBoosterGaugeWeight(msg.sender);
     }
 
@@ -95,7 +90,7 @@ contract BribesFactory is Ownable, IBribesFactory {
         bribeFlywheels.push(flywheel);
         bribeFlywheelIds[flywheel] = bribeFlywheels.length;
 
-        flywheel.setFlywheelRewards(address(new FlywheelBribeRewards{salt: salt}(flywheel, rewardsCycleLength)));
+        flywheel.setFlywheelRewards(address(new FlywheelBribeRewards{salt: salt}(flywheel)));
 
         emit BribeFlywheelCreated(bribeToken, flywheel);
     }

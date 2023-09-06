@@ -29,13 +29,7 @@ contract BurntHermesTest is DSTestPlus {
 
         strategy = new MockERC20("test strategy", "TKN", 18);
 
-        BurntHermes = new bHERMES(
-            hermes,
-            address(this),
-            address(this),
-            1000, // cycle of 1000
-            100 // freeze window of 100
-        );
+        BurntHermes = new bHERMES(hermes, address(this), address(this));
 
         rewards = new FlywheelGaugeRewards(
             address(hermes),

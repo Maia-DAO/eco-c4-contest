@@ -4,9 +4,5 @@ pragma solidity ^0.8.0;
 import "@gauges/factories/BribesFactory.sol";
 
 contract MockBribesFactory is BribesFactory {
-
-    constructor(
-        uint256 _rewardsCycleLength,
-        address _owner
-    ) BribesFactory(_rewardsCycleLength, _owner) {}
+    constructor(address _owner) BribesFactory(_owner) {}
 }

@@ -42,7 +42,7 @@ contract ERC4626PartnerManagerTest is DSTestPlus {
 
         partnerAsset = new MockERC20("test partnerAsset", "tpartnerAsset", 18);
 
-        _bHermes = new BurntHermes(hermes, address(this), address(this), 1 weeks, 1 days / 2);
+        _bHermes = new BurntHermes(hermes, address(this), address(this));
 
         bHermesRate = 1 ether;
 

@@ -31,7 +31,7 @@ contract BaseV2GaugeTest is DSTestPlus {
 
     uint256 constant WEEK = 604800;
 
-    event Distribute(uint256 indexed amount, uint256 indexed epoch);
+    event Distribute(uint256 indexed amount);
 
     event AddedBribeFlywheel(FlywheelCore indexed bribeFlywheel);
 
@@ -46,9 +46,9 @@ contract BaseV2GaugeTest is DSTestPlus {
         rewardsStream = new MockRewardsStream(rewardToken, 100e18);
         rewardToken.mint(address(rewardsStream), 100e25);
 
-        booster = new FlywheelBoosterGaugeWeight(1 weeks);
+        booster = new FlywheelBoosterGaugeWeight();
 
-        gaugeToken = new MockERC20Gauges(address(this), address(booster), 604800, 604800 / 7);
+        gaugeToken = new MockERC20Gauges(address(this), address(booster));
         gaugeToken.setMaxGauges(10);
 
         booster.transferOwnership(address(gaugeToken));
@@ -61,7 +61,9 @@ contract BaseV2GaugeTest is DSTestPlus {
         );
 
         hevm.mockCall(address(this), abi.encodeWithSignature("bHermesBoostToken()"), abi.encode(address(0)));
-        hevm.mockCall(address(this), abi.encodeWithSignature("bribesFactory()"), abi.encode(address(booster.bribesFactory())));
+        hevm.mockCall(
+            address(this), abi.encodeWithSignature("bribesFactory()"), abi.encode(address(booster.bribesFactory()))
+        );
         hevm.mockCall(address(0), abi.encodeWithSignature("gaugeBoost()"), abi.encode(gaugeToken));
         hevm.mockCall(address(rewardsStream), abi.encodeWithSignature("updatePeriod()"), abi.encode(0));
 
@@ -91,7 +93,7 @@ contract BaseV2GaugeTest is DSTestPlus {
         hevm.warp(block.timestamp + WEEK); // skip to cycle 1
 
         hevm.expectEmit(true, true, true, true);
-        emit Distribute(0, WEEK);
+        emit Distribute(0);
 
         gauge.newEpoch();
         uint256 epoch = gauge.epoch();
@@ -103,7 +105,7 @@ contract BaseV2GaugeTest is DSTestPlus {
         hevm.warp(block.timestamp + WEEK); // skip to cycle 1
 
         hevm.expectEmit(true, true, true, true);
-        emit Distribute(0, WEEK);
+        emit Distribute(0);
 
         gauge.newEpoch();
     }
@@ -114,7 +116,7 @@ contract BaseV2GaugeTest is DSTestPlus {
         hevm.mockCall(address(rewards), abi.encodeWithSignature("getAccruedRewards()"), abi.encode(100e18));
 
         hevm.expectEmit(true, true, true, true);
-        emit Distribute(100e18, WEEK);
+        emit Distribute(100e18);
 
         gauge.newEpoch();
     }
@@ -125,7 +127,7 @@ contract BaseV2GaugeTest is DSTestPlus {
         hevm.mockCall(address(rewards), abi.encodeWithSignature("getAccruedRewards()"), abi.encode(amount));
 
         hevm.expectEmit(true, true, true, true);
-        emit Distribute(amount, WEEK);
+        emit Distribute(amount);
 
         gauge.newEpoch();
     }
@@ -136,14 +138,14 @@ contract BaseV2GaugeTest is DSTestPlus {
         hevm.mockCall(address(rewards), abi.encodeWithSignature("getAccruedRewards()"), abi.encode(amount));
 
         hevm.expectEmit(true, true, true, true);
-        emit Distribute(amount, WEEK);
+        emit Distribute(amount);
 
         gauge.newEpoch();
 
         hevm.warp(2 * WEEK); // skip to cycle 2
 
         hevm.expectEmit(true, true, true, true);
-        emit Distribute(amount, 2 * WEEK);
+        emit Distribute(amount);
 
         gauge.newEpoch();
     }
@@ -154,7 +156,7 @@ contract BaseV2GaugeTest is DSTestPlus {
         hevm.mockCall(address(rewards), abi.encodeWithSignature("getAccruedRewards()"), abi.encode(amount));
 
         hevm.expectEmit(true, true, true, true);
-        emit Distribute(amount, WEEK);
+        emit Distribute(amount);
 
         gauge.newEpoch();
 
@@ -163,7 +165,7 @@ contract BaseV2GaugeTest is DSTestPlus {
         hevm.mockCall(address(rewards), abi.encodeWithSignature("getAccruedRewards()"), abi.encode(0));
 
         hevm.expectEmit(true, true, true, true);
-        emit Distribute(0, 2 * WEEK);
+        emit Distribute(0);
 
         gauge.newEpoch();
     }
@@ -176,7 +178,7 @@ contract BaseV2GaugeTest is DSTestPlus {
         token.mint(address(depot), 100 ether);
 
         booster.optIn(ERC20(address(gauge)), flywheel);
-        
+
         require(token.balanceOf(address(bribeRewards)) == 0);
 
         hevm.warp(block.timestamp + WEEK); // skip to first cycle

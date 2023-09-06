@@ -468,7 +468,7 @@ contract UniswapV3Staker is IUniswapV3Staker, Multicallable {
         stake.liquidityNoOverflow = 0;
         if (liquidity >= type(uint96).max) stake.liquidityIfOverflow = 0;
         delete stakedIncentiveKey[tokenId];
-        emit TokenUnstaked(tokenId, incentiveId);
+        emit TokenUnstaked(tokenId, reward);
     }
 
     /*//////////////////////////////////////////////////////////////

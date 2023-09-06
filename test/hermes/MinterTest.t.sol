@@ -29,7 +29,7 @@ contract BaseV2MinterTest is DSTestPlus {
     function setUp() public {
         rewardToken = new MockERC20("test reward token", "RTKN", 18);
 
-        bHermesToken = new BurntHermes(rewardToken, address(this), address(this), 1 weeks, 12 hours);
+        bHermesToken = new BurntHermes(rewardToken, address(this), address(this));
 
         baseV2Minter = new BaseV2Minter(address(bHermesToken), address(this), address(this));
 
@@ -232,5 +232,11 @@ contract BaseV2MinterTest is DSTestPlus {
         baseV2Minter.getRewards();
     }
 
-    event Mint(address indexed sender, uint256 weekly, uint256 circulatingSupply, uint256 growth, uint256 dao_share);
+    event Mint(
+        address indexed sender,
+        uint256 indexed weekly,
+        uint256 indexed circulatingSupply,
+        uint256 growth,
+        uint256 dao_share
+    );
 }

@@ -5,10 +5,7 @@ import {ERC20Gauges, IERC20Gauges} from "@ERC20/ERC20Gauges.sol";
 import {ERC20} from "solmate/tokens/ERC20.sol";
 
 contract MockERC20Gauges is ERC20Gauges {
-    constructor(address _owner, address booster, uint32 _cycleLength, uint32 _freezeWindow)
-        ERC20("Token", "TKN", 18)
-        ERC20Gauges(booster, _cycleLength, _freezeWindow)
-    {
+    constructor(address _owner, address booster) ERC20("Token", "TKN", 18) ERC20Gauges(booster) {
         _initializeOwner(_owner);
     }
 

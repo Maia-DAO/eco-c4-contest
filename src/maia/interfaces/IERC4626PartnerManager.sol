@@ -75,14 +75,14 @@ interface IERC4626PartnerManager {
      *   @param rewardsDelta how many new rewards accrued to the user
      *   @param rewardsIndex market index for rewards per token accrued
      */
-    event AccrueRewards(address indexed user, uint256 rewardsDelta, uint256 rewardsIndex);
+    event AccrueRewards(address indexed user, uint256 indexed rewardsDelta, uint256 indexed rewardsIndex);
 
     /**
      *   @notice Emitted when a user claims accrued rewards.
      *   @param user the user of the rewards
      *   @param amount the amount of rewards claimed
      */
-    event ClaimRewards(address indexed user, uint256 amount);
+    event ClaimRewards(address indexed user, uint256 indexed amount);
 
     /**
      *   @notice Emitted when a partner vault is migrated.

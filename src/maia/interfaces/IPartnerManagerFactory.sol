@@ -60,10 +60,10 @@ interface IPartnerManagerFactory {
     //////////////////////////////////////////////////////////////*/
 
     /// @notice Emitted when a new partner manager is added.
-    event AddedPartner(PartnerManager partnerManager, uint256 id);
+    event AddedPartner(PartnerManager indexed partnerManager, uint256 indexed id);
 
     /// @notice Emitted when a new vault is added.
-    event AddedVault(IBaseVault vault, uint256 id);
+    event AddedVault(IBaseVault indexed vault, uint256 indexed id);
 
     /// @notice Emitted when a partner manager is removed.
     event RemovedPartner(PartnerManager indexed partnerManager);

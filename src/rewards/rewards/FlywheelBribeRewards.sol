@@ -24,11 +24,8 @@ contract FlywheelBribeRewards is Ownable, FlywheelAcummulatedRewards, IFlywheelB
     /**
      * @notice Flywheel Accumulated Bribes Reward Stream constructor.
      *  @param _flywheel flywheel core contract
-     *  @param _rewardsCycleLength the length of a rewards cycle in seconds
      */
-    constructor(FlywheelCore _flywheel, uint256 _rewardsCycleLength)
-        FlywheelAcummulatedRewards(_flywheel, _rewardsCycleLength)
-    {
+    constructor(FlywheelCore _flywheel) FlywheelAcummulatedRewards(_flywheel) {
         _initializeOwner(msg.sender);
     }
 

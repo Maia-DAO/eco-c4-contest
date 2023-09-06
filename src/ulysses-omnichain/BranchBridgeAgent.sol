@@ -89,7 +89,7 @@ contract BranchBridgeAgent is IBranchBridgeAgent {
                         BRIDGE AGENT STATE
     //////////////////////////////////////////////////////////////*/
 
-    /// @notice Chain Id for Root Chain where liqudity is virtualized(e.g. 4).
+    /// @notice Chain Id for Root Chain where liquidity is virtualized(e.g. 4).
     uint256 public immutable rootChainId;
 
     /// @notice Chain Id for Local Chain.
@@ -1315,7 +1315,7 @@ contract BranchBridgeAgent is IBranchBridgeAgent {
         uint32 _depositNonce;
 
         /// DEPOSIT FLAG: 0, 1, 2
-        if ((flag == 0x00) || (flag == 0x01) || (flag == 0x02)) {
+        if (flag < 0x03) {
             // Check nonce calldata slice.
             _depositNonce = uint32(bytes4(data[PARAMS_START:PARAMS_TKN_START]));
 
@@ -1344,9 +1344,9 @@ contract BranchBridgeAgent is IBranchBridgeAgent {
             return (true, "");
 
             /// DEPOSIT FLAG: 4, 5
-        } else if ((flag == 0x04) || (flag == 0x05)) {
+        } else if (flag < 0x06) {
             // Save nonce
-            _depositNonce = uint32(bytes4(data[PARAMS_START_SIGNED:PARAMS_START_SIGNED]));
+            _depositNonce = uint32(bytes4(data[PARAMS_START_SIGNED:25]));
 
             // Make tokens available to depositor.
             _clearDeposit(_depositNonce);

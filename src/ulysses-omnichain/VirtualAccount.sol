@@ -21,7 +21,7 @@ contract VirtualAccount is IVirtualAccount, ERC1155Receiver {
     address public immutable override userAddress;
 
     /// @inheritdoc IVirtualAccount
-    address public override localPortAddress;
+    address public immutable override localPortAddress;
 
     constructor(address _userAddress, address _localPortAddress) {
         userAddress = _userAddress;

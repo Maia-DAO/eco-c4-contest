@@ -113,6 +113,7 @@ contract BranchBridgeAgent is IBranchBridgeAgent {
     /// @notice Address for Local Port Address where funds deposited from this chain are kept, managed and supplied to different Port Strategies.
     address public immutable localPortAddress;
 
+    /// @notice Address for Bridge Agent Executor used for executing cross-chain requests.
     address public immutable bridgeAgentExecutorAddress;
 
     /*///////////////////////////////////////////////////////////////

@@ -16,10 +16,10 @@ contract ArbitrumBranchPort is BranchPort, IArbitrumBranchPort {
     using SafeTransferLib for address;
 
     /// @notice Local Network Identifier.
-    uint24 public localChainId;
+    uint24 public immutable localChainId;
 
     /// @notice Address for Local Port Address where funds deposited from this chain are kept, managed and supplied to different Port Strategies.
-    address public rootPortAddress;
+    address public immutable rootPortAddress;
 
     /**
      * @notice Constructor for Arbitrum Branch Port.

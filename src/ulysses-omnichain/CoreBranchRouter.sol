@@ -18,10 +18,10 @@ import {ERC20hTokenBranch as ERC20hToken} from "./token/ERC20hTokenBranch.sol";
 /// @title Core Branch Router Contract
 contract CoreBranchRouter is ICoreBranchRouter, BaseBranchRouter {
     /// @notice hToken Factory Address.
-    address public hTokenFactoryAddress;
+    address public immutable hTokenFactoryAddress;
 
     /// @notice Local Port Address.
-    address public localPortAddress;
+    address public immutable localPortAddress;
 
     constructor(address _hTokenFactoryAddress, address _localPortAddress) BaseBranchRouter() {
         localPortAddress = _localPortAddress;

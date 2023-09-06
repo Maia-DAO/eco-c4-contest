@@ -40,9 +40,8 @@ contract BranchPort is Ownable, IBranchPort {
     address[] public bridgeAgentFactories;
 
     /*///////////////////////////////////////////////////////////////
-                        PORT STRATEGY STATE
+                        STRATEGY TOKENS STATE
     //////////////////////////////////////////////////////////////*/
-    /// Strategy Tokens
 
     /// @notice Mapping returns true if Strategy Token Address is active for usage in Port Strategies.
     mapping(address token => bool allowsStrategies) public isStrategyToken;
@@ -56,7 +55,9 @@ contract BranchPort is Ownable, IBranchPort {
     /// @notice Mapping returns the minimum ratio of a given Strategy Token the Port should hold.
     mapping(address token => uint256 minimumReserveRatio) public getMinimumTokenReserveRatio;
 
-    /// Port Strategies
+    /*///////////////////////////////////////////////////////////////
+                        PORT STRATEGIES STATE
+    //////////////////////////////////////////////////////////////*/
 
     /// @notice Mapping returns true if Port Strategy is allowed to manage a given Strategy Token.
     mapping(address strategy => mapping(address token => bool isActiveStrategy)) public isPortStrategy;
@@ -232,8 +233,86 @@ contract BranchPort is Ownable, IBranchPort {
         );
     }
 
+    /// @inheritdoc IBranchPort
+    function bridgeIn(address _recipient, address _localAddress, uint256 _amount)
+        external
+        override
+        requiresBridgeAgent
+    {
+        _bridgeIn(_recipient, _localAddress, _amount);
+    }
+
+    /// @inheritdoc IBranchPort
+    function bridgeInMultiple(
+        address _recipient,
+        address[] memory _localAddresses,
+        address[] memory _underlyingAddresses,
+        uint256[] memory _amounts,
+        uint256[] memory _deposits
+    ) external override requiresBridgeAgent {
+        // Cache Length
+        uint256 length = _localAddresses.length;
+
+        // Loop through token inputs
+        for (uint256 i = 0; i < length;) {
+            // Check if hTokens are being bridged in
+            if (_amounts[i] - _deposits[i] > 0) {
+                unchecked {
+                    _bridgeIn(_recipient, _localAddresses[i], _amounts[i] - _deposits[i]);
+                }
+            }
+
+            // Check if underlying tokens are being cleared
+            if (_deposits[i] > 0) {
+                withdraw(_recipient, _underlyingAddresses[i], _deposits[i]);
+            }
+
+            unchecked {
+                ++i;
+            }
+        }
+    }
+
     function _bridgeIn(address _recipient, address _localAddress, uint256 _amount) internal virtual {
         ERC20hTokenBranch(_localAddress).mint(_recipient, _amount);
+    }
+
+    /// @inheritdoc IBranchPort
+    function bridgeOut(
+        address _depositor,
+        address _localAddress,
+        address _underlyingAddress,
+        uint256 _amount,
+        uint256 _deposit
+    ) external override lock requiresBridgeAgent {
+        _bridgeOut(_depositor, _localAddress, _underlyingAddress, _amount, _deposit);
+    }
+
+    /// @inheritdoc IBranchPort
+    function bridgeOutMultiple(
+        address _depositor,
+        address[] memory _localAddresses,
+        address[] memory _underlyingAddresses,
+        uint256[] memory _amounts,
+        uint256[] memory _deposits
+    ) external override lock requiresBridgeAgent {
+        // Cache Length
+        uint256 length = _localAddresses.length;
+
+        // Sanity Check input arrays
+        if (length > 255) revert InvalidInputArrays();
+        if (length != _underlyingAddresses.length) revert InvalidInputArrays();
+        if (_underlyingAddresses.length != _amounts.length) revert InvalidInputArrays();
+        if (_amounts.length != _deposits.length) revert InvalidInputArrays();
+
+        // Loop through token inputs and bridge out
+        for (uint256 i = 0; i < length;) {
+            _bridgeOut(_depositor, _localAddresses[i], _underlyingAddresses[i], _amounts[i], _deposits[i]);
+
+            unchecked {
+                i++;
+            }
+        }
     }
 
     function _bridgeOut(
@@ -257,78 +336,6 @@ contract BranchPort is Ownable, IBranchPort {
             _underlyingAddress.safeTransferFrom(
                 _depositor, address(this), _denormalizeDecimals(_deposit, ERC20(_underlyingAddress).decimals())
             );
-        }
-    }
-
-    /// @inheritdoc IBranchPort
-    function bridgeIn(address _recipient, address _localAddress, uint256 _amount)
-        external
-        override
-        requiresBridgeAgent
-    {
-        _bridgeIn(_recipient, _localAddress, _amount);
-    }
-
-    /// @inheritdoc IBranchPort
-    function bridgeInMultiple(
-        address _recipient,
-        address[] memory _localAddresses,
-        address[] memory _underlyingAddresses,
-        uint256[] memory _amounts,
-        uint256[] memory _deposits
-    ) external override requiresBridgeAgent {
-        // Loop through token inputs
-        for (uint256 i = 0; i < _localAddresses.length;) {
-            // Check if hTokens are being bridged in
-            if (_amounts[i] - _deposits[i] > 0) {
-                unchecked {
-                    _bridgeIn(_recipient, _localAddresses[i], _amounts[i] - _deposits[i]);
-                }
-            }
-
-            // Check if underlying tokens are being cleared
-            if (_deposits[i] > 0) {
-                withdraw(_recipient, _underlyingAddresses[i], _deposits[i]);
-            }
-
-            unchecked {
-                ++i;
-            }
-        }
-    }
-
-    /// @inheritdoc IBranchPort
-    function bridgeOut(
-        address _depositor,
-        address _localAddress,
-        address _underlyingAddress,
-        uint256 _amount,
-        uint256 _deposit
-    ) external override lock requiresBridgeAgent {
-        _bridgeOut(_depositor, _localAddress, _underlyingAddress, _amount, _deposit);
-    }
-
-    /// @inheritdoc IBranchPort
-    function bridgeOutMultiple(
-        address _depositor,
-        address[] memory _localAddresses,
-        address[] memory _underlyingAddresses,
-        uint256[] memory _amounts,
-        uint256[] memory _deposits
-    ) external override lock requiresBridgeAgent {
-        // Sanity Check input arrays
-        if (_localAddresses.length > 255) revert InvalidInputArrays();
-        if (_localAddresses.length != _underlyingAddresses.length) revert InvalidInputArrays();
-        if (_underlyingAddresses.length != _amounts.length) revert InvalidInputArrays();
-        if (_amounts.length != _deposits.length) revert InvalidInputArrays();
-
-        // Loop through token inputs and bridge out
-        for (uint256 i = 0; i < _localAddresses.length;) {
-            _bridgeOut(_depositor, _localAddresses[i], _underlyingAddresses[i], _amounts[i], _deposits[i]);
-
-            unchecked {
-                i++;
-            }
         }
     }
 

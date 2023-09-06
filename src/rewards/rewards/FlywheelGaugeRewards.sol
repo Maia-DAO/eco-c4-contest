@@ -178,7 +178,7 @@ contract FlywheelGaugeRewards is IFlywheelGaugeRewards {
 
         if (size == 0) revert EmptyGaugesError();
 
-        for (uint256 i = 0; i < size; i++) {
+        for (uint256 i = 0; i < size;) {
             ERC20 gauge = ERC20(gauges[i]);
 
             QueuedRewards storage queuedRewards = gaugeQueuedRewards[gauge];
@@ -196,6 +196,10 @@ contract FlywheelGaugeRewards is IFlywheelGaugeRewards {
             queuedRewards.storedCycle = currentCycle;
 
             emit QueueRewards(address(gauge), nextRewards);
+
+            unchecked {
+                ++i;
+            }
         }
     }
 

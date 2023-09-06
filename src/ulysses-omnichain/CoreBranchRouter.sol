@@ -75,7 +75,9 @@ contract CoreBranchRouter is ICoreBranchRouter, BaseBranchRouter {
         bytes memory packedData = abi.encodePacked(bytes1(0x02), data);
 
         // Send Cross-Chain request (System Response/Request)
-        IBridgeAgent(localBridgeAgentAddress).performSystemCallOut{value: msg.value}(msg.sender, packedData, 0, 0);
+        IBridgeAgent(localBridgeAgentAddress).performSystemCallOut{value: msg.value}(
+            msg.sender, packedData, 0, 0
+        );
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -108,7 +110,9 @@ contract CoreBranchRouter is ICoreBranchRouter, BaseBranchRouter {
         bytes memory packedData = abi.encodePacked(bytes1(0x03), data);
 
         // Send Cross-Chain request
-        IBridgeAgent(localBridgeAgentAddress).performSystemCallOut(address(this), packedData, _rootExecutionGas, 0);
+        IBridgeAgent(localBridgeAgentAddress).performSystemCallOut(
+            address(this), packedData, _rootExecutionGas, 0
+        );
     }
 
     /**
@@ -154,7 +158,9 @@ contract CoreBranchRouter is ICoreBranchRouter, BaseBranchRouter {
         bytes memory packedData = abi.encodePacked(bytes1(0x04), data);
 
         // Send Cross-Chain request
-        IBridgeAgent(localBridgeAgentAddress).performSystemCallOut(address(this), packedData, _remoteExecutionGas, 0);
+        IBridgeAgent(localBridgeAgentAddress).performSystemCallOut(
+            address(this), packedData, _remoteExecutionGas, 0
+        );
     }
 
     /**

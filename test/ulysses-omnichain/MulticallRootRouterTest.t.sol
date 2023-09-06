@@ -624,7 +624,7 @@ contract MulticallRootRouterTest is DSTestPlus {
             avaxChainId
         );
 
-        require((multicallBridgeAgent).executionHistory(avaxChainId, currentNonce), "Nonce should be executed");
+        require((multicallBridgeAgent).executionState(avaxChainId, currentNonce) == 1, "Nonce should be executed");
     }
 
     function testMulticallSignedNoOutputDepositSingle() public {

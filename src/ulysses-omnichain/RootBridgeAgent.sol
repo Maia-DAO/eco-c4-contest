@@ -164,15 +164,15 @@ contract RootBridgeAgent is IRootBridgeAgent {
     /// @notice Deposit nonce used for identifying transaction.
     uint32 public settlementNonce;
 
-    /// @notice Mapping from Settlement nonce to Deposit Struct.
-    mapping(uint32 nonce => Settlement settlementStruct) public getSettlement;
+    /// @notice Mapping from Settlement nonce to Settlement Struct.
+    mapping(uint256 nonce => Settlement settlementInfo) public getSettlement;
 
     /*///////////////////////////////////////////////////////////////
                             EXECUTOR STATE
     //////////////////////////////////////////////////////////////*/
 
-    /// @notice If true, bridge agent has already served a request with this nonce from  a given chain.
-    mapping(uint256 chainId => mapping(uint32 nonce => bool alreadyExecuted)) public executionHistory;
+    /// @notice If true, bridge agent has already served a request with this nonce from  a given chain. Chain -> Nonce -> Bool
+    mapping(uint256 chainId => mapping(uint256 nonce => uint256 state)) public executionState;
 
     /*///////////////////////////////////////////////////////////////
                         GAS MANAGEMENT STATE
@@ -257,14 +257,53 @@ contract RootBridgeAgent is IRootBridgeAgent {
     //////////////////////////////////////////////////////////////*/
 
     /// @inheritdoc IRootBridgeAgent
-    function retrySettlement(uint32 _settlementNonce, uint128 _remoteExecutionGas) external payable override {
-        // Update User Gas available.
+    function retrySettlement(uint32 _settlementNonce, uint128 _remoteExecutionGas) external payable override lock {
+        // Avoid checks if coming form executor
+        if (msg.sender != bridgeAgentExecutorAddress) {
+            // Get deposit owner
+            address depositOwner = getSettlement[_settlementNonce].owner;
+
+            // Check deposit owner
+            if (
+                msg.sender != depositOwner
+                    && msg.sender != address(IPort(localPortAddress).getUserAccount(depositOwner))
+            ) {
+                revert NotSettlementOwner();
+            }
+        }
+
+        //Update User Gas available. 
         if (initialGas == 0) {
             userFeeInfo.depositedGas = uint128(msg.value);
             userFeeInfo.gasToBridgeOut = _remoteExecutionGas;
         }
         // Clear Settlement with updated gas.
         _retrySettlement(_settlementNonce);
+    }
+
+    function retrieveSettlement(uint32 _settlementNonce) external payable lock {
+        //Update User Gas available for retrieve.
+        if (initialGas == 0) {
+            userFeeInfo.depositedGas = uint128(msg.value);
+            userFeeInfo.gasToBridgeOut = 0;
+        } else {
+            //Function is not remote callable
+            return;
+        }
+
+        //Get deposit owner.
+        address settlementOwner = getSettlement[_settlementNonce].owner;
+
+        //Update Deposit
+        if (getSettlement[_settlementNonce].status != SettlementStatus.Failed || settlementOwner == address(0)) {
+            revert SettlementRetrieveUnavailable();
+        } else if (
+            msg.sender != settlementOwner
+                && msg.sender != address(IPort(localPortAddress).getUserAccount(settlementOwner))
+        ) {
+            revert NotSettlementOwner();
+        }
+        _retrieveSettlement(_settlementNonce);
     }
 
     /// @inheritdoc IRootBridgeAgent
@@ -296,7 +335,7 @@ contract RootBridgeAgent is IRootBridgeAgent {
     //////////////////////////////////////////////////////////////*/
 
     /// @inheritdoc IRootBridgeAgent
-    function callOut(address _recipient, bytes memory _data, uint24 _toChain)
+    function callOut(address _recipient, bytes memory _data, uint24 _toChain, bool _hasFallbackToggled)
         external
         payable
         override
@@ -304,8 +343,13 @@ contract RootBridgeAgent is IRootBridgeAgent {
         requiresRouter
     {
         // Encode Data for call.
-        bytes memory data =
-            abi.encodePacked(bytes1(0x00), _recipient, settlementNonce++, _data, _manageGasOut(_toChain));
+        bytes memory data = abi.encodePacked(
+            _hasFallbackToggled ? bytes1(0x00) & 0x0F : bytes1(0x00),
+            _recipient,
+            settlementNonce++,
+            _data,
+            _manageGasOut(_toChain)
+        );
 
         // Perform Call to clear hToken balance on destination branch chain.
         _performCall(data, _toChain);
@@ -319,7 +363,8 @@ contract RootBridgeAgent is IRootBridgeAgent {
         address _globalAddress,
         uint256 _amount,
         uint256 _deposit,
-        uint24 _toChain
+        uint24 _toChain,
+        bool _hasFallbackToggled
     ) external payable override lock requiresRouter {
         // Get destination Local Address from Global Address.
         address localAddress = IPort(localPortAddress).getLocalTokenFromGlobal(_globalAddress, _toChain);
@@ -333,7 +378,7 @@ contract RootBridgeAgent is IRootBridgeAgent {
 
         // Prepare data for call
         bytes memory data = abi.encodePacked(
-            bytes1(0x01),
+            _hasFallbackToggled ? bytes1(0x01) & 0x0F : bytes1(0x01),
             _recipient,
             settlementNonce,
             localAddress,
@@ -364,7 +409,8 @@ contract RootBridgeAgent is IRootBridgeAgent {
         address[] memory _globalAddresses,
         uint256[] memory _amounts,
         uint256[] memory _deposits,
-        uint24 _toChain
+        uint24 _toChain,
+        bool _hasFallbackToggled
     ) external payable override lock requiresRouter {
         // Check if valid length
         if (_globalAddresses.length > MAX_TOKENS_LENGTH) revert InvalidInputParams();
@@ -396,9 +442,12 @@ contract RootBridgeAgent is IRootBridgeAgent {
             }
         }
 
+        // Avoid stack too deep
+        bytes memory __data = _data;
+
         // Prepare data for call with settlement of multiple assets
         bytes memory data = abi.encodePacked(
-            bytes1(0x02),
+            _hasFallbackToggled ? bytes1(0x02) & 0x0F : bytes1(0x02),
             _recipient,
             uint8(hTokens.length),
             settlementNonce,
@@ -406,7 +455,7 @@ contract RootBridgeAgent is IRootBridgeAgent {
             tokens,
             _amounts,
             _deposits,
-            _data,
+            __data,
             _manageGasOut(_toChain)
         );
 
@@ -636,6 +685,20 @@ contract RootBridgeAgent is IRootBridgeAgent {
 
         // Retry call with additional gas
         _performCall(settlement.callData, settlement.toChain);
+    }
+
+    function _retrieveSettlement(uint32 _settlementNonce) internal {
+        //Get settlement storage reference
+        Settlement storage settlementReference = getSettlement[_settlementNonce];
+
+        //Save toChain in memory
+        uint24 toChain = settlementReference.toChain;
+
+        //Encode Data for cross-chain call.
+        bytes memory packedData = abi.encodePacked(bytes1(0x03), _settlementNonce, _manageGasOut(toChain), uint128(0));
+
+        //Retrieve Deposit
+        _performCall(settlementReference.callData, toChain);
     }
 
     /**
@@ -965,7 +1028,7 @@ contract RootBridgeAgent is IRootBridgeAgent {
         userFeeInfo = _userFeeInfo;
 
         // Read Bridge Agent Action Flag attached from cross-chain message header.
-        bytes1 flag = data[0];
+        bytes1 flag = data[0] & 0x7F;
 
         // DEPOSIT FLAG: 0 (System request / response)
         if (flag == 0x00) {
@@ -973,24 +1036,22 @@ contract RootBridgeAgent is IRootBridgeAgent {
             uint32 nonce = uint32(bytes4(data[PARAMS_START:PARAMS_TKN_START]));
 
             // Check if tx has already been executed
-            if (executionHistory[fromChainId][nonce]) {
+            if (executionState[fromChainId][nonce] != 0) {
                 _forceRevert();
                 // Return true to avoid triggering anyFallback in case of `_forceRevert()` failure
                 return (true, "already executed tx");
             }
 
             // Try to execute remote request
-            try RootBridgeAgentExecutor(bridgeAgentExecutorAddress).executeSystemRequest(
-                localRouterAddress, data, fromChainId
-            ) returns (bool, bytes memory res) {
-                (success, result) = (true, res);
-            } catch (bytes memory reason) {
-                // Interaction failure trigger fallback
-                (success, result) = (false, reason);
-            }
-
-            // Update tx state as executed
-            executionHistory[fromChainId][nonce] = true;
+            // Flag 0 - RootBridgeAgentExecutor(bridgeAgentExecutorAddress).executeSystemRequest(localRouterAddress, data, fromChainId)
+            (success, result) = _execute(
+                data[0] & 0x80 == 0x80,
+                nonce,
+                fromChainId,
+                abi.encodeWithSelector(
+                    RootBridgeAgentExecutor.executeSystemRequest.selector, localRouterAddress, data, fromChainId
+                )
+            );
 
             // DEPOSIT FLAG: 1 (Call without Deposit)
         } else if (flag == 0x01) {
@@ -998,24 +1059,22 @@ contract RootBridgeAgent is IRootBridgeAgent {
             uint32 nonce = uint32(bytes4(data[PARAMS_START:PARAMS_TKN_START]));
 
             // Check if tx has already been executed
-            if (executionHistory[fromChainId][nonce]) {
+            if (executionState[fromChainId][nonce] != 0) {
                 _forceRevert();
                 // Return true to avoid triggering anyFallback in case of `_forceRevert()` failure
                 return (true, "already executed tx");
             }
 
             // Try to execute remote request
-            try RootBridgeAgentExecutor(bridgeAgentExecutorAddress).executeNoDeposit(
-                localRouterAddress, data, fromChainId
-            ) returns (bool, bytes memory res) {
-                (success, result) = (true, res);
-            } catch (bytes memory reason) {
-                // No new asset deposit no need to trigger fallback
-                (success, result) = (true, reason);
-            }
-
-            // Update tx state as executed
-            executionHistory[fromChainId][nonce] = true;
+            // Flag 1 - RootBridgeAgentExecutor(bridgeAgentExecutorAddress).executeNoDeposit(localRouterAddress, data, fromChainId)
+            (success, result) = _execute(
+                data[0] & 0x80 == 0x80,
+                nonce,
+                fromChainId,
+                abi.encodeWithSelector(
+                    RootBridgeAgentExecutor.executeNoDeposit.selector, localRouterAddress, data, fromChainId
+                )
+            );
 
             // DEPOSIT FLAG: 2 (Call with Deposit)
         } else if (flag == 0x02) {
@@ -1023,23 +1082,22 @@ contract RootBridgeAgent is IRootBridgeAgent {
             uint32 nonce = uint32(bytes4(data[PARAMS_START:PARAMS_TKN_START]));
 
             // Check if tx has already been executed
-            if (executionHistory[fromChainId][nonce]) {
+            if (executionState[fromChainId][nonce] != 0) {
                 _forceRevert();
                 // Return true to avoid triggering anyFallback in case of `_forceRevert()` failure
                 return (true, "already executed tx");
             }
 
             // Try to execute remote request
-            try RootBridgeAgentExecutor(bridgeAgentExecutorAddress).executeWithDeposit(
-                localRouterAddress, data, fromChainId
-            ) returns (bool, bytes memory res) {
-                (success, result) = (true, res);
-            } catch (bytes memory reason) {
-                result = reason;
-            }
-
-            // Update tx state as executed
-            executionHistory[fromChainId][nonce] = true;
+            // Flag 2 - RootBridgeAgentExecutor(bridgeAgentExecutorAddress).executeWithDeposit(localRouterAddress, data, fromChainId)
+            (success, result) = _execute(
+                data[0] & 0x80 == 0x80,
+                nonce,
+                fromChainId,
+                abi.encodeWithSelector(
+                    RootBridgeAgentExecutor.executeWithDeposit.selector, localRouterAddress, data, fromChainId
+                )
+            );
 
             // DEPOSIT FLAG: 3 (Call with multiple asset Deposit)
         } else if (flag == 0x03) {
@@ -1047,31 +1105,27 @@ contract RootBridgeAgent is IRootBridgeAgent {
             uint32 nonce = uint32(bytes4(data[2:6]));
 
             // Check if tx has already been executed
-            if (executionHistory[fromChainId][nonce]) {
+            if (executionState[fromChainId][nonce] != 0) {
                 _forceRevert();
                 // Return true to avoid triggering anyFallback in case of `_forceRevert()` failure
                 return (true, "already executed tx");
             }
 
             // Try to execute remote request
-            try RootBridgeAgentExecutor(bridgeAgentExecutorAddress).executeWithDepositMultiple(
-                localRouterAddress, data, fromChainId
-            ) returns (bool, bytes memory res) {
-                (success, result) = (true, res);
-            } catch (bytes memory reason) {
-                result = reason;
-            }
-
-            // Update tx state as executed
-            executionHistory[fromChainId][nonce] = true;
+            // Flag 3 - RootBridgeAgentExecutor(bridgeAgentExecutorAddress).executeWithDepositMultiple(localRouterAddress, data, fromChainId)
+            (success, result) = _execute(
+                data[0] & 0x80 == 0x80,
+                nonce,
+                fromChainId,
+                abi.encodeWithSelector(
+                    RootBridgeAgentExecutor.executeWithDepositMultiple.selector, localRouterAddress, data, fromChainId
+                )
+            );
 
             // DEPOSIT FLAG: 4 (Call without Deposit + msg.sender)
         } else if (flag == 0x04) {
-            // Get deposit nonce associated with request being processed
-            uint32 nonce = uint32(bytes4(data[PARAMS_START_SIGNED:25]));
-
-            // Check if tx has already been executed
-            if (executionHistory[fromChainId][nonce]) {
+            //Check if tx has already been executed
+            if (executionState[fromChainId][uint32(bytes4(data[PARAMS_START_SIGNED:25]))] != 0) {
                 _forceRevert();
                 // Return true to avoid triggering anyFallback in case of `_forceRevert()` failure
                 return (true, "already executed tx");
@@ -1086,28 +1140,27 @@ contract RootBridgeAgent is IRootBridgeAgent {
             IPort(localPortAddress).toggleVirtualAccountApproved(userAccount, localRouterAddress);
 
             // Try to execute remote request
-            try RootBridgeAgentExecutor(bridgeAgentExecutorAddress).executeSignedNoDeposit(
-                address(userAccount), localRouterAddress, data, fromChainId
-            ) returns (bool, bytes memory res) {
-                (success, result) = (true, res);
-            } catch (bytes memory reason) {
-                // No new asset deposit no need to trigger fallback
-                (success, result) = (true, reason);
-            }
+            // Flag 4 - RootBridgeAgentExecutor(bridgeAgentExecutorAddress).executeSignedNoDeposit(address(userAccount), localRouterAddress, data, fromChainId
+            (success, result) = _execute(
+                data[0] & 0x80 == 0x80,
+                uint32(bytes4(data[PARAMS_START_SIGNED:25])),
+                fromChainId,
+                abi.encodeWithSelector(
+                    RootBridgeAgentExecutor.executeSignedNoDeposit.selector,
+                    address(userAccount),
+                    localRouterAddress,
+                    data,
+                    fromChainId
+                )
+            );
 
             // Toggle Router Virtual Account use for tx execution
             IPort(localPortAddress).toggleVirtualAccountApproved(userAccount, localRouterAddress);
 
-            // Update tx state as executed
-            executionHistory[fromChainId][nonce] = true;
-
-            // DEPOSIT FLAG: 5 (Call with Deposit + msg.sender)
+            //DEPOSIT FLAG: 5 (Call with Deposit + msg.sender)
         } else if (flag == 0x05) {
-            // Get deposit nonce associated with request being processed
-            uint32 nonce = uint32(bytes4(data[PARAMS_START_SIGNED:25]));
-
-            // Check if tx has already been executed
-            if (executionHistory[fromChainId][nonce]) {
+            //Check if tx has already been executed
+            if (executionState[fromChainId][uint32(bytes4(data[PARAMS_START_SIGNED:25]))] != 0) {
                 _forceRevert();
                 // Return true to avoid triggering anyFallback in case of `_forceRevert()` failure
                 return (true, "already executed tx");
@@ -1122,27 +1175,27 @@ contract RootBridgeAgent is IRootBridgeAgent {
             IPort(localPortAddress).toggleVirtualAccountApproved(userAccount, localRouterAddress);
 
             // Try to execute remote request
-            try RootBridgeAgentExecutor(bridgeAgentExecutorAddress).executeSignedWithDeposit(
-                address(userAccount), localRouterAddress, data, fromChainId
-            ) returns (bool, bytes memory res) {
-                (success, result) = (true, res);
-            } catch (bytes memory reason) {
-                result = reason;
-            }
+            // Flag 5 - RootBridgeAgentExecutor(bridgeAgentExecutorAddress).executeSignedWithDeposit(address(userAccount), localRouterAddress, data, fromChainId)
+            (success, result) = _execute(
+                data[0] & 0x80 == 0x80,
+                uint32(bytes4(data[PARAMS_START_SIGNED:25])),
+                fromChainId,
+                abi.encodeWithSelector(
+                    RootBridgeAgentExecutor.executeSignedWithDeposit.selector,
+                    address(userAccount),
+                    localRouterAddress,
+                    data,
+                    fromChainId
+                )
+            );
 
             // Toggle Router Virtual Account use for tx execution
             IPort(localPortAddress).toggleVirtualAccountApproved(userAccount, localRouterAddress);
-
-            // Update tx state as executed
-            executionHistory[fromChainId][nonce] = true;
 
             // DEPOSIT FLAG: 6 (Call with multiple asset Deposit + msg.sender)
         } else if (flag == 0x06) {
-            // Get nonce
-            uint32 nonce = uint32(bytes4(data[PARAMS_START_SIGNED:25]));
-
             // Check if tx has already been executed
-            if (executionHistory[fromChainId][nonce]) {
+            if (executionState[fromChainId][uint32(bytes4(data[PARAMS_START_SIGNED:25]))] != 0) {
                 _forceRevert();
                 // Return true to avoid triggering anyFallback in case of `_forceRevert()` failure
                 return (true, "already executed tx");
@@ -1157,19 +1210,22 @@ contract RootBridgeAgent is IRootBridgeAgent {
             IPort(localPortAddress).toggleVirtualAccountApproved(userAccount, localRouterAddress);
 
             // Try to execute remote request
-            try RootBridgeAgentExecutor(bridgeAgentExecutorAddress).executeSignedWithDepositMultiple(
-                address(userAccount), localRouterAddress, data, fromChainId
-            ) returns (bool, bytes memory res) {
-                (success, result) = (true, res);
-            } catch (bytes memory reason) {
-                result = reason;
-            }
+            // Flag 6 - RootBridgeAgentExecutor(bridgeAgentExecutorAddress).executeSignedWithDepositMultiple(address(userAccount), localRouterAddress, data, fromChainId)
+            (success, result) = _execute(
+                data[0] & 0x80 == 0x80,
+                uint32(bytes4(data[PARAMS_START_SIGNED:25])),
+                fromChainId,
+                abi.encodeWithSelector(
+                    RootBridgeAgentExecutor.executeSignedWithDepositMultiple.selector,
+                    address(userAccount),
+                    localRouterAddress,
+                    data,
+                    fromChainId
+                )
+            );
 
             // Toggle Router Virtual Account use for tx execution
             IPort(localPortAddress).toggleVirtualAccountApproved(userAccount, localRouterAddress);
-
-            // Update tx state as executed
-            executionHistory[fromChainId][nonce] = true;
 
             /// DEPOSIT FLAG: 7 (retrySettlement)
         } else if (flag == 0x07) {
@@ -1177,39 +1233,43 @@ contract RootBridgeAgent is IRootBridgeAgent {
             uint32 nonce = uint32(bytes4(data[1:5]));
 
             // Check if tx has already been executed
-            if (executionHistory[fromChainId][nonce]) {
+            if (executionState[fromChainId][nonce] != 0) {
                 _forceRevert();
                 // Return true to avoid triggering anyFallback in case of `_forceRevert()` failure
                 return (true, "already executed tx");
             }
 
             // Try to execute remote request
-            try RootBridgeAgentExecutor(bridgeAgentExecutorAddress).executeRetrySettlement(uint32(bytes4(data[5:9])))
-            returns (bool, bytes memory res) {
-                (success, result) = (true, res);
-            } catch (bytes memory reason) {
-                result = reason;
-            }
-
-            // Update tx state as executed
-            executionHistory[fromChainId][nonce] = true;
+            // Flag 7 - RootBridgeAgentExecutor(bridgeAgentExecutorAddress).executeRetrySettlement(uint32(bytes4(data[5:9])))
+            (success, result) = _execute(
+                data[0] & 0x80 == 0x80,
+                nonce,
+                fromChainId,
+                abi.encodeWithSelector(
+                    RootBridgeAgentExecutor.executeRetrySettlement.selector,
+                    uint32(bytes4(data[5:9])),
+                    address(bytes20(data[9:29]))
+                )
+            );
 
             /// DEPOSIT FLAG: 8 (retrieveDeposit)
         } else if (flag == 0x08) {
             // Get nonce
             uint32 nonce = uint32(bytes4(data[1:5]));
 
-            // Check if tx has already been executed
-            if (executionHistory[fromChainId][uint32(bytes4(data[1:5]))]) {
+            // Check if deposit is in retrieve mode
+            if (executionState[fromChainId][nonce] == 2) {
+                // Trigger fallback / Retry failed fallback
+                (success, result) = (false, "");
+            } else if (executionState[fromChainId][nonce] == 1) {
+                // Set deposit to retrieve mode
+                executionState[fromChainId][nonce] = 2;
+                // Trigger fallback / Retry failed fallback
+                (success, result) = (false, "");
+            } else {
                 _forceRevert();
                 // Return true to avoid triggering anyFallback in case of `_forceRevert()` failure
-                return (true, "already executed tx");
-            } else {
-                // Toggle Nonce as executed
-                executionHistory[fromChainId][nonce] = true;
-
-                // Retry failed fallback
-                (success, result) = (false, "");
+                return (true, "not retrievable");
             }
 
             // Unrecognized Function Selector
@@ -1230,6 +1290,33 @@ contract RootBridgeAgent is IRootBridgeAgent {
         }
     }
 
+    function _execute(bool _hasFallbackToggled, uint256 _depositNonce, uint256 _fromChainId, bytes memory _data)
+        private
+        returns (bool success, bytes memory reason)
+    {
+        //Set tx state as executed to prevent reentrancy
+        executionState[_fromChainId][_depositNonce] = 1;
+
+        //Try to execute remote request
+        (success, reason) = bridgeAgentExecutorAddress.call(_data);
+
+        if (success) {
+            //Update tx state as executed
+            executionState[_fromChainId][_depositNonce] = 1;
+        } else {
+            //Read fallback bit and perform fallback if necessary. If not, allow for retrying deposit.
+            if (_hasFallbackToggled) {
+                //Update tx state as retrieve only
+                executionState[_fromChainId][_depositNonce] = 2;
+            } else {
+                //Ensure tx is set as unexecuted
+                executionState[_fromChainId][_depositNonce] = 0;
+                //Interaction failure but allow for retrying deposit
+                success = true;
+            }
+        }
+    }
+
     /// @inheritdoc IApp
     function anyFallback(bytes calldata data)
         external
@@ -1245,8 +1332,8 @@ contract RootBridgeAgent is IRootBridgeAgent {
         (, uint256 _fromChainId) = _getContext();
         uint24 fromChainId = _fromChainId.toUint24();
 
-        // Save Flag
-        bytes1 flag = data[0];
+        // Read Bridge Agent Action Flag attached from cross-chain message header.
+        bytes1 flag = data[0] & 0x7F;
 
         // Deposit nonce
         uint32 _settlementNonce;
@@ -1268,6 +1355,7 @@ contract RootBridgeAgent is IRootBridgeAgent {
         }
         emit LogCalloutFail(flag, data, fromChainId);
 
+        //Pay Fallback Gas
         _payFallbackGas(_settlementNonce, _initialGas);
 
         return (true, "");

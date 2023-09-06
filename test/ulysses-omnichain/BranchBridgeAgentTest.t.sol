@@ -570,7 +570,7 @@ contract BranchBridgeAgentTest is Test {
         vm.deal(address(this), 1 ether);
 
         // Call redeemDeposit
-        bAgent.retryDeposit{value: 0.5 ether}(true, 1, "", 0, localChainId.toUint24());
+        bAgent.retryDeposit{value: 0.5 ether}(true, 1, "", 0, localChainId.toUint24(), true);
 
         require(bAgent.getDepositEntry(1).depositedGas == 0.5 ether, "Gas should be updated");
     }
@@ -629,7 +629,7 @@ contract BranchBridgeAgentTest is Test {
         vm.expectRevert(abi.encodeWithSignature("NotDepositOwner()"));
 
         // Call redeemDeposit
-        bAgent.retryDeposit{value: 0.5 ether}(true, 1, "", 0, localChainId.toUint24());
+        bAgent.retryDeposit{value: 0.5 ether}(true, 1, "", 0, localChainId.toUint24(), true);
     }
 
     function testRetryDepositFailCanAlwaysRetry() public {
@@ -686,7 +686,7 @@ contract BranchBridgeAgentTest is Test {
         vm.deal(address(this), 1 ether);
 
         // Call redeemDeposit
-        bAgent.retryDeposit{value: 0.5 ether}(true, 1, "", 0, localChainId.toUint24());
+        bAgent.retryDeposit{value: 0.5 ether}(true, 1, "", 0, localChainId.toUint24(), true);
     }
 
     function testFuzzExecuteWithSettlement(address, uint256 _amount, uint256 _deposit, uint24 _toChain) public {

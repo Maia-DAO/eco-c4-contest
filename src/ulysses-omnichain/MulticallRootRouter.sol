@@ -130,7 +130,7 @@ contract MulticallRootRouter is IRootRouter, Ownable {
 
         // Move output hTokens from Root to Branch and call 'clearToken'.
         IBridgeAgent(_bridgeAgentAddress).callOutAndBridge{value: msg.value}(
-            owner, recipient, "", outputToken, amountOut, depositOut, toChain
+            owner, recipient, "", outputToken, amountOut, depositOut, toChain, true
         );
     }
 
@@ -165,7 +165,7 @@ contract MulticallRootRouter is IRootRouter, Ownable {
 
         // Move output hTokens from Root to Branch and call 'clearTokens'.
         IBridgeAgent(_bridgeAgentAddress).callOutAndBridgeMultiple{value: msg.value}(
-            owner, recipient, "", outputTokens, amountsOut, depositsOut, toChain
+            owner, recipient, "", outputTokens, amountsOut, depositsOut, toChain, true
         );
     }
 

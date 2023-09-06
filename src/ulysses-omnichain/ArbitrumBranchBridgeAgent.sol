@@ -115,6 +115,10 @@ contract ArbitrumBranchBridgeAgent is BranchBridgeAgent {
         IArbPort(localPortAddress).withdrawFromPort(msg.sender, msg.sender, localAddress, amount);
     }
 
+    /// @inheritdoc IBranchBridgeAgent
+    /// @dev This functionality should be accessed from Root environment
+    function retrySettlement(uint32 _settlementNonce, uint128 _gasToBoostSettlement) external payable override lock {}
+
     /*///////////////////////////////////////////////////////////////
                             INTERNAL FUNCTIONS
     //////////////////////////////////////////////////////////////*/

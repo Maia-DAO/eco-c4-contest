@@ -713,7 +713,7 @@ contract ArbitrumBranchTest is DSTestPlus {
         );
 
         // Call Deposit function
-        arbitrumMulticallBridgeAgent.callOutSignedAndBridge{value: 1 ether}(packedData, depositInput, 0.5 ether);
+        arbitrumMulticallBridgeAgent.callOutSignedAndBridge{value: 1 ether}(packedData, depositInput, 0.5 ether, false);
 
         // Test If Deposit was successful
         testCreateDepositSingle(
@@ -820,7 +820,7 @@ contract ArbitrumBranchTest is DSTestPlus {
         hevm.startPrank(_user);
         arbitrumNativeToken.approve(address(localPortAddress), _deposit);
         ERC20hTokenRoot(newArbitrumAssetGlobalAddress).approve(address(rootPort), _amount - _deposit);
-        arbitrumMulticallBridgeAgent.callOutSignedAndBridge{value: 1 ether}(packedData, depositInput, 0.5 ether);
+        arbitrumMulticallBridgeAgent.callOutSignedAndBridge{value: 1 ether}(packedData, depositInput, 0.5 ether, false);
         hevm.stopPrank();
 
         // Test If Deposit was successful

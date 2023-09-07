@@ -31,6 +31,8 @@ import {RootBridgeAgentFactory} from "@omni/factories/RootBridgeAgentFactory.sol
 import {BranchBridgeAgentFactory} from "@omni/factories/BranchBridgeAgentFactory.sol";
 import {ArbitrumBranchBridgeAgentFactory} from "@omni/factories/ArbitrumBranchBridgeAgentFactory.sol";
 
+import {VirtualAccount, PayableCall} from "@omni/VirtualAccount.sol";
+
 //UTILS
 import {DepositParams, DepositMultipleParams} from "./mocks/MockRootBridgeAgent.t.sol";
 import {Deposit, DepositStatus, DepositMultipleInput, DepositInput} from "@omni/interfaces/IBranchBridgeAgent.sol";
@@ -1411,6 +1413,48 @@ contract RootTest is DSTestPlus {
 
         require(
             MockERC20(newAvaxAssetGlobalAddress).balanceOf(_user) == 150 ether, "Settlement should have been redeemed"
+        );
+    }
+
+    function testPayableCall() public {
+        // Set up
+        testAddLocalTokenArbitrum();
+
+        // Prepare data
+        PayableCall[] memory calls = new PayableCall[](1);
+
+        // Mock Omnichain dApp call
+        calls[0] = PayableCall({
+            target: arbitrumWrappedNativeToken,
+            callData: abi.encodeWithSelector(bytes4(0xd0e30db0)),
+            value: 1 ether
+        });
+
+        // Prank into MulticallBridgeAgent
+        hevm.startPrank(address(multicallBridgeAgent));
+
+        // Get User Virtual Account
+        VirtualAccount userAccount = RootPort(address(rootPort)).fetchVirtualAccount(address(this));
+
+        // Toggle Router Virtual Account use for tx execution
+        RootPort(address(rootPort)).toggleVirtualAccountApproved(userAccount, address(rootMulticallRouter));
+
+        hevm.stopPrank();
+
+        //Prank into MulticallRootRouter
+        hevm.startPrank(address(rootMulticallRouter));
+
+        // Get some gas.
+        hevm.deal(address(rootMulticallRouter), 1 ether);
+
+        // Call Deposit function
+        userAccount.payableCall{value: 1 ether}(calls);
+
+        console2.log("Virtual Account Balance:", MockERC20(arbitrumWrappedNativeToken).balanceOf(address(userAccount)));
+
+        require(
+            MockERC20(arbitrumWrappedNativeToken).balanceOf(address(userAccount)) == 1 ether,
+            "User should have 1 wrapped token"
         );
     }
 

@@ -10,7 +10,7 @@ import {ERC1155Receiver} from "@openzeppelin/contracts/token/ERC1155/utils/ERC11
 import {IERC1155Receiver} from "@openzeppelin/contracts/token/ERC1155/IERC1155Receiver.sol";
 import {IERC721Receiver} from "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 
-import {IVirtualAccount, Call} from "./interfaces/IVirtualAccount.sol";
+import {IVirtualAccount, Call, PayableCall} from "./interfaces/IVirtualAccount.sol";
 import {IRootPort} from "./interfaces/IRootPort.sol";
 
 /// @title VirtualAccount - Contract for managing a virtual user account on the Root Chain
@@ -54,22 +54,51 @@ contract VirtualAccount is IVirtualAccount, ERC1155Receiver {
     }
 
     /// @inheritdoc IVirtualAccount
-    function call(Call[] calldata calls)
-        external
-        override
-        requiresApprovedCaller
-        returns (uint256 blockNumber, bytes[] memory returnData)
-    {
-        blockNumber = block.number;
-        returnData = new bytes[](calls.length);
-        for (uint256 i = 0; i < calls.length; i++) {
+    function call(Call[] calldata calls) external override requiresApprovedCaller returns (bytes[] memory returnData) {
+        uint256 length = calls.length;
+        returnData = new bytes[](length);
+
+        for (uint256 i = 0; i < length;) {
             bool success;
             Call calldata _call = calls[i];
-            if (isContract(_call.target)) {
-                (success, returnData[i]) = _call.target.call(_call.callData);
-            }
+
+            if (isContract(_call.target)) (success, returnData[i]) = _call.target.call(_call.callData);
+
             if (!success) revert CallFailed();
+
+            unchecked {
+                ++i;
+            }
         }
+    }
+
+    /// @inheritdoc IVirtualAccount
+    function payableCall(PayableCall[] calldata calls) public payable returns (bytes[] memory returnData) {
+        uint256 valAccumulator;
+        uint256 length = calls.length;
+        returnData = new bytes[](length);
+        PayableCall calldata _call;
+        for (uint256 i = 0; i < length;) {
+            _call = calls[i];
+            uint256 val = _call.value;
+            // Humanity will be a Type V Kardashev Civilization before this overflows - andreas
+            // ~ 10^25 Wei in existence << ~ 10^76 size uint fits in a uint256
+            unchecked {
+                valAccumulator += val;
+            }
+
+            bool success;
+
+            if (isContract(_call.target)) (success, returnData[i]) = _call.target.call{value: val}(_call.callData);
+
+            if (!success) revert CallFailed();
+
+            unchecked {
+                ++i;
+            }
+        }
+        // Finally, make sure the msg.value = SUM(call[0...i].value)
+        if (msg.value != valAccumulator) revert CallFailed();
     }
 
     /*//////////////////////////////////////////////////////////////
